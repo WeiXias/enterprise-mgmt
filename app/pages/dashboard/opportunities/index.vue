@@ -1,37 +1,27 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', title: '商机', middleware: ['auth'] })
 
-import { jsonToCsv, downloadCsv } from '~/utils/export-csv'
-
 const toast = useToast()
 const { $api } = useNuxtApp()
 
-// 导出
-function handleExport() {
-  $api('/api/opportunities', { params: { pageSize: 9999 } }).then((res: any) => {
-    const items = res?.data?.items || []
-    const columns = [
-      { key: 'name', label: '商机名称' },
-      { key: 'customer?.name', label: '客户' },
-      { key: 'estimatedAmount', label: '预估金额', format: (v: number) => '¥' + v },
-      { key: 'status', label: '状态' },
-      { key: 'owner?.name', label: '负责人' },
-    ]
-    const csv = jsonToCsv(items, columns)
-    downloadCsv(csv, `商机列表_${new Date().toISOString().slice(0,10)}.csv`)
-  }).catch(() => {})
-}
-
 // 列表数据
-const opportunities = ref<any[]>([])
-const loading = ref(true)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
+const { loading, list: items, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchOpportunities } = useTable<any>({ apiUrl: '/api/opportunities' })
 
-// 搜索筛选
-const keyword = ref('')
+// 状态筛选
 const statusFilter = ref('')
+watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
+
+// 导出
+const { exportCsv } = useExportCsv()
+function handleExport() {
+  exportCsv('/api/opportunities', [
+    { key: 'name', label: '商机名称' },
+    { key: 'customer?.name', label: '客户' },
+    { key: 'estimatedAmount', label: '预估金额', format: (v: unknown) => '¥' + v },
+    { key: 'status', label: '状态' },
+    { key: 'owner?.name', label: '负责人' },
+  ], `商机列表_${new Date().toISOString().slice(0,10)}.csv`)
+}
 
 // 新增商机弹窗
 const showCreateModal = ref(false)
@@ -73,25 +63,6 @@ const sourceOptions = ['线上咨询', '老客户推荐', '展会活动', '电�
 
 // 阶段流转选项（从前一阶段可以往后一阶段推）
 const stageFlow = ['initial_contact', 'requirement_confirmed', 'proposal_submitted', 'business_negotiation']
-
-async function fetchOpportunities() {
-  loading.value = true
-  try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
-    if (keyword.value) params.keyword = keyword.value
-    if (statusFilter.value) params.status = statusFilter.value
-
-    const res = await $api('/api/opportunities', { params }) as any
-    if (res?.code === 0) {
-      opportunities.value = res.data.items
-      total.value = res.data.total
-    }
-  } catch (err: any) {
-    toast.add({ title: '加载商机列表出了点问题', color: 'error' })
-  } finally {
-    loading.value = false
-  }
-}
 
 async function fetchCustomerOptions() {
   try {
@@ -273,14 +244,6 @@ function resetCreateForm() {
   }
 }
 
-function getStatusLabel(status: string) {
-  return statusConfig[status]?.label || status
-}
-
-function getStatusColor(status: string) {
-  return statusConfig[status]?.color || 'bg-stone-100 text-stone-600'
-}
-
 function canAdvance(status: string) {
   const idx = stageFlow.indexOf(status)
   return idx >= 0 && idx < stageFlow.length - 1
@@ -299,23 +262,6 @@ function formatAmount(amount: number | null) {
   return '¥' + Number(amount).toLocaleString()
 }
 
-// 搜索防抖
-let searchTimer: any = null
-function onSearchInput() {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    fetchOpportunities()
-  }, 300)
-}
-
-function onFilterChange() {
-  page.value = 1
-  fetchOpportunities()
-}
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
-
 onMounted(() => {
   fetchOpportunities()
   fetchCustomerOptions()
@@ -325,18 +271,16 @@ onMounted(() => {
 <template>
   <div>
     <!-- 页面标题 + 操作按钮 -->
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-medium text-stone-800">商机</h1>
-        <p class="text-sm text-stone-400 mt-0.5">看看哪些单子快成了</p>
-      </div>
-            <div class="flex items-center gap-2">
-        <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
-        <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCustomerOptions()">
-          添加商机
-        </UButton>
-      </div>
-    </div>
+    <CommonPageHeader title="商机" description="看看哪些单子快成了">
+      <template #actions>
+        <div class="flex items-center gap-2">
+          <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
+          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCustomerOptions()">
+            添加商机
+          </UButton>
+        </div>
+      </template>
+    </CommonPageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -353,7 +297,6 @@ onMounted(() => {
       <select
         v-model="statusFilter"
         class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
-        @change="onFilterChange"
       >
         <option value="">全部阶段</option>
         <option value="initial_contact">初步接触</option>
@@ -368,14 +311,14 @@ onMounted(() => {
 
     <!-- 商机列表 -->
     <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="opportunities.length === 0" class="text-center py-12 text-stone-400">
+    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">
       <UIcon name="i-lucide-target" class="w-10 h-10 mx-auto mb-2 text-stone-300" />
       <p class="text-sm">还没有商机，加一个？</p>
       <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCustomerOptions()">添加商机</UButton>
     </div>
     <div v-else class="space-y-2">
       <div
-        v-for="opp in opportunities"
+        v-for="opp in items"
         :key="opp.id"
         class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group"
         @click="$router.push(`/dashboard/opportunities/${opp.id}`)"
@@ -389,9 +332,7 @@ onMounted(() => {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-stone-800 truncate">{{ opp.name }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(opp.status)]">
-              {{ getStatusLabel(opp.status) }}
-            </span>
+            <StatusBadge :value="opp.status" enum-type="opportunityStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-stone-400">
             <span v-if="opp.customer?.name">
@@ -435,13 +376,7 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
-      <div class="flex gap-1">
-        <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchOpportunities()">上一页</UButton>
-        <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchOpportunities()">下一页</UButton>
-      </div>
-    </div>
+    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchOpportunities" @next="fetchOpportunities" />
 
     <!-- 新增商机弹窗 -->
     <UModal v-model:open="showCreateModal">
@@ -535,20 +470,17 @@ onMounted(() => {
     </UModal>
 
     <!-- 删除确认弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">
-          确定要删除商机「{{ deleteTarget?.name }}」吗？删除后数据将无法恢复。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false; deleteTarget = null">再想想</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除商机「${deleteTarget?.name}」吗？删了就找不回来了。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
 
     <!-- 赢单确认弹窗 -->
     <UModal v-model:open="showWinModal">

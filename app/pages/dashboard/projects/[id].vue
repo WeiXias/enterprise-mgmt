@@ -9,7 +9,7 @@ const projectId = route.params.id as string
 
 const project = ref<any>(null)
 const loading = ref(true)
-const activeTab = ref('tasks')
+const activeTab = ref('0')
 
 // 用户列表
 const userOptions = ref<any[]>([])
@@ -334,11 +334,6 @@ const tasksByStatus = computed(() => ({
   completed: (project.value?.tasks || []).filter((t: any) => t.status === 'completed'),
 }))
 
-const tabs = [
-  { key: 'tasks', label: '任务看板' },
-  { key: 'gantt', label: '甘特图' },
-  { key: 'comments', label: '讨论' },
-]
 
 onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments() })
 </script>
@@ -452,104 +447,105 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
       <!-- 右：标签页内容 -->
       <div class="lg:col-span-3">
         <!-- Tab 导航 -->
-        <div class="flex items-center gap-1 mb-3 border-b border-stone-100 pb-2">
-          <button
-            v-for="tab in tabs" :key="tab.key"
-            :class="['text-sm px-3 py-1.5 rounded-t-lg transition-colors', activeTab === tab.key ? 'text-amber-600 font-medium border-b-2 border-amber-400' : 'text-stone-400 hover:text-stone-600']"
-            @click="activeTab = tab.key"
-          >{{ tab.label }}</button>
-        </div>
-
-        <!-- 任务看板 -->
-        <div v-if="activeTab === 'tasks'">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-stone-700">任务看板</h3>
-            <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openTaskModal()">添加任务</UButton>
-          </div>
-          <div class="grid grid-cols-3 gap-4">
-            <div v-for="col in [{s:'todo', l:'待办'}, {s:'in_progress', l:'进行中'}, {s:'completed', l:'已完成'}]" :key="col.s">
-              <div class="text-xs text-stone-400 mb-2 font-medium">{{ col.l }} ({{ tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length }})</div>
-              <div class="space-y-2">
-                <div v-for="t in tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s]" :key="t.id" :class="['warm-card p-3 text-sm cursor-pointer hover:shadow-sm transition-shadow', col.s === 'in_progress' ? 'border-l-2 border-blue-400' : '']" @click="openTaskModal(t)">
-                  <div class="flex items-center justify-between mb-1">
-                    <div class="flex items-center gap-1">
-                      <UIcon v-if="t.parentId" name="i-lucide-link" class="w-3 h-3 text-stone-300" />
-                      <span :class="['font-medium text-stone-700', t.status === 'completed' ? 'line-through opacity-60' : '']">{{ t.name || t.title }}</span>
+        <UTabs :items="[
+          { label: '任务看板', slot: 'tasks' },
+          { label: '甘特图', slot: 'gantt' },
+          { label: '讨论', slot: 'comments' },
+        ]" v-model="activeTab" :unmount-on-hide="false">
+          <template #tasks>
+            <div class="mt-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium text-stone-700">任务看板</h3>
+                <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openTaskModal()">添加任务</UButton>
+              </div>
+              <div class="grid grid-cols-3 gap-4">
+                <div v-for="col in [{s:'todo', l:'待办'}, {s:'in_progress', l:'进行中'}, {s:'completed', l:'已完成'}]" :key="col.s">
+                  <div class="text-xs text-stone-400 mb-2 font-medium">{{ col.l }} ({{ tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length }})</div>
+                  <div class="space-y-2">
+                    <div v-for="t in tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s]" :key="t.id" :class="['warm-card p-3 text-sm cursor-pointer hover:shadow-sm transition-shadow', col.s === 'in_progress' ? 'border-l-2 border-blue-400' : '']" @click="openTaskModal(t)">
+                      <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-1">
+                          <UIcon v-if="t.parentId" name="i-lucide-link" class="w-3 h-3 text-stone-300" />
+                          <span :class="['font-medium text-stone-700', t.status === 'completed' ? 'line-through opacity-60' : '']">{{ t.name || t.title }}</span>
+                        </div>
+                        <span :class="['text-[10px] px-1 py-0.5 rounded-full', priorityConfig[t.priority]?.color || '']">{{ priorityConfig[t.priority]?.label || '中' }}</span>
+                      </div>
+                      <div class="flex items-center justify-between text-xs text-stone-400">
+                        <span v-if="t.assigneeId">{{ project.members?.find((m: any) => m.userId === t.assigneeId)?.name || '-' }}</span>
+                        <span v-else class="text-stone-300">未分配</span>
+                        <span v-if="t.endDate">{{ t.endDate }}</span>
+                      </div>
+                      <div v-if="t.parentId && col.s === 'todo'" class="text-[10px] text-stone-400 mt-1 pt-1 border-t border-stone-50">
+                        <UIcon name="i-lucide-link" class="w-3 h-3 inline mr-0.5" />依赖: {{ (project?.tasks || []).find((p:any) => p.id === t.parentId)?.name || t.parentId }} ({{ (project?.tasks || []).find((p:any) => p.id === t.parentId)?.status === 'completed' ? '已完成' : '未完成' }})
+                      </div>
+                      <div class="flex gap-1 mt-2 pt-2 border-t border-stone-50">
+                        <template v-if="col.s === 'todo'">
+                          <UButton size="xs" variant="ghost" color="info" label="开始" @click.stop="handleTaskStatus(t.id, 'in_progress')" />
+                        </template>
+                        <template v-if="col.s === 'in_progress'">
+                          <UButton size="xs" variant="ghost" color="primary" label="完成" @click.stop="handleTaskStatus(t.id, 'completed')" />
+                          <UButton size="xs" variant="ghost" color="warning" label="退回" @click.stop="handleTaskStatus(t.id, 'todo')" />
+                        </template>
+                        <UButton size="xs" variant="ghost" color="error" label="删除" @click.stop="handleDeleteTask(t.id)" />
+                      </div>
                     </div>
-                    <span :class="['text-[10px] px-1 py-0.5 rounded-full', priorityConfig[t.priority]?.color || '']">{{ priorityConfig[t.priority]?.label || '中' }}</span>
-                  </div>
-                  <div class="flex items-center justify-between text-xs text-stone-400">
-                    <span v-if="t.assigneeId">{{ project.members?.find((m: any) => m.userId === t.assigneeId)?.name || '-' }}</span>
-                    <span v-else class="text-stone-300">未分配</span>
-                    <span v-if="t.endDate">{{ t.endDate }}</span>
-                  </div>
-                  <div v-if="t.parentId && col.s === 'todo'" class="text-[10px] text-stone-400 mt-1 pt-1 border-t border-stone-50">
-                    <UIcon name="i-lucide-link" class="w-3 h-3 inline mr-0.5" />依赖: {{ (project?.tasks || []).find((p:any) => p.id === t.parentId)?.name || t.parentId }} ({{ (project?.tasks || []).find((p:any) => p.id === t.parentId)?.status === 'completed' ? '已完成' : '未完成' }})
-                  </div>
-                  <div class="flex gap-1 mt-2 pt-2 border-t border-stone-50">
-                    <template v-if="col.s === 'todo'">
-                      <UButton size="xs" variant="ghost" color="info" label="开始" @click.stop="handleTaskStatus(t.id, 'in_progress')" />
-                    </template>
-                    <template v-if="col.s === 'in_progress'">
-                      <UButton size="xs" variant="ghost" color="primary" label="完成" @click.stop="handleTaskStatus(t.id, 'completed')" />
-                      <UButton size="xs" variant="ghost" color="warning" label="退回" @click.stop="handleTaskStatus(t.id, 'todo')" />
-                    </template>
-                    <UButton size="xs" variant="ghost" color="error" label="删除" @click.stop="handleDeleteTask(t.id)" />
+                    <div v-if="tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length === 0" class="text-xs text-stone-300 text-center py-4">暂无</div>
                   </div>
                 </div>
-                <div v-if="tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length === 0" class="text-xs text-stone-300 text-center py-4">暂无</div>
               </div>
             </div>
-          </div>
-        </div>
+          </template>
 
-        <!-- 甘特图 -->
-        <div v-if="activeTab === 'gantt'" class="warm-card">
-          <ProjectsGanttChart
-            :tasks="(project?.tasks || []).map((t: any) => ({ id: t.id, title: t.name || t.title, assigneeName: project.members?.find((m: any) => m.userId === t.assigneeId)?.name, startDate: t.startDate, endDate: t.endDate, parentId: t.parentId, progress: t.progress || (t.status === 'completed' ? 100 : t.status === 'in_progress' ? 50 : 0), status: t.status }))"
-            :milestones="milestones"
-          />
-        </div>
-
-        <!-- 讨论/评论 -->
-        <div v-if="activeTab === 'comments'">
-          <div class="warm-card">
-            <h3 class="text-sm font-medium text-stone-700 mb-3">讨论</h3>
-            <!-- 评论列表 -->
-            <div v-if="commentLoading" class="text-center py-4 text-stone-400 text-xs">加载中...</div>
-            <div v-else-if="comments.length === 0" class="text-center py-6 text-stone-300 text-xs">暂无讨论，来说点什么吧</div>
-            <div v-else class="space-y-3 mb-4">
-              <div v-for="c in comments" :key="c.id" class="p-3 rounded-lg bg-stone-50">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center"><span class="text-amber-700 text-xs">{{ (c.userName || '?').charAt(0) }}</span></div>
-                  <span class="text-sm text-stone-700">{{ c.userName }}</span>
-                  <span class="text-xs text-stone-400">{{ c.createdAt?.slice(0, 10) }}</span>
-                </div>
-                <p class="text-sm text-stone-600 ml-8">{{ c.content }}</p>
-              </div>
+          <template #gantt>
+            <div class="mt-4 warm-card">
+              <ProjectsGanttChart
+                :tasks="(project?.tasks || []).map((t: any) => ({ id: t.id, title: t.name || t.title, assigneeName: project.members?.find((m: any) => m.userId === t.assigneeId)?.name, startDate: t.startDate, endDate: t.endDate, parentId: t.parentId, progress: t.progress || (t.status === 'completed' ? 100 : t.status === 'in_progress' ? 50 : 0), status: t.status }))"
+                :milestones="milestones"
+              />
             </div>
-            <!-- 发表评论 -->
-            <div class="flex gap-2 pt-3 border-t border-stone-100 relative">
-              <div class="flex-1 relative">
-                <input v-model="newComment" type="text" placeholder="输入评论...（输入 @ 选择成员）" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" @keyup.enter="handlePostComment" @input="onCommentInput" @keydown="onMentionKeydown" />
-                <!-- 提及候选列表 -->
-                <div v-if="showMentionList && mentionableMembers.length" class="absolute bottom-full left-0 mb-1 w-56 bg-white rounded-lg border border-stone-200 shadow-lg overflow-hidden z-10">
-                  <div
-                    v-for="(m, i) in mentionableMembers" :key="m.userId"
-                    :class="['flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-amber-50 transition-colors', i === mentionIndex ? 'bg-amber-50' : '']"
-                    @mousedown.prevent="insertMention(m)"
-                  >
-                    <div class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
-                      <span class="text-amber-700 text-xs">{{ m.name?.charAt(0) || '?' }}</span>
+          </template>
+
+          <template #comments>
+            <div class="mt-4">
+              <div class="warm-card">
+                <h3 class="text-sm font-medium text-stone-700 mb-3">讨论</h3>
+                <!-- 评论列表 -->
+                <div v-if="commentLoading" class="text-center py-4 text-stone-400 text-xs">加载中...</div>
+                <div v-else-if="comments.length === 0" class="text-center py-6 text-stone-300 text-xs">暂无讨论，来说点什么吧</div>
+                <div v-else class="space-y-3 mb-4">
+                  <div v-for="c in comments" :key="c.id" class="p-3 rounded-lg bg-stone-50">
+                    <div class="flex items-center gap-2 mb-1">
+                      <div class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center"><span class="text-amber-700 text-xs">{{ (c.userName || '?').charAt(0) }}</span></div>
+                      <span class="text-sm text-stone-700">{{ c.userName }}</span>
+                      <span class="text-xs text-stone-400">{{ c.createdAt?.slice(0, 10) }}</span>
                     </div>
-                    <span class="text-stone-700">{{ m.name }}</span>
+                    <p class="text-sm text-stone-600 ml-8">{{ c.content }}</p>
                   </div>
                 </div>
+                <!-- 发表评论 -->
+                <div class="flex gap-2 pt-3 border-t border-stone-100 relative">
+                  <div class="flex-1 relative">
+                    <input v-model="newComment" type="text" placeholder="输入评论...（输入 @ 选择成员）" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" @keyup.enter="handlePostComment" @input="onCommentInput" @keydown="onMentionKeydown" />
+                    <!-- 提及候选列表 -->
+                    <div v-if="showMentionList && mentionableMembers.length" class="absolute bottom-full left-0 mb-1 w-56 bg-white rounded-lg border border-stone-200 shadow-lg overflow-hidden z-10">
+                      <div
+                        v-for="(m, i) in mentionableMembers" :key="m.userId"
+                        :class="['flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-amber-50 transition-colors', i === mentionIndex ? 'bg-amber-50' : '']"
+                        @mousedown.prevent="insertMention(m)"
+                      >
+                        <div class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+                          <span class="text-amber-700 text-xs">{{ m.name?.charAt(0) || '?' }}</span>
+                        </div>
+                        <span class="text-stone-700">{{ m.name }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <UButton icon="i-lucide-send" color="primary" size="sm" :disabled="!newComment.trim()" @click="handlePostComment" />
+                </div>
               </div>
-              <UButton icon="i-lucide-send" color="primary" size="sm" :disabled="!newComment.trim()" @click="handlePostComment" />
             </div>
-          </div>
-        </div>
+          </template>
+        </UTabs>
       </div>
     </div>
 
@@ -627,10 +623,15 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
     </UModal>
 
     <!-- 删除弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body><p class="text-sm text-stone-600">确定要删除项目「{{ project.name }}」吗？删了就找不回来了。</p></template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeleteModal = false">再想想</UButton><UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton></div></template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除项目「${project.name}」吗？删了就找不回来。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+    />
   </div>
 </template>

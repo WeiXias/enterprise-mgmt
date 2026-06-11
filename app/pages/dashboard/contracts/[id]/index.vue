@@ -922,18 +922,16 @@ async function deleteSubcontract(sc: any) {
     </UModal>
 
     <!-- 删除弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">确定要删除合同「{{ contract.name }}」吗？删了就找不回来了。</p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false">再想想</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除合同「${contract.name}」吗？删了就找不回来。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+    />
 
     <!-- 分包合同弹窗 -->
     <UModal v-model:open="showSubcontractModal">

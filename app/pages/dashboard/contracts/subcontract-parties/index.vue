@@ -81,10 +81,16 @@ onMounted(fetchItems)
       <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton><UButton color="primary" :loading="saving" @click="handleSave">保存</UButton></div></template>
     </UModal>
 
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body><p class="text-sm text-stone-600">确定要删除分包对象「{{ deleteTarget?.name }}」吗？</p></template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeleteModal = false">取消</UButton><UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton></div></template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除分包对象「${deleteTarget?.name}」吗？删了就找不回来。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
   </div>
 </template>

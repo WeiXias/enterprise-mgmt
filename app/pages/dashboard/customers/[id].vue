@@ -76,14 +76,6 @@ const followUpForm = ref({ type: 'phone', content: '', nextFollowUpAt: '' })
 // 行业选项
 const industryOptions = ['信息技术', '软件开发', '人工智能', '网络安全', '电子商务', '制造业', '金融', '教育', '医疗', '房地产', '物流', '其他']
 
-// 跟进方式
-const followUpTypes: Record<string, string> = {
-  phone: '电话沟通',
-  visit: '上门拜访',
-  wechat: '微信沟通',
-  email: '邮件沟通',
-  other: '其他方式',
-}
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
   potential: { label: '潜在客户', color: 'bg-stone-100 text-stone-600', dot: 'bg-stone-400' },
@@ -383,27 +375,7 @@ onMounted(() => {
       <!-- 右栏：跟进记录 -->
       <div>
         <div class="warm-card">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-stone-700">跟进记录</h3>
-            <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="showFollowUpModal = true">添加</UButton>
-          </div>
-          <div v-if="!customer.latestFollowUps?.length" class="text-xs text-stone-400 py-4 text-center">暂无跟进记录</div>
-          <div v-else class="relative pl-4 border-l-2 border-stone-100 space-y-4">
-            <div v-for="fu in customer.latestFollowUps" :key="fu.id" class="relative">
-              <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-amber-300 border-2 border-white" />
-              <div>
-                <div class="flex items-center gap-2 mb-0.5">
-                  <span class="text-[10px] px-1 py-0.5 rounded bg-stone-100 text-stone-500">{{ followUpTypes[fu.type] || fu.type }}</span>
-                  <span class="text-[10px] text-stone-400">{{ fu.createdAt }}</span>
-                </div>
-                <p class="text-sm text-stone-600">{{ fu.content }}</p>
-                <p v-if="fu.user?.name" class="text-[10px] text-stone-400 mt-0.5">{{ fu.user.name }}</p>
-                <p v-if="fu.nextFollowUpAt" class="text-[10px] text-amber-600 mt-0.5">
-                  下次跟进：{{ fu.nextFollowUpAt }}
-                </p>
-              </div>
-            </div>
-          </div>
+          <CommonFollowUpList :items="customer.latestFollowUps || []" @add="showFollowUpModal = true" />
         </div>
       </div>
     </div>
@@ -500,22 +472,7 @@ onMounted(() => {
     <UModal v-model:open="showFollowUpModal">
       <template #header>添加跟进记录</template>
       <template #body>
-        <form class="space-y-3" @submit.prevent="handleAddFollowUp">
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">跟进方式</label>
-            <select v-model="followUpForm.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-              <option v-for="(label, key) in followUpTypes" :key="key" :value="key">{{ label }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">跟进内容 <span class="text-red-400">*</span></label>
-            <textarea v-model="followUpForm.content" rows="3" placeholder="记录一下沟通了什么..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">下次跟进时间</label>
-            <input v-model="followUpForm.nextFollowUpAt" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-          </div>
-        </form>
+        <CommonFollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleAddFollowUp" />
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">

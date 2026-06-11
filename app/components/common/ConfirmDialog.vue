@@ -1,11 +1,6 @@
 <script setup lang="ts">
-/**
- * 确认弹窗组件 — 提取共通的删除确认模式
- * 口语化文案，暖色警告风格
- */
-
 interface Props {
-  modelValue: boolean
+  open?: boolean
   title?: string
   message?: string
   confirmText?: string
@@ -24,27 +19,27 @@ withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
+  'update:open': [value: boolean]
   confirm: []
   cancel: []
 }>()
 </script>
 
 <template>
-  <UModal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
+  <UModal :open="open" @update:open="emit('update:open', $event)">
     <template #header>{{ title }}</template>
     <template #body>
       <p class="text-sm text-stone-600">{{ message }}</p>
     </template>
     <template #footer>
       <div class="flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="$emit('cancel'); $emit('update:modelValue', false)">
+        <UButton variant="ghost" color="neutral" @click="emit('cancel'); emit('update:open', false)">
           {{ cancelText }}
         </UButton>
         <UButton
           :color="danger ? 'error' : 'primary'"
           :loading="loading"
-          @click="$emit('confirm')"
+          @click="emit('confirm')"
         >
           {{ confirmText }}
         </UButton>

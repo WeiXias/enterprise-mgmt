@@ -1,7 +1,15 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', title: '合同', middleware: ['auth'] })
 
-import { jsonToCsv, downloadCsv } from '~/utils/export-csv'
+// 列表数据（useTable）
+const { loading, list: contractsList, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchContracts } = useTable<any>({ apiUrl: '/api/contracts' })
+
+// 导出（useExportCsv）
+const { exportCsv } = useExportCsv()
+
+// 状态筛选（独立 ref，通过 watch 联动 useTable）
+const statusFilter = ref('')
+watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -31,14 +39,9 @@ function toggleSelectAll() {
 // 转交
 const showTransferModal = ref(false)
 const transferTargetIds = ref<string[]>([])
-const transferToUserId = ref('')
-const transferReason = ref('')
-const transferLoading = ref(false)
 
 function openTransferModal(ids: string[]) {
   transferTargetIds.value = ids
-  transferToUserId.value = ''
-  transferReason.value = ''
   showTransferModal.value = true
 }
 
@@ -46,78 +49,16 @@ function openSingleTransfer(ct: any) {
   openTransferModal([ct.id])
 }
 
-async function handleTransfer() {
-  if (!transferToUserId.value) {
-    toast.add({ title: '新归属人还没选呢', color: 'warning' })
-    return
-  }
-  transferLoading.value = true
-  try {
-    const body: any = { contractIds: transferTargetIds.value, toUserId: transferToUserId.value }
-    if (transferReason.value) body.reason = transferReason.value
-    const res = await $api('/api/contracts/batch-transfer', { method: 'POST', body }) as any
-    if (res?.code === 0) {
-      toast.add({ title: res.message || '转交完成', color: 'success' })
-      showTransferModal.value = false
-      selectedIds.value = new Set()
-      fetchContracts()
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '转交失败', color: 'error' })
-  } finally {
-    transferLoading.value = false
-  }
-}
-
-// 用户列表
-const userOptions = ref<{ id: string; name: string; username: string; role: string }[]>([])
-const userSearchKeyword = ref('')
-const userSearchLoading = ref(false)
-
-async function loadUsers() {
-  userSearchLoading.value = true
-  try {
-    const params: Record<string, any> = { pageSize: 200 }
-    if (userSearchKeyword.value) params.keyword = userSearchKeyword.value
-    const res = await $api('/api/users', { params }) as any
-    if (res?.code === 0) {
-      userOptions.value = res.data.items || []
-    }
-  } catch { /* ignore */ }
-  finally { userSearchLoading.value = false }
-}
-
-let userSearchTimer: any = null
-function onUserSearch() {
-  clearTimeout(userSearchTimer)
-  userSearchTimer = setTimeout(loadUsers, 250)
-}
-
 function handleExport() {
-  $api('/api/contracts', { params: { pageSize: 9999 } }).then((res: any) => {
-    const items = res?.data?.items || []
-    const columns = [
-      { key: 'code', label: '合同编号' },
-      { key: 'name', label: '合同名称' },
-      { key: 'customer?.name', label: '客户' },
-      { key: 'totalAmount', label: '金额', format: (v: number) => '¥' + v },
-      { key: 'status', label: '状态' },
-    ]
-    const csv = jsonToCsv(items, columns)
-    downloadCsv(csv, `合同列表_${new Date().toISOString().slice(0,10)}.csv`)
-  }).catch(() => {})
+  const columns = [
+    { key: 'code', label: '合同编号' },
+    { key: 'name', label: '合同名称' },
+    { key: 'customer?.name', label: '客户' },
+    { key: 'totalAmount', label: '金额', format: (v: unknown) => '¥' + v },
+    { key: 'status', label: '状态' },
+  ]
+  exportCsv('/api/contracts', columns, `合同列表_${new Date().toISOString().slice(0,10)}.csv`)
 }
-
-// 列表数据
-const contractsList = ref<any[]>([])
-const loading = ref(true)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-
-// 搜索筛选
-const keyword = ref('')
-const statusFilter = ref('')
 
 // 客户列表（供创建选择）
 const customerOptions = ref<any[]>([])
@@ -146,6 +87,11 @@ const editForm = ref<any>({})
 const showDeleteModal = ref(false)
 const deleteTarget = ref<any>(null)
 const deleteLoading = ref(false)
+const deleteMessage = computed(() =>
+  deleteTarget.value?.status === 'approved'
+    ? `合同「${deleteTarget.value?.name}」已审批通过，管理员删除请谨慎操作。`
+    : `确定要删除合同「${deleteTarget.value?.name}」吗？删了就找不回来了。`
+)
 
 // 审批弹窗
 const showApproveModal = ref(false)
@@ -158,15 +104,6 @@ const rejectTarget = ref<any>(null)
 const rejectLoading = ref(false)
 const rejectReason = ref('')
 
-// 合同状态
-const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: '草稿', color: 'bg-stone-100 text-stone-600' },
-  approved: { label: '已审批', color: 'bg-blue-50 text-blue-600' },
-  in_progress: { label: '执行中', color: 'bg-amber-50 text-amber-700' },
-  completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
-  terminated: { label: '已终止', color: 'bg-red-50 text-red-600' },
-}
-
 // 付款方式
 const paymentMethodLabels: Record<string, string> = {
   bank_transfer: '银行转账',
@@ -175,25 +112,6 @@ const paymentMethodLabels: Record<string, string> = {
   alipay: '支付宝',
   wechat_pay: '微信支付',
   other: '其他',
-}
-
-async function fetchContracts() {
-  loading.value = true
-  try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
-    if (keyword.value) params.keyword = keyword.value
-    if (statusFilter.value) params.status = statusFilter.value
-
-    const res = await $api('/api/contracts', { params }) as any
-    if (res?.code === 0) {
-      contractsList.value = res.data.items
-      total.value = res.data.total
-    }
-  } catch (err: any) {
-    toast.add({ title: '加载合同列表出了点问题', color: 'error' })
-  } finally {
-    loading.value = false
-  }
 }
 
 async function fetchCustomers() {
@@ -335,61 +253,33 @@ function resetCreateForm() {
   }
 }
 
-function getStatusLabel(status: string) {
-  return statusConfig[status]?.label || status
-}
-
-function getStatusColor(status: string) {
-  return statusConfig[status]?.color || 'bg-stone-100 text-stone-600'
-}
-
 function formatMoney(v: any) {
   const n = Number(v)
   if (!n) return '-'
   return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 }
 
-// 搜索防抖
-let searchTimer: any = null
-function onSearchInput() {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    fetchContracts()
-  }, 300)
-}
-
-function onFilterChange() {
-  page.value = 1
-  fetchContracts()
-}
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
-
 onMounted(() => {
   fetchContracts()
   fetchCustomers()
-  loadUsers()
 })
 </script>
 
 <template>
   <div>
     <!-- 页面标题 -->
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-medium text-stone-800">合同</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理合同、收款和审批</p>
-      </div>
-            <div class="flex items-center gap-2">
-        <UButton v-if="isAdminOrManager()" icon="i-lucide-layout-template" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/contracts/templates')">模板</UButton>
-        <UButton v-if="selectedIds.size > 0 && isAdminOrManager()" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
-        <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
-        <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">
-          添加合同
-        </UButton>
-      </div>
-    </div>
+    <CommonPageHeader title="合同" description="管理合同、收款和审批">
+      <template #actions>
+        <div class="flex items-center gap-2">
+          <UButton v-if="isAdminOrManager()" icon="i-lucide-layout-template" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/contracts/templates')">模板</UButton>
+          <UButton v-if="selectedIds.size > 0 && isAdminOrManager()" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
+          <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
+          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">
+            添加合同
+          </UButton>
+        </div>
+      </template>
+    </CommonPageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -406,7 +296,6 @@ onMounted(() => {
       <select
         v-model="statusFilter"
         class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
-        @change="onFilterChange"
       >
         <option value="">全部状态</option>
         <option value="draft">草稿</option>
@@ -452,9 +341,7 @@ onMounted(() => {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-stone-800 truncate">{{ ct.name }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(ct.status)]">
-              {{ getStatusLabel(ct.status) }}
-            </span>
+            <StatusBadge :value="ct.status" enum-type="contractStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-stone-400">
             <span v-if="ct.code" class="text-stone-500 font-mono text-[11px]">{{ ct.code }}</span>
@@ -544,13 +431,7 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
-      <div class="flex gap-1">
-        <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchContracts()">上一页</UButton>
-        <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchContracts()">下一页</UButton>
-      </div>
-    </div>
+    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchContracts" @next="fetchContracts" />
 
     <!-- 新增合同弹窗 -->
     <UModal v-model:open="showCreateModal">
@@ -710,71 +591,26 @@ onMounted(() => {
     </UModal>
 
     <!-- 删除确认弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">
-          {{ deleteTarget?.status === 'approved' ? '合同「' + deleteTarget?.name + '」已审批通过，管理员删除请谨慎操作。' : '确定要删除合同「' + deleteTarget?.name + '」吗？删了就找不回来了。' }}
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false; deleteTarget = null">再想想</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="deleteMessage"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
 
     <!-- 转交弹窗 -->
-    <UModal v-model:open="showTransferModal">
-      <template #header>{{ transferTargetIds.length > 1 ? `批量转交 ${transferTargetIds.length} 个合同` : '转交合同' }}</template>
-      <template #body>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-stone-600 mb-2">新归属人 <span class="text-red-400">*</span></label>
-            <div class="relative">
-              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
-              <input
-                v-model="userSearchKeyword"
-                type="text"
-                placeholder="搜索同事姓名..."
-                class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 bg-white"
-                @input="onUserSearch"
-                @focus="loadUsers"
-              />
-            </div>
-            <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-stone-200 rounded-lg divide-y divide-stone-100">
-              <button
-                v-for="u in userOptions"
-                :key="u.id"
-                :class="[
-                  'w-full text-left px-3 py-2.5 text-sm hover:bg-amber-50 transition-colors flex items-center gap-2',
-                  transferToUserId === u.id ? 'bg-amber-50' : ''
-                ]"
-                @click="transferToUserId = u.id"
-              >
-                <span class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <span class="text-amber-700 text-[10px]">{{ u.name?.charAt(0) }}</span>
-                </span>
-                <span class="text-stone-700">{{ u.name }}</span>
-                <span class="text-xs text-stone-400 ml-auto">{{ u.username }}</span>
-                <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-amber-500 ml-1" />
-              </button>
-            </div>
-            <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-stone-400">加载中...</div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">转交原因</label>
-            <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showTransferModal = false">取消</UButton>
-          <UButton color="warning" :loading="transferLoading" :disabled="!transferToUserId" @click="handleTransfer">确认转交</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonTransferModal
+      v-model:open="showTransferModal"
+      title="转交合同"
+      api-path="/api/contracts/batch-transfer"
+      ids-key="contractIds"
+      :target-ids="transferTargetIds"
+      @done="selectedIds = new Set(); fetchContracts()"
+    />
   </div>
 </template>

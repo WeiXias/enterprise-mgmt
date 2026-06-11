@@ -4,17 +4,34 @@ definePageMeta({ layout: 'dashboard', title: '产品', middleware: ['auth'] })
 const toast = useToast()
 const { $api } = useNuxtApp()
 
-// 列表数据
-const products = ref<any[]>([])
-const loading = ref(true)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
+// 列表数据（useTable 管理 loading/list/total/page/pageSize/keyword/totalPages/搜索防抖/筛选）
+const {
+  loading,
+  list: products,
+  total,
+  page,
+  pageSize,
+  keyword,
+  totalPages,
+  onSearchInput,
+  onFilterChange,
+  setFilter,
+  fetchList: fetchProducts,
+} = useTable<any>({ apiUrl: '/api/products' })
 
-// 搜索筛选
-const keyword = ref('')
+// 状态筛选（watch 同步到 useTable filters）
 const statusFilter = ref('')
+watch(statusFilter, (v) => {
+  setFilter('status', v)
+  onFilterChange()
+})
+
+// 分类筛选（同样同步到 useTable filters）
 const categoryFilter = ref('')
+watch(categoryFilter, () => {
+  setFilter('categoryId', categoryFilter.value)
+  onFilterChange()
+})
 
 // 分类列表
 const categories = ref<any[]>([])
@@ -46,32 +63,6 @@ const showCategoryModal = ref(false)
 const categoryLoading = ref(false)
 const categoryForm = ref({ name: '', sort: '0' })
 const editingCategoryId = ref<string | null>(null)
-
-// 状态配置
-const statusConfig: Record<string, { label: string; color: string }> = {
-  on_sale: { label: '在售', color: 'bg-teal-50 text-teal-700' },
-  off_shelf: { label: '下架', color: 'bg-stone-100 text-stone-500' },
-}
-
-async function fetchProducts() {
-  loading.value = true
-  try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
-    if (keyword.value) params.keyword = keyword.value
-    if (statusFilter.value) params.status = statusFilter.value
-    if (categoryFilter.value) params.categoryId = categoryFilter.value
-
-    const res = await $api('/api/products', { params }) as any
-    if (res?.code === 0) {
-      products.value = res.data.items
-      total.value = res.data.total
-    }
-  } catch (err: any) {
-    toast.add({ title: '加载产品列表出了点问题', color: 'error' })
-  } finally {
-    loading.value = false
-  }
-}
 
 async function fetchCategories() {
   try {
@@ -245,35 +236,10 @@ function resetCreateForm() {
   }
 }
 
-function getStatusLabel(status: string) {
-  return statusConfig[status]?.label || status
-}
-
-function getStatusColor(status: string) {
-  return statusConfig[status]?.color || 'bg-stone-100 text-stone-500'
-}
-
 function formatPrice(price: number | null) {
   if (!price && price !== 0) return '-'
   return '¥' + Number(price).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
-
-// 搜索防抖
-let searchTimer: any = null
-function onSearchInput() {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    fetchProducts()
-  }, 300)
-}
-
-function onFilterChange() {
-  page.value = 1
-  fetchProducts()
-}
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
 onMounted(() => {
   fetchProducts()
@@ -284,20 +250,18 @@ onMounted(() => {
 <template>
   <div>
     <!-- 页面标题 + 操作按钮 -->
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-medium text-stone-800">产品</h1>
-        <p class="text-sm text-stone-400 mt-0.5">产品和价格都在这里管</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-lucide-tag" variant="ghost" color="neutral" size="sm" @click="showCategoryModal ? null : (showCategoryModal = false); fetchCategories(); $nextTick(() => { editingCategoryId = null; categoryForm = { name: '', sort: '0' }; showCategoryModal = true })">
-          管理分类
-        </UButton>
-        <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCategories()">
-          添加产品
-        </UButton>
-      </div>
-    </div>
+    <CommonPageHeader title="产品" description="产品和价格都在这里管">
+      <template #actions>
+        <div class="flex items-center gap-2">
+          <UButton icon="i-lucide-tag" variant="ghost" color="neutral" size="sm" @click="showCategoryModal ? null : (showCategoryModal = false); fetchCategories(); $nextTick(() => { editingCategoryId = null; categoryForm = { name: '', sort: '0' }; showCategoryModal = true })">
+            管理分类
+          </UButton>
+          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCategories()">
+            添加产品
+          </UButton>
+        </div>
+      </template>
+    </CommonPageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -314,7 +278,6 @@ onMounted(() => {
       <select
         v-model="categoryFilter"
         class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
-        @change="onFilterChange"
       >
         <option value="">全部分类</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
@@ -322,7 +285,6 @@ onMounted(() => {
       <select
         v-model="statusFilter"
         class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
-        @change="onFilterChange"
       >
         <option value="">全部状态</option>
         <option value="on_sale">在售</option>
@@ -354,9 +316,7 @@ onMounted(() => {
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-stone-800 truncate">{{ product.name }}</span>
             <span class="text-xs text-stone-400">{{ product.code }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(product.status)]">
-              {{ getStatusLabel(product.status) }}
-            </span>
+            <StatusBadge :value="product.status" enum-type="productStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-stone-400">
             <span v-if="product.category?.name">
@@ -394,13 +354,7 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
-      <div class="flex gap-1">
-        <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchProducts()">上一页</UButton>
-        <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchProducts()">下一页</UButton>
-      </div>
-    </div>
+    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchProducts" @next="fetchProducts" />
 
     <!-- 新增产品弹窗 -->
     <UModal v-model:open="showCreateModal">
@@ -505,20 +459,17 @@ onMounted(() => {
     </UModal>
 
     <!-- 删除确认弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">
-          确定要删除产品「{{ deleteTarget?.name }}」吗？删除后数据将无法恢复。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false; deleteTarget = null">再想想</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除产品「${deleteTarget?.name}」吗？删了就找不回来了。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
 
     <!-- 分类管理弹窗 -->
     <UModal v-model:open="showCategoryModal">

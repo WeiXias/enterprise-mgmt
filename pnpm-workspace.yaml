@@ -4,6 +4,6 @@ allowBuilds:
   better-sqlite3: true
   esbuild: false
   puppeteer: true
-  tesseract.js: set this to true or false
+  tesseract.js: true
   unrs-resolver: false
   vue-demi: false

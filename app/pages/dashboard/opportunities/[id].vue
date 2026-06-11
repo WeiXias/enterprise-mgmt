@@ -50,14 +50,6 @@ const statusConfig: Record<string, { label: string; color: string; dotColor: str
 
 const stageFlow = ['initial_contact', 'requirement_confirmed', 'proposal_submitted', 'business_negotiation']
 
-const followUpTypeLabels: Record<string, string> = {
-  phone: '电话',
-  visit: '拜访',
-  wechat: '微信',
-  email: '邮件',
-  other: '其他',
-}
-
 const sourceOptions = ['线上咨询', '老客户推荐', '展会活动', '电话营销', '合作伙伴', '其他']
 
 async function fetchDetail() {
@@ -533,36 +525,7 @@ onMounted(() => {
 
           <!-- 跟进记录 -->
           <div class="warm-card">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-medium text-stone-700">跟进记录</h3>
-              <UButton v-if="!isClosed" size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="showFollowUpModal = true">添加跟进</UButton>
-            </div>
-            <div v-if="!opp.followUps || opp.followUps.length === 0" class="text-xs text-stone-400 text-center py-4">
-              还没有跟进记录
-            </div>
-            <div v-else class="space-y-3">
-              <div v-for="fu in opp.followUps" :key="fu.id" class="flex gap-3">
-                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center">
-                  <UIcon :name="({
-                    phone: 'i-lucide-phone',
-                    visit: 'i-lucide-map-pin',
-                    wechat: 'i-lucide-message-circle',
-                    email: 'i-lucide-mail',
-                    other: 'i-lucide-more-horizontal',
-                  } as Record<string, string>)[fu.type] || 'i-lucide-more-horizontal'" class="w-3 h-3 text-amber-600" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 text-xs text-stone-400 mb-0.5">
-                    <span class="text-stone-600">{{ followUpTypeLabels[fu.type] || fu.type }}</span>
-                    <span>{{ fu.createdAt?.slice(0, 16)?.replace('T', ' ') }}</span>
-                  </div>
-                  <p class="text-sm text-stone-700">{{ fu.content }}</p>
-                  <p v-if="fu.nextFollowUpAt" class="text-xs text-amber-600 mt-0.5">
-                    下次跟进：{{ fu.nextFollowUpAt?.slice(0, 10) }}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <CommonFollowUpList :items="opp.followUps || []" :show-add-button="!isClosed" @add="showFollowUpModal = true" />
           </div>
         </div>
 
@@ -653,20 +616,16 @@ onMounted(() => {
     </UModal>
 
     <!-- 删除确认弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">
-          确定要删除商机「{{ opp?.name }}」吗？删除后数据将无法恢复。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false">再想想</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除商机「${opp?.name}」吗？删了就找不回来。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+    />
 
     <!-- 赢单确认弹窗 -->
     <UModal v-model:open="showWinModal">
@@ -712,26 +671,7 @@ onMounted(() => {
     <UModal v-model:open="showFollowUpModal">
       <template #header>添加跟进</template>
       <template #body>
-        <form class="space-y-4" @submit.prevent="handleFollowUp">
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">跟进方式</label>
-            <select v-model="followUpForm.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-              <option value="phone">电话</option>
-              <option value="visit">拜访</option>
-              <option value="wechat">微信</option>
-              <option value="email">邮件</option>
-              <option value="other">其他</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">跟进内容 <span class="text-red-400">*</span></label>
-            <textarea v-model="followUpForm.content" rows="3" placeholder="聊了什么..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">下次跟进日期</label>
-            <input v-model="followUpForm.nextFollowUpAt" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-          </div>
-        </form>
+        <CommonFollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleFollowUp" />
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">

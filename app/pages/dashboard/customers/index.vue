@@ -1,12 +1,22 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', title: '客户', middleware: ['auth'] })
 
-import { jsonToCsv, downloadCsv } from '~/utils/export-csv'
-
 const authStore = useAuthStore()
 const toast = useToast()
 const { $api } = useNuxtApp()
-const exporting = ref(false)
+
+// 列表状态（useTable）
+const { loading, list: customers, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchCustomers } = useTable<any>({ apiUrl: '/api/customers' })
+
+// 筛选
+const statusFilter = ref('')
+const industryFilter = ref('')
+
+watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
+watch(industryFilter, (v) => { setFilter('industry', v); onFilterChange() })
+
+// 导出（useExportCsv）
+const { exporting, exportCsv } = useExportCsv()
 
 function isAdminOrManager() {
   const role = authStore.user?.role
@@ -34,14 +44,9 @@ function toggleSelectAll() {
 // 转交
 const showTransferModal = ref(false)
 const transferTargetIds = ref<string[]>([])
-const transferToUserId = ref('')
-const transferReason = ref('')
-const transferLoading = ref(false)
 
 function openTransferModal(ids: string[]) {
   transferTargetIds.value = ids
-  transferToUserId.value = ''
-  transferReason.value = ''
   showTransferModal.value = true
 }
 
@@ -49,79 +54,22 @@ function openSingleTransfer(customer: any) {
   openTransferModal([customer.id])
 }
 
-async function handleTransfer() {
-  if (!transferToUserId.value) {
-    toast.add({ title: '新归属人还没选呢', color: 'warning' })
-    return
-  }
-  transferLoading.value = true
-  try {
-    const body: any = { customerIds: transferTargetIds.value, toUserId: transferToUserId.value }
-    if (transferReason.value) body.reason = transferReason.value
-    const res = await $api('/api/customers/batch-transfer', { method: 'POST', body }) as any
-    if (res?.code === 0) {
-      toast.add({ title: res.message || '转交完成', color: 'success' })
-      showTransferModal.value = false
-      selectedIds.value = new Set()
-      fetchCustomers()
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '转交失败', color: 'error' })
-  } finally {
-    transferLoading.value = false
-  }
-}
-
-// 用户列表（供转交弹窗选择）
-const userOptions = ref<{ id: string; name: string; username: string; role: string }[]>([])
-const userSearchKeyword = ref('')
-const userSearchLoading = ref(false)
-
-async function loadUsers() {
-  userSearchLoading.value = true
-  try {
-    const params: Record<string, any> = { pageSize: 200 }
-    if (userSearchKeyword.value) params.keyword = userSearchKeyword.value
-    const res = await $api('/api/users', { params }) as any
-    if (res?.code === 0) {
-      userOptions.value = res.data.items || []
-    }
-  } catch { /* ignore */ }
-  finally { userSearchLoading.value = false }
-}
-
-let userSearchTimer: any = null
-function onUserSearch() {
-  clearTimeout(userSearchTimer)
-  userSearchTimer = setTimeout(loadUsers, 250)
-}
-
 // 导出
 function handleExport() {
-  $api('/api/customers', { params: { pageSize: 9999 } }).then((res: any) => {
-    const items = res?.data?.items || []
-    const columns = [
-      { key: 'name', label: '客户名称' },
-      { key: 'industry', label: '行业' },
-      { key: 'status', label: '状态' },
-      { key: 'owner?.name', label: '负责人' },
-      { key: 'createdAt', label: '创建时间', format: (v: string) => v?.slice(0, 10) || '' },
-    ]
-    const csv = jsonToCsv(items, columns)
-    downloadCsv(csv, `客户列表_${new Date().toISOString().slice(0,10)}.csv`)
-  }).catch(() => {})
+  exportCsv('/api/customers', [
+    { key: 'name', label: '客户名称' },
+    { key: 'industry', label: '行业' },
+    { key: 'status', label: '状态' },
+    { key: 'owner?.name', label: '负责人' },
+    { key: 'createdAt', label: '创建时间', format: (v: unknown) => String(v)?.slice(0, 10) || '' },
+  ], `客户列表_${new Date().toISOString().slice(0,10)}.csv`)
 }
 
-const customers = ref<any[]>([])
-const loading = ref(true)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-
-// 搜索筛选
-const keyword = ref('')
-const statusFilter = ref('')
-const industryFilter = ref('')
+// 行业选项
+const industryOptions = [
+  '信息技术', '软件开发', '人工智能', '网络安全', '电子商务',
+  '制造业', '金融', '教育', '医疗', '房地产', '物流', '其他'
+]
 
 // 新增客户弹窗
 const showCreateModal = ref(false)
@@ -147,40 +95,6 @@ const editForm = ref<any>({})
 const deleteTarget = ref<any>(null)
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
-
-// 客户状态配置
-const statusConfig: Record<string, { label: string; color: string }> = {
-  potential: { label: '潜在客户', color: 'bg-stone-100 text-stone-600' },
-  intentional: { label: '意向客户', color: 'bg-amber-50 text-amber-700' },
-  closed: { label: '已成交', color: 'bg-teal-50 text-teal-700' },
-  lost: { label: '已流失', color: 'bg-red-50 text-red-600' },
-}
-
-// 行业选项
-const industryOptions = [
-  '信息技术', '软件开发', '人工智能', '网络安全', '电子商务',
-  '制造业', '金融', '教育', '医疗', '房地产', '物流', '其他'
-]
-
-async function fetchCustomers() {
-  loading.value = true
-  try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
-    if (keyword.value) params.keyword = keyword.value
-    if (statusFilter.value) params.status = statusFilter.value
-    if (industryFilter.value) params.industry = industryFilter.value
-
-    const res = await $api('/api/customers', { params }) as any
-    if (res?.code === 0) {
-      customers.value = res.data.items
-      total.value = res.data.total
-    }
-  } catch (err: any) {
-    toast.add({ title: '加载客户列表出了点问题', color: 'error' })
-  } finally {
-    loading.value = false
-  }
-}
 
 async function handleCreate() {
   if (!createForm.value.name) {
@@ -270,51 +184,23 @@ function resetCreateForm() {
   }
 }
 
-function getStatusLabel(status: string) {
-  return statusConfig[status]?.label || status
-}
-
-function getStatusColor(status: string) {
-  return statusConfig[status]?.color || 'bg-stone-100 text-stone-600'
-}
-
-// 搜索防抖
-let searchTimer: any = null
-function onSearchInput() {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    page.value = 1
-    fetchCustomers()
-  }, 300)
-}
-
-function onFilterChange() {
-  page.value = 1
-  fetchCustomers()
-}
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
-
 onMounted(() => {
   fetchCustomers()
-  loadUsers()
 })
 </script>
 
 <template>
   <div>
     <!-- 页面标题 + 操作按钮 -->
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-medium text-stone-800">客户</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理你的客户资源和联系人</p>
-      </div>
-            <div class="flex items-center gap-2">
-        <UButton v-if="selectedIds.size > 0 && isAdminOrManager()" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
-        <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
-        <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">添加客户</UButton>
-      </div>
-    </div>
+    <CommonPageHeader title="客户" description="管理你的客户资源和联系人">
+      <template #actions>
+        <div class="flex items-center gap-2">
+          <UButton v-if="selectedIds.size > 0 && isAdminOrManager()" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
+          <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
+          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">添加客户</UButton>
+        </div>
+      </template>
+    </CommonPageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -331,7 +217,6 @@ onMounted(() => {
       <select
         v-model="statusFilter"
         class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
-        @change="onFilterChange"
       >
         <option value="">全部状态</option>
         <option value="potential">潜在客户</option>
@@ -342,7 +227,6 @@ onMounted(() => {
       <select
         v-model="industryFilter"
         class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
-        @change="onFilterChange"
       >
         <option value="">全部行业</option>
         <option v-for="ind in industryOptions" :key="ind" :value="ind">{{ ind }}</option>
@@ -383,9 +267,7 @@ onMounted(() => {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-stone-800 truncate">{{ customer.name }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(customer.status)]">
-              {{ getStatusLabel(customer.status) }}
-            </span>
+            <StatusBadge :value="customer.status" enum-type="customerStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-stone-400">
             <span v-if="customer.industry">{{ customer.industry }}</span>
@@ -421,13 +303,7 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
-      <div class="flex gap-1">
-        <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchCustomers()">上一页</UButton>
-        <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchCustomers()">下一页</UButton>
-      </div>
-    </div>
+    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchCustomers" @next="fetchCustomers" />
 
     <!-- 新增客户弹窗 -->
     <UModal v-model:open="showCreateModal">
@@ -546,71 +422,26 @@ onMounted(() => {
     </UModal>
 
     <!-- 删除确认弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">
-          确定要删除客户「{{ deleteTarget?.name }}」吗？删除后数据将无法恢复。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false; deleteTarget = null">再想想</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除客户「${deleteTarget?.name}」吗？删了就找不回来了。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
 
     <!-- 转交弹窗 -->
-    <UModal v-model:open="showTransferModal">
-      <template #header>{{ transferTargetIds.length > 1 ? `批量转交 ${transferTargetIds.length} 个客户` : '转交客户' }}</template>
-      <template #body>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-stone-600 mb-2">新归属人 <span class="text-red-400">*</span></label>
-            <div class="relative">
-              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
-              <input
-                v-model="userSearchKeyword"
-                type="text"
-                placeholder="搜索同事姓名..."
-                class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 bg-white"
-                @input="onUserSearch"
-                @focus="loadUsers"
-              />
-            </div>
-            <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-stone-200 rounded-lg divide-y divide-stone-100">
-              <button
-                v-for="u in userOptions"
-                :key="u.id"
-                :class="[
-                  'w-full text-left px-3 py-2.5 text-sm hover:bg-amber-50 transition-colors flex items-center gap-2',
-                  transferToUserId === u.id ? 'bg-amber-50' : ''
-                ]"
-                @click="transferToUserId = u.id"
-              >
-                <span class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <span class="text-amber-700 text-[10px]">{{ u.name?.charAt(0) }}</span>
-                </span>
-                <span class="text-stone-700">{{ u.name }}</span>
-                <span class="text-xs text-stone-400 ml-auto">{{ u.username }}</span>
-                <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-amber-500 ml-1" />
-              </button>
-            </div>
-            <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-stone-400">加载中...</div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">转交原因</label>
-            <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showTransferModal = false">取消</UButton>
-          <UButton color="warning" :loading="transferLoading" :disabled="!transferToUserId" @click="handleTransfer">确认转交</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonTransferModal
+      v-model:open="showTransferModal"
+      title="转交客户"
+      api-path="/api/customers/batch-transfer"
+      ids-key="customerIds"
+      :target-ids="transferTargetIds"
+      @done="selectedIds = new Set(); fetchCustomers()"
+    />
   </div>
 </template>

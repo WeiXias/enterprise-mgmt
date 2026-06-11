@@ -1,40 +1,11 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', title: '提成', middleware: ['auth'] })
 
-import { jsonToCsv, downloadCsv } from '~/utils/export-csv'
-
 const toast = useToast()
 const { $api } = useNuxtApp()
 
-async function fetchStats() {
-  try {
-    const res = await $api('/api/commissions/stats') as any
-    if (res?.code === 0) stats.value = res.data
-  } catch { /* ignore */ }
-}
-
-function handleExport() {
-  $api('/api/commissions', { params: { pageSize: 9999 } }).then((res: any) => {
-    const items = res?.data?.items || []
-    const columns = [
-      { key: 'user?.name', label: '人员' },
-      { key: 'contract?.name', label: '关联合同' },
-      { key: 'baseAmount', label: '基数', format: (v: number) => '¥' + v },
-      { key: 'amount', label: '金额', format: (v: number) => '¥' + v },
-      { key: 'status', label: '状态' },
-    ]
-    const csv = jsonToCsv(items, columns)
-    downloadCsv(csv, `提成列表_${new Date().toISOString().slice(0,10)}.csv`)
-  }).catch(() => {})
-}
-
-const items = ref<any[]>([])
-const loading = ref(true)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const keyword = ref('')
-const statusFilter = ref('')
+const { loading, list: items, total, page, pageSize, totalPages, onSearchInput, onFilterChange, setFilter, fetchList: fetchItems } = useTable<any>({ apiUrl: '/api/commissions' })
+const { exportCsv } = useExportCsv()
 
 // 统计
 const stats = ref({ totalAmount: 0, paidAmount: 0, pendingAmount: 0, byUser: [] as any[], byMonth: [] as any[] })
@@ -62,28 +33,31 @@ const deleteTarget = ref<any>(null)
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  pending: { label: '待审批', color: 'bg-stone-100 text-stone-600' },
-  approved: { label: '已通过', color: 'bg-blue-50 text-blue-600' },
-  rejected: { label: '已驳回', color: 'bg-red-50 text-red-600' },
-  paid: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
+// 状态筛选
+const statusFilter = ref('')
+watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
+
+function handleExport() {
+  exportCsv('/api/commissions', [
+    { key: 'user?.name', label: '人员' },
+    { key: 'contract?.name', label: '关联合同' },
+    { key: 'baseAmount', label: '基数', format: (v: unknown) => '¥' + v },
+    { key: 'amount', label: '金额', format: (v: unknown) => '¥' + v },
+    { key: 'status', label: '状态' },
+  ], `提成列表_${new Date().toISOString().slice(0,10)}.csv`)
+}
+
+async function fetchStats() {
+  try {
+    const res = await $api('/api/commissions/stats') as any
+    if (res?.code === 0) stats.value = res.data
+  } catch { /* ignore */ }
 }
 
 function formatMoney(v: any) {
   const n = Number(v)
   if (!n) return '-'
   return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2 })
-}
-
-async function fetchItems() {
-  loading.value = true
-  try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
-    if (statusFilter.value) params.status = statusFilter.value
-    const res = await $api('/api/commissions', { params }) as any
-    if (res?.code === 0) { items.value = res.data.items; total.value = res.data.total }
-  } catch (err: any) { toast.add({ title: '加载出了点问题', color: 'error' }) }
-  finally { loading.value = false }
 }
 
 async function fetchOptions() {
@@ -164,31 +138,27 @@ async function handleDelete() {
   finally { deleteLoading.value = false }
 }
 
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
-
 onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
 </script>
 
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-medium text-stone-800">提成</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理提成计算和审批发放</p>
-      </div>
-      <div class="flex items-center gap-2">
+    <CommonPageHeader title="提成" description="管理提成计算和审批发放">
+      <template #actions>
         <div class="flex items-center gap-2">
-          <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
-          <UButton icon="i-lucide-calculator" color="primary" @click="showCalcModal = true; calcForm = { contractId: '' }">计算提成</UButton>
+          <div class="flex items-center gap-2">
+            <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
+            <UButton icon="i-lucide-calculator" color="primary" @click="showCalcModal = true; calcForm = { contractId: '' }">计算提成</UButton>
+          </div>
+          <NuxtLink to="/dashboard/commissions/rules">
+            <UButton icon="i-lucide-settings" variant="ghost" color="neutral" size="sm">规则设置</UButton>
+          </NuxtLink>
+          <NuxtLink to="/dashboard/commissions/payouts">
+            <UButton icon="i-lucide-banknote" variant="ghost" color="neutral" size="sm">发放管理</UButton>
+          </NuxtLink>
         </div>
-        <NuxtLink to="/dashboard/commissions/rules">
-          <UButton icon="i-lucide-settings" variant="ghost" color="neutral" size="sm">规则设置</UButton>
-        </NuxtLink>
-        <NuxtLink to="/dashboard/commissions/payouts">
-          <UButton icon="i-lucide-banknote" variant="ghost" color="neutral" size="sm">发放管理</UButton>
-        </NuxtLink>
-      </div>
-    </div>
+      </template>
+    </CommonPageHeader>
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -212,7 +182,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
 
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
-      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white" @change="page=1; fetchItems()">
+      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
         <option value="">全部状态</option>
         <option value="pending">待审批</option>
         <option value="approved">已通过</option>
@@ -230,7 +200,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-stone-700">{{ c.user?.name }} - {{ c.contract?.name }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[c.status]?.color || '']">{{ statusConfig[c.status]?.label || c.status }}</span>
+            <StatusBadge :value="c.status" enum-type="commissionStatus" />
           </div>
           <div class="flex items-center gap-4 text-xs text-stone-400">
             <span>基数 {{ formatMoney(c.baseAmount) }}</span>
@@ -251,13 +221,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
       </NuxtLink>
     </div>
 
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
-      <div class="flex gap-1">
-        <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上一页</UButton>
-        <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下一页</UButton>
-      </div>
-    </div>
+    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchItems" @next="fetchItems" />
 
     <!-- 计算弹窗 -->
     <UModal v-model:open="showCalcModal">
@@ -311,19 +275,16 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
     </UModal>
 
     <!-- 删除确认弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-stone-600">
-          确定要删除「{{ deleteTarget?.user?.name }} - {{ deleteTarget?.contract?.name }}」的提成记录吗？删了就找不回来了。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false">取消</UButton>
-          <UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除「${deleteTarget?.user?.name} - ${deleteTarget?.contract?.name}」的提成记录吗？删了就找不回来了。`"
+      confirm-text="确认删除"
+      cancel-text="取消"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
   </div>
 </template>

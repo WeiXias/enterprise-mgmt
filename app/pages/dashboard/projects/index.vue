@@ -4,13 +4,12 @@ definePageMeta({ layout: 'dashboard', title: '项目', middleware: ['auth'] })
 const toast = useToast()
 const { $api } = useNuxtApp()
 
-const projectsList = ref<any[]>([])
-const loading = ref(true)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const keyword = ref('')
+// 列表状态由 useTable 管理
+const { loading, list: projectsList, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchProjects } = useTable<any>({ apiUrl: '/api/projects' })
+
+// 状态筛选（独立 ref，通过 watch 同步到 useTable）
 const statusFilter = ref('')
+watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 
 // 统计
 const stats = ref({ totalProjects: 0, inProgress: 0, delayed: 0, completed: 0, totalBudget: 0 })
@@ -36,11 +35,12 @@ const deleteLoading = ref(false)
 // 复制
 const duplicateLoading = ref(false)
 
-const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
-  not_started: { label: '未开始', color: 'bg-stone-100 text-stone-600', dot: 'bg-stone-400' },
-  in_progress: { label: '进行中', color: 'bg-blue-50 text-blue-600', dot: 'bg-blue-400' },
-  completed: { label: '已完成', color: 'bg-teal-50 text-teal-700', dot: 'bg-teal-400' },
-  delayed: { label: '已延期', color: 'bg-red-50 text-red-600', dot: 'bg-red-400' },
+// 状态颜色条映射（用于列表左侧色条，与 StatusBadge 无关）
+const statusDotColor: Record<string, string> = {
+  not_started: 'bg-stone-300',
+  in_progress: 'bg-blue-400',
+  completed: 'bg-teal-400',
+  delayed: 'bg-red-400',
 }
 
 const statCards = [
@@ -61,22 +61,6 @@ async function fetchStats() {
     const res = await $api('/api/projects/stats') as any
     if (res?.code === 0) stats.value = res.data
   } catch { /* ignore */ }
-}
-
-async function fetchProjects() {
-  loading.value = true
-  try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
-    if (keyword.value) params.keyword = keyword.value
-    if (statusFilter.value) params.status = statusFilter.value
-    const res = await $api('/api/projects', { params }) as any
-    if (res?.code === 0) {
-      projectsList.value = res.data.items
-      total.value = res.data.total
-    }
-  } catch (err: any) {
-    toast.add({ title: '加载项目列表出了点问题', color: 'error' })
-  } finally { loading.value = false }
 }
 
 async function fetchContracts() {
@@ -144,33 +128,31 @@ async function handleDuplicate(p: any) {
 
 function resetCreateForm() { createForm.value = { name: '', contractId: '', budget: 0, startDate: '', endDate: '', remark: '' } }
 
-let searchTimer: any = null
-function onSearchInput() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { page.value = 1; fetchProjects() }, 300) }
-
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+function onStatCardClick(card: typeof statCards[number]) {
+  if (!card.filterVal) return
+  statusFilter.value = statusFilter.value === card.filterVal ? '' : card.filterVal
+}
 
 onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
 </script>
 
 <template>
   <div>
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-medium text-stone-800">项目</h1>
-        <p class="text-sm text-stone-400 mt-0.5">跟踪项目进度和任务</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-lucide-calendar-days" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/projects/calendar')">日历视图</UButton>
-        <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">添加项目</UButton>
-      </div>
-    </div>
+    <CommonPageHeader title="项目" description="跟踪项目进度和任务">
+      <template #actions>
+        <div class="flex items-center gap-2">
+          <UButton icon="i-lucide-calendar-days" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/projects/calendar')">日历视图</UButton>
+          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">添加项目</UButton>
+        </div>
+      </template>
+    </CommonPageHeader>
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-3 mb-5">
       <div
         v-for="card in statCards" :key="card.key"
         :class="['warm-card p-3 cursor-pointer hover:shadow-sm transition-shadow border-l-2', card.color, card.filterVal ? '' : 'cursor-default']"
-        @click="card.filterVal && (statusFilter = statusFilter === card.filterVal ? '' : card.filterVal) || (page=1, fetchProjects())"
+        @click="onStatCardClick(card)"
       >
         <div class="flex items-center gap-2 mb-1">
           <div :class="['w-7 h-7 rounded-lg flex items-center justify-center', card.bg]">
@@ -187,7 +169,7 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
         <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
         <input v-model="keyword" type="text" placeholder="搜项目名称..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors" @input="onSearchInput" />
       </div>
-      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white" @change="page=1; fetchProjects()">
+      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
         <option value="">全部状态</option>
         <option value="not_started">未开始</option>
         <option value="in_progress">进行中</option>
@@ -201,14 +183,11 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
     <div v-else-if="projectsList.length === 0" class="text-center py-12 text-stone-400">还没有项目，创建第一个？</div>
     <div v-else class="space-y-2">
       <div v-for="p in projectsList" :key="p.id" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/projects/${p.id}`)">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', {
-          'bg-stone-300': p.status === 'not_started', 'bg-blue-400': p.status === 'in_progress',
-          'bg-teal-400': p.status === 'completed', 'bg-red-400': p.status === 'delayed',
-        }]" />
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', statusDotColor[p.status] || 'bg-stone-300']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-stone-800 truncate">{{ p.name }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[p.status]?.color || '']">{{ statusConfig[p.status]?.label || p.status }}</span>
+            <StatusBadge :value="p.status" enum-type="ProjectStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-stone-400">
             <span v-if="p.owner?.name"><UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ p.owner.name }}</span>
@@ -225,13 +204,7 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
       </div>
     </div>
 
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
-      <div class="flex gap-1">
-        <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchProjects()">上一页</UButton>
-        <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchProjects()">下一页</UButton>
-      </div>
-    </div>
+    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchProjects" @next="fetchProjects" />
 
     <!-- 新增弹窗 -->
     <UModal v-model:open="showCreateModal">
@@ -263,11 +236,17 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
       <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton><UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton></div></template>
     </UModal>
 
-    <!-- 删除弹窗 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body><p class="text-sm text-stone-600">确定要删除项目「{{ deleteTarget?.name }}」吗？删了就找不回来了。</p></template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeleteModal = false; deleteTarget = null">再想想</UButton><UButton color="error" :loading="deleteLoading" @click="handleDelete">确认删除</UButton></div></template>
-    </UModal>
+    <!-- 删除确认弹窗 -->
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除项目「${deleteTarget?.name}」吗？删了就找不回来了。`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleteLoading"
+      danger
+      @confirm="handleDelete"
+      @cancel="deleteTarget = null"
+    />
   </div>
 </template>

@@ -1,6 +1,7 @@
 interface TableOptions {
   apiUrl: string
   pageSize?: number
+  debounceMs?: number
 }
 
 interface PaginatedResult<T = unknown> {
@@ -9,7 +10,7 @@ interface PaginatedResult<T = unknown> {
 }
 
 export function useTable<T = unknown>(options: TableOptions) {
-  const { apiUrl, pageSize: defaultPageSize = 20 } = options
+  const { apiUrl, pageSize: defaultPageSize = 20, debounceMs = 300 } = options
   const { $api } = useNuxtApp()
 
   const loading = ref(false)
@@ -19,6 +20,8 @@ export function useTable<T = unknown>(options: TableOptions) {
   const pageSize = ref(defaultPageSize)
   const keyword = ref('')
   const filters = ref<Record<string, unknown>>({})
+
+  let searchTimer: ReturnType<typeof setTimeout> | null = null
 
   async function fetchList() {
     loading.value = true
@@ -47,10 +50,35 @@ export function useTable<T = unknown>(options: TableOptions) {
     fetchList()
   }
 
-  function onSearch(kw: string) {
-    keyword.value = kw
+  function prevPage() {
+    if (page.value > 1) {
+      page.value--
+      fetchList()
+    }
+  }
+
+  function nextPage() {
+    if (page.value < totalPages.value) {
+      page.value++
+      fetchList()
+    }
+  }
+
+  function onSearchInput() {
+    clearTimeout(searchTimer!)
+    searchTimer = setTimeout(() => {
+      page.value = 1
+      fetchList()
+    }, debounceMs)
+  }
+
+  function onFilterChange() {
     page.value = 1
     fetchList()
+  }
+
+  function setFilter(key: string, value: unknown) {
+    filters.value = { ...filters.value, [key]: value }
   }
 
   function onFilter(newFilters: Record<string, unknown>) {
@@ -72,10 +100,15 @@ export function useTable<T = unknown>(options: TableOptions) {
     page,
     pageSize,
     keyword,
+    filters,
     totalPages,
     fetchList,
     onPageChange,
-    onSearch,
+    prevPage,
+    nextPage,
+    onSearchInput,
+    onFilterChange,
+    setFilter,
     onFilter,
     refresh
   }
