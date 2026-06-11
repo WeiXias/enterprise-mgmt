@@ -1,0 +1,98 @@
+import type { CustomerStatus, OpportunityStatus, ContractStatus, ProjectStatus, TaskStatus, TaskPriority, ProductStatus, CommissionStatus, FollowUpType, PaymentMethod } from '~/types/models'
+
+/**
+ * 通用状态配置映射
+ * 从各页面提取统一管理
+ */
+
+// ============ 状态标签 + 颜色 ============
+
+export const CUSTOMER_STATUS_CONFIG: Record<CustomerStatus, { label: string; color: string; dotColor: string }> = {
+  potential: { label: '潜在客户', color: 'bg-stone-100 text-stone-600', dotColor: 'bg-stone-400' },
+  intentional: { label: '意向客户', color: 'bg-amber-50 text-amber-700', dotColor: 'bg-amber-400' },
+  closed: { label: '已成交', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
+  lost: { label: '已流失', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
+}
+
+export const OPPORTUNITY_STATUS_CONFIG: Record<OpportunityStatus, { label: string; color: string; dotColor: string }> = {
+  initial_contact: { label: '初步接触', color: 'bg-stone-100 text-stone-600', dotColor: 'bg-stone-400' },
+  requirement_confirmed: { label: '需求确认', color: 'bg-blue-50 text-blue-600', dotColor: 'bg-blue-400' },
+  proposal_submitted: { label: '方案提交', color: 'bg-amber-50 text-amber-700', dotColor: 'bg-amber-400' },
+  business_negotiation: { label: '商务谈判', color: 'bg-orange-50 text-orange-600', dotColor: 'bg-orange-400' },
+  closed_won: { label: '已成交', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
+  closed_lost: { label: '已输单', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
+}
+
+export const CONTRACT_STATUS_CONFIG: Record<ContractStatus, { label: string; color: string }> = {
+  draft: { label: '草稿', color: 'bg-stone-100 text-stone-600' },
+  approved: { label: '已审批', color: 'bg-blue-50 text-blue-600' },
+  in_progress: { label: '执行中', color: 'bg-amber-50 text-amber-700' },
+  completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
+  terminated: { label: '已终止', color: 'bg-red-50 text-red-600' },
+}
+
+export const PROJECT_STATUS_CONFIG: Record<ProjectStatus, { label: string; color: string; dotColor: string }> = {
+  not_started: { label: '未开始', color: 'bg-stone-100 text-stone-600', dotColor: 'bg-stone-400' },
+  in_progress: { label: '进行中', color: 'bg-blue-50 text-blue-600', dotColor: 'bg-blue-400' },
+  completed: { label: '已完成', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
+  delayed: { label: '已延期', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
+}
+
+export const TASK_STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {
+  todo: { label: '待办', color: 'bg-stone-100 text-stone-600' },
+  in_progress: { label: '进行中', color: 'bg-blue-50 text-blue-600' },
+  completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
+}
+
+export const TASK_PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string }> = {
+  low: { label: '低', color: 'bg-stone-100 text-stone-600' },
+  medium: { label: '中', color: 'bg-amber-50 text-amber-700' },
+  high: { label: '高', color: 'bg-red-50 text-red-600' },
+}
+
+export const PRODUCT_STATUS_CONFIG: Record<ProductStatus, { label: string; color: string }> = {
+  on_sale: { label: '在售', color: 'bg-teal-50 text-teal-700' },
+  off_shelf: { label: '下架', color: 'bg-stone-100 text-stone-500' },
+}
+
+export const COMMISSION_STATUS_CONFIG: Record<CommissionStatus, { label: string; color: string }> = {
+  pending: { label: '待审批', color: 'bg-stone-100 text-stone-600' },
+  approved: { label: '已通过', color: 'bg-blue-50 text-blue-600' },
+  rejected: { label: '已驳回', color: 'bg-red-50 text-red-600' },
+  paid: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
+}
+
+export const FOLLOWUP_TYPE_CONFIG: Record<FollowUpType, string> = {
+  phone: '电话',
+  visit: '拜访',
+  wechat: '微信',
+  email: '邮件',
+  other: '其他',
+}
+
+export const PAYMENT_METHOD_CONFIG: Record<PaymentMethod, string> = {
+  bank_transfer: '银行转账',
+  check: '支票',
+  cash: '现金',
+  alipay: '支付宝',
+  wechat_pay: '微信支付',
+  other: '其他',
+}
+
+export const USER_ROLE_CONFIG: Record<string, string> = {
+  admin: '管理员',
+  sales_manager: '销售负责人',
+  sales_member: '销售/项目成员',
+  finance: '财务',
+}
+
+// ============ 下拉选项 ============
+
+export const INDUSTRY_OPTIONS = [
+  '信息技术', '软件开发', '人工智能', '网络安全', '电子商务',
+  '制造业', '金融', '教育', '医疗', '房地产', '物流', '其他',
+]
+
+export const OPPORTUNITY_SOURCE_OPTIONS = [
+  '主动联系', '客户介绍', '展会', '网络推广', '电话营销', '其他',
+]

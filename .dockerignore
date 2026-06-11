@@ -1,0 +1,17 @@
+node_modules
+.output
+.nuxt
+.nitro
+.cache
+dist
+data
+.git
+releases
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+*.bak
+docker-compose.override.yml
+.version

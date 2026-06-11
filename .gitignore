@@ -1,0 +1,40 @@
+# Nuxt dev/build outputs
+.output
+.data
+data/
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Release packages
+releases/
+.version
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+*.db.bak

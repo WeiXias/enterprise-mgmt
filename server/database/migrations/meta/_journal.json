@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1781105555912,
+      "tag": "0000_lumpy_tyrannus",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1781148159181,
+      "tag": "0001_abnormal_boom_boom",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1781150734412,
+      "tag": "0002_parallel_human_fly",
+      "breakpoints": true
+    }
+  ]
+}

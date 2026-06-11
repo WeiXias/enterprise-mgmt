@@ -1,0 +1,200 @@
+<script setup lang="ts">
+// 显式导入组件防止懒加载导致 SSR hydration mismatch
+import ContractForm from '~/components/contracts/ContractForm.vue'
+import ContractEditor from '~/components/contracts/ContractEditor.vue'
+import TemplateSelector from '~/components/contracts/TemplateSelector.vue'
+
+definePageMeta({ layout: 'dashboard', title: '编辑合同', middleware: ['auth'] })
+
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+const { $api } = useNuxtApp()
+const contractId = route.params.id as string
+const loading = ref(true)
+const saving = ref(false)
+const customerOptions = ref<any[]>([])
+
+const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', remark: '' })
+const content = ref('')
+const contractStatus = ref('')
+
+// 模板选择
+const templates = ref<any[]>([])
+const showTemplateModal = ref(false)
+const selectedTemplate = ref<any>(null)
+
+// 加载合同数据和正文
+async function fetchData() {
+  try {
+    const [cRes, custRes, contentRes] = await Promise.all([
+      $api(`/api/contracts/${contractId}`) as any,
+      $api('/api/customers', { params: { pageSize: 200 } }) as any,
+      $api(`/api/contracts/${contractId}/content`) as any,
+    ])
+    if (cRes?.code === 0) {
+      const c = cRes.data
+      form.value = {
+        name: c.name, totalAmount: c.totalAmount,
+        partyA: c.partyA || '', partyB: c.partyB || '',
+        paymentMethod: c.paymentMethod || '',
+        startDate: c.startDate || '', endDate: c.endDate || '',
+        remark: c.remark || '',
+      }
+      contractStatus.value = c.status
+    }
+    if (contentRes?.code === 0) {
+      content.value = contentRes.data.content || ''
+    }
+    if (custRes?.code === 0) customerOptions.value = custRes.data.items || []
+  } catch { router.push('/dashboard/contracts') }
+  finally { loading.value = false }
+}
+
+async function fetchTemplates() {
+  try {
+    const res = await $api('/api/contracts/templates') as any
+    if (res?.code === 0) templates.value = res.data || []
+  } catch {}
+}
+
+function onSelectTemplate(tmpl: any) {
+  selectedTemplate.value = tmpl
+}
+
+async function applyTemplateToEdit() {
+  if (!selectedTemplate.value) return
+  saving.value = true
+  try {
+    const applyRes = await $api(`/api/contracts/templates/${selectedTemplate.value.id}/apply`, {
+      method: 'POST',
+      body: { contractId }
+    }) as any
+    if (applyRes?.code === 0) {
+      content.value = applyRes.data.content
+      await $api(`/api/contracts/${contractId}/content`, {
+        method: 'PUT',
+        body: { content: content.value }
+      })
+      selectedTemplate.value = null
+      showTemplateModal.value = false
+      toast.add({ title: '模板已应用', color: 'success' })
+    }
+  } catch (err: any) {
+    toast.add({ title: err?.data?.message || '应用模板失败', color: 'error' })
+  } finally {
+    saving.value = false
+  }
+}
+
+async function handleSubmit() {
+  if (!form.value.name) { toast.add({ title: '合同名称不能为空', color: 'warning' }); return }
+  saving.value = true
+  try {
+    // 并行保存元数据和正文
+    const [metaRes] = await Promise.all([
+      $api(`/api/contracts/${contractId}`, { method: 'PUT', body: form.value }) as any,
+      $api(`/api/contracts/${contractId}/content`, { method: 'PUT', body: { content: content.value } }).catch(() => null),
+    ])
+    if (metaRes?.code === 0) {
+      toast.add({ title: '已保存', color: 'success' })
+      router.push(`/dashboard/contracts/${contractId}`)
+    }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
+  finally { saving.value = false }
+}
+
+async function handleExportPdf() {
+  try {
+    const res = await $api(`/api/contracts/${contractId}/export-pdf`, { method: 'POST' }) as any
+    if (res?.code === 0 && res.data?.pdfUrl) {
+      window.open(res.data.pdfUrl, '_blank')
+    }
+  } catch (err: any) {
+    toast.add({ title: err?.data?.message || '导出失败', color: 'error' })
+  }
+}
+
+onMounted(() => { fetchData(); fetchTemplates() })
+</script>
+
+<template>
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6 flex items-center gap-3">
+      <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
+      <div class="flex-1">
+        <h1 class="text-lg font-medium text-stone-800">编辑合同</h1>
+      </div>
+      <UButton icon="i-lucide-file-down" variant="ghost" color="neutral" size="sm" @click="handleExportPdf">导出 PDF</UButton>
+    </div>
+
+    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
+    <template v-else>
+      <!-- 元数据表单 -->
+      <div class="warm-card">
+        <ContractForm v-model="form" :customer-options="customerOptions" @submit="handleSubmit" />
+      </div>
+
+      <!-- 合同正文编辑区 -->
+      <div class="warm-card mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-medium text-stone-700">合同正文</h3>
+          <div class="flex items-center gap-2">
+            <UButton
+              v-if="contractStatus === 'draft' && !selectedTemplate"
+              icon="i-lucide-layout-template"
+              variant="ghost"
+              color="primary"
+              size="xs"
+              @click="showTemplateModal = true"
+            >
+              套用模板
+            </UButton>
+            <span v-if="contractStatus !== 'draft'" class="text-xs text-amber-600">（合同已审批，正文不可修改）</span>
+          </div>
+        </div>
+
+        <!-- 已选模板提示 -->
+        <div v-if="selectedTemplate" class="mb-3 flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+          <UIcon name="i-lucide-file-check" class="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <span class="text-sm text-amber-800 font-medium">{{ selectedTemplate.name }}</span>
+          </div>
+          <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" @click="selectedTemplate = null" />
+          <UButton color="primary" size="xs" :loading="saving" @click="applyTemplateToEdit">应用模板</UButton>
+        </div>
+
+        <ContractEditor
+          v-model="content"
+          placeholder="开始撰写合同正文..."
+          :disabled="contractStatus !== 'draft'"
+          :key="contractId"
+        />
+      </div>
+
+      <!-- 模板选择弹窗 -->
+      <UModal v-model:open="showTemplateModal">
+        <template #header>选择合同模板</template>
+        <template #body>
+          <TemplateSelector
+            :templates="templates"
+            :selected-id="selectedTemplate?.id"
+            @select="onSelectTemplate"
+          />
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">取消</UButton>
+            <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
+          </div>
+        </template>
+      </UModal>
+
+      <!-- 操作按钮 -->
+      <div class="mt-6 flex justify-end gap-2">
+        <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>
+        <UButton color="primary" :loading="saving" @click="handleSubmit">保存</UButton>
+      </div>
+    </template>
+  </div>
+</template>

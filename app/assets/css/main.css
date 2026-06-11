@@ -1,0 +1,102 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+
+  --color-amber-50: #FFFBEB;
+  --color-amber-100: #FEF3C7;
+  --color-amber-200: #FDE68A;
+  --color-amber-300: #FCD34D;
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+  --color-amber-800: #92400E;
+  --color-amber-900: #78350F;
+  --color-amber-950: #451A03;
+
+  --color-teal-50: #F0FDFA;
+  --color-teal-100: #CCFBF1;
+  --color-teal-200: #99F6E4;
+  --color-teal-300: #5EEAD4;
+  --color-teal-400: #2DD4BF;
+  --color-teal-500: #14B8A6;
+  --color-teal-600: #0D9488;
+  --color-teal-700: #0F766E;
+  --color-teal-800: #115E59;
+  --color-teal-900: #134E4A;
+  --color-teal-950: #042F2E;
+
+  --color-coral-50: #FFF5F2;
+  --color-coral-100: #FFE4DB;
+  --color-coral-200: #FFCBB7;
+  --color-coral-300: #FFA98A;
+  --color-coral-400: #FF7F54;
+  --color-coral-500: #F46036;
+  --color-coral-600: #D8431C;
+  --color-coral-700: #B53415;
+  --color-coral-800: #932D16;
+  --color-coral-900: #772917;
+  --color-coral-950: #401209;
+}
+
+:root {
+  --color-bg-warm: #FAF9F6;
+  --color-bg-card: #FFFFFF;
+  --color-text-primary: #2C2C2A;
+  --color-text-secondary: #5F5E5A;
+  --color-text-muted: #888780;
+  --color-border-warm: #E5E4DF;
+  --color-success: #0D9488;
+  --color-danger: #DC2626;
+  --color-warning: #D97706;
+  --color-info: #2563EB;
+}
+
+body {
+  background-color: var(--color-bg-warm);
+  color: var(--color-text-primary);
+}
+
+.warm-card {
+  background: var(--color-bg-card);
+  border: 0.5px solid var(--color-border-warm);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.warm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.warm-badge-success {
+  background: #F0FDFA;
+  color: #0F766E;
+}
+
+.warm-badge-warning {
+  background: #FFFBEB;
+  color: #92400E;
+}
+
+.warm-badge-danger {
+  background: #FEF2F2;
+  color: #991B1B;
+}
+
+.warm-badge-info {
+  background: #EFF6FF;
+  color: #1E40AF;
+}
+
+.warm-badge-neutral {
+  background: #F5F5F4;
+  color: #57534E;
+}

@@ -1,0 +1,9 @@
+allowBuilds:
+  '@parcel/watcher': false
+  '@tailwindcss/oxide': false
+  better-sqlite3: true
+  esbuild: false
+  puppeteer: true
+  tesseract.js: set this to true or false
+  unrs-resolver: false
+  vue-demi: false

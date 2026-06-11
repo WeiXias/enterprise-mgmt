@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  enterprise-mgmt:
+    image: ${IMAGE_NAME:-enterprise-mgmt:latest}
+    container_name: enterprise-mgmt
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - enterprise_data:/opt/enterprise-mgmt/data
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - AI_ENCRYPTION_KEY=${AI_ENCRYPTION_KEY}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - NUXT_PUBLIC_APP_NAME=${NUXT_PUBLIC_APP_NAME:-企业一体化管理系统}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health',r=>{process.exit(r.statusCode===200?0:1)})"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  enterprise_data:
