@@ -99,7 +99,7 @@ function extractPlaceholders(html: string): { key: string; label: string }[] {
   const re = /\{\{(\w+)\}\}/g
   let m
   while ((m = re.exec(html)) !== null) {
-    set.add(m[1])
+    set.add(m[1]!)
   }
   return Array.from(set).map(k => ({ key: k, label: k }))
 }
@@ -186,7 +186,7 @@ onMounted(fetchTemplates)
           <div>
             <label class="block text-sm text-stone-600 mb-2">
               正文内容
-              <span class="text-stone-400 font-normal ml-1">（用 {{key}} 表示占位符）</span>
+              <span class="text-stone-400 font-normal ml-1">（用 <code v-pre>{{key}}</code> 表示占位符）</span>
             </label>
             <ContractEditor
               v-model="editorContent"

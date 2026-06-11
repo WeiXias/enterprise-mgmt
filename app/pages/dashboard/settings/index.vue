@@ -51,9 +51,9 @@ function moveSidebarItem(key: string, direction: number) {
   if (pos < 0) return
   const target = pos + direction
   if (target < 0 || target >= sorted.length) return
-  const a = sorted[pos].key, b = sorted[target].key
-  const tmp = sidebarSort.value[a]
-  sidebarSort.value[a] = sidebarSort.value[b]
+  const a = sorted[pos]!.key, b = sorted[target]!.key
+  const tmp = sidebarSort.value[a] ?? 0
+  sidebarSort.value[a] = sidebarSort.value[b] ?? 0
   sidebarSort.value[b] = tmp
   sidebarSort.value = { ...sidebarSort.value }
 }
@@ -231,7 +231,7 @@ async function fetchAIData() {
   aiSettingsLoading.value = true
   try {
     const [aiRes] = await Promise.all([fetchAISettings(), fetchProviders(), fetchEmployees()])
-    aiSettings.value = { autoReviewEnabled: aiRes.data.autoReviewEnabled, defaultProviderId: aiRes.data.defaultProviderId }
+    aiSettings.value = { autoReviewEnabled: aiRes.data.autoReviewEnabled ?? false, defaultProviderId: aiRes.data.defaultProviderId ?? null }
   } finally { aiSettingsLoading.value = false }
 }
 
@@ -262,7 +262,7 @@ async function handleTestProvider() {
   testingProvider.value = true; testResult.value = null
   try {
     const res = await testProvider(editingProviderId.value)
-    testResult.value = res.data.success ? '连接成功' : res.message
+    testResult.value = res.data.success ? '连接成功' : (res.message ?? '连接失败')
   } catch (e: any) { testResult.value = e?.data?.message || '测试失败' }
   finally { testingProvider.value = false }
 }
@@ -310,7 +310,7 @@ function generateSystemPrompt(name: string, role: string): string {
 请用中文输出洞察报告，具体可落地。`,
     custom: `你是${name || 'AI 助手'}，请根据用户需求提供专业帮助。`,
   }
-  return rolePromptMap[role] || rolePromptMap.custom
+  return rolePromptMap[role] || rolePromptMap.custom!
 }
 
 // 监听名称变化，自动填充提示词（仅在新增且提示词为空时）

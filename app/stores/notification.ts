@@ -93,7 +93,10 @@ export const useNotificationStore = defineStore('notification', {
       }
     },
 
-    getAuthHeaders(): Record<string, string> { return useAuthHeaders() },
+    getAuthHeaders(): Record<string, string> {
+      const authStore = useAuthStore()
+      return authStore.accessToken ? { Authorization: `Bearer ${authStore.accessToken}` } : {}
+    },
 
     /** 根据通知类型决定跳转路径 */
     getNotificationLink(notification: Notification): string {

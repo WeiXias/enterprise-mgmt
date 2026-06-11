@@ -10,9 +10,16 @@ interface IMConversation {
   unreadCount: number
 }
 
+interface IMMessage {
+  id: string; conversationId: string; type?: string
+  sender: { id: string; name: string; avatar: string | null }
+  content: string | null; isDeleted: boolean; mentions: string[] | null; attachments?: any[]; createdAt: string
+}
+
 interface UnreadResult { code: number; data: { count: number } }
 interface ConvListResult { code: number; data: { items: IMConversation[]; total: number; page: number; totalPages: number } }
 interface ConvResult { code: number; data: { id: string; type: string; participant: { id: string; name: string; avatar: string | null } } }
+interface MsgListResult { code: number; data: { items: IMMessage[]; total: number; page: number; totalPages: number } }
 
 export const useIMConversationStore = defineStore('im-conversation', {
   state: () => ({
@@ -21,6 +28,13 @@ export const useIMConversationStore = defineStore('im-conversation', {
     conversationsLoading: false,
     activeConversationId: null as string | null,
     pollTimer: null as ReturnType<typeof setInterval> | null,
+    // message state
+    messages: [] as IMMessage[],
+    messagesLoading: false,
+    messagesTotal: 0,
+    messagesTotalPages: 0,
+    messagesPage: 1,
+    messagePollTimer: null as ReturnType<typeof setInterval> | null,
   }),
 
   getters: {
@@ -28,28 +42,78 @@ export const useIMConversationStore = defineStore('im-conversation', {
   },
 
   actions: {
+    _authHeaders(): Record<string, string> {
+      const authStore = useAuthStore()
+      return authStore.accessToken ? { Authorization: `Bearer ${authStore.accessToken}` } : {}
+    },
+
     async fetchUnreadCount() {
       try {
-        const result = await $fetch('/api/im/unread-count', { headers: useAuthHeaders() }) as UnreadResult
+        const result = await $fetch('/api/im/unread-count', { headers: this._authHeaders() }) as UnreadResult
         if (result?.code === 0) this.unreadTotal = result.data?.count || 0
       } catch { /* ignore */ }
     },
     async fetchConversations(page = 1) {
       this.conversationsLoading = true
       try {
-        const result = await $fetch('/api/im/conversations', { params: { page, pageSize: 30 }, headers: useAuthHeaders() }) as ConvListResult
+        const result = await $fetch('/api/im/conversations', { params: { page, pageSize: 30 }, headers: this._authHeaders() }) as ConvListResult
         if (result?.code === 0) this.conversations = result.data.items || []
       } catch { /* ignore */ } finally { this.conversationsLoading = false }
     },
     async createConversation(participantId: string): Promise<string | null> {
       try {
-        const result = await $fetch('/api/im/conversations', { method: 'POST', body: { participantId }, headers: useAuthHeaders() }) as ConvResult
+        const result = await $fetch('/api/im/conversations', { method: 'POST', body: { participantId }, headers: this._authHeaders() }) as ConvResult
         if (result?.code === 0 && result.data) { await this.fetchConversations(); return result.data.id }
       } catch { /* ignore */ }
       return null
     },
     setActiveConversation(id: string | null) { this.activeConversationId = id },
+
+    // message actions
+    async fetchMessages(conversationId: string, page?: number, replace = false) {
+      if (!conversationId) return
+      this.messagesLoading = true
+      const p = page || 1
+      try {
+        const result = await $fetch(`/api/im/conversations/${conversationId}/messages`, { params: { page: p, pageSize: 50 }, headers: this._authHeaders() }) as MsgListResult
+        if (result?.code === 0) {
+          if (replace) { this.messages = result.data.items || [] }
+          else if (p > 1 || page) {
+            const existing = new Set(this.messages.map(m => m.id))
+            this.messages = [...(result.data.items || []).filter(m => !existing.has(m.id)), ...this.messages]
+          } else { this.messages = result.data.items || [] }
+          this.messagesTotal = result.data.total; this.messagesTotalPages = result.data.totalPages; this.messagesPage = p
+        }
+      } catch { /* ignore */ } finally { this.messagesLoading = false }
+    },
+
+    async sendMessage(conversationId: string, content: string): Promise<boolean> {
+      try {
+        const result = await $fetch(`/api/im/conversations/${conversationId}/messages`, { method: 'POST', body: { content }, headers: this._authHeaders() }) as any
+        return result?.code === 0
+      } catch { return false }
+    },
+
+    async deleteMessage(messageId: string) {
+      try {
+        await $fetch(`/api/im/messages/${messageId}`, { method: 'DELETE', headers: this._authHeaders() })
+        const msg = this.messages.find(m => m.id === messageId)
+        if (msg) { msg.isDeleted = true; msg.content = null }
+      } catch { /* ignore */ }
+    },
+
+    async markAsRead(conversationId: string, messageId: string) {
+      try { await $fetch(`/api/im/conversations/${conversationId}/read`, { method: 'PUT', body: { messageId }, headers: this._authHeaders() }) } catch { /* ignore */ }
+    },
+
+    startMessagePolling(conversationId: string) {
+      this.stopMessagePolling()
+      if (import.meta.client) this.messagePollTimer = setInterval(() => this.fetchMessages(conversationId, 1), 3000)
+    },
+    stopMessagePolling() { if (this.messagePollTimer) { clearInterval(this.messagePollTimer); this.messagePollTimer = null } },
+
     startPolling() { this.stopPolling(); this.fetchUnreadCount(); this.fetchConversations(); if (import.meta.client) this.pollTimer = setInterval(() => { this.fetchUnreadCount(); this.fetchConversations() }, 10000) },
     stopPolling() { if (this.pollTimer) { clearInterval(this.pollTimer); this.pollTimer = null } },
+    stopAllPolling() { this.stopPolling(); this.stopMessagePolling() },
   },
 })

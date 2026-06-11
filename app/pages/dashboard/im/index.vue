@@ -156,7 +156,7 @@ async function handleDeleteConversation() {
   try {
     const token = authStore.accessToken
     await $fetch(`/api/im/conversations/${deleteConvTarget.value.id}`, {
-      method: 'PATCH', body: { isDeleted: true }, headers: token ? { Authorization: `Bearer ${token}` } : {},
+      method: 'patch' as any, body: { isDeleted: true }, headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
     toast.add({ title: '会话已删除', color: 'success' })
     showDeleteConvModal.value = false; deleteConvTarget.value = null

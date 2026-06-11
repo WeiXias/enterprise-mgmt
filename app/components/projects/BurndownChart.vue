@@ -55,7 +55,7 @@ const tooltip = computed(() => {
   return {
     day: props.days[hoverIndex.value],
     actual: props.actual[hoverIndex.value],
-    ideal: Math.round(props.ideal[hoverIndex.value]),
+    ideal: Math.round(props.ideal[hoverIndex.value] ?? 0),
     x: padding.left + (hoverIndex.value / (props.days.length - 1)) * w,
   }
 })

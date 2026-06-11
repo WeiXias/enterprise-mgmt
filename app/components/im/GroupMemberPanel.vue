@@ -3,6 +3,7 @@ const props = defineProps<{ conversationId: string }>()
 const emit = defineEmits<{ close: [] }>()
 
 const toast = useToast()
+const authStore = useAuthStore()
 const { $api } = useNuxtApp()
 
 const members = ref<any[]>([])

@@ -46,6 +46,7 @@ const emit = defineEmits<{
 }>()
 
 const toast = useToast()
+const authStore = useAuthStore()
 const dragOver = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -142,6 +143,10 @@ function openPreview(file: UploadedFile) {
   showPreview.value = true
 }
 
+function openPreviewUrl() {
+  if (previewUrl.value) window.open(previewUrl.value, '_blank')
+}
+
 </script>
 
 <template>
@@ -236,7 +241,7 @@ function openPreview(file: UploadedFile) {
         <div v-else-if="previewUrl" class="flex flex-col items-center justify-center" style="height: calc(100vh - 180px)">
           <UIcon name="i-lucide-file" class="w-16 h-16 mx-auto mb-4 text-stone-300" />
           <p class="text-sm text-stone-400">暂不支持预览此文件类型</p>
-          <UButton color="primary" size="sm" class="mt-4" @click="() => window.open(previewUrl, '_blank')">下载文件</UButton>
+          <UButton color="primary" size="sm" class="mt-4" @click="openPreviewUrl">下载文件</UButton>
         </div>
       </template>
     </UModal>

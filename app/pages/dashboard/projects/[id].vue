@@ -435,7 +435,7 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
               <div class="flex items-center justify-between">
                 <span class="text-sm text-stone-700">{{ d.name }}</span>
                 <span :class="['text-[10px] px-1 py-0.5 rounded-full', { 'bg-stone-100 text-stone-500': d.status === 'pending', 'bg-blue-50 text-blue-600': d.status === 'submitted', 'bg-teal-50 text-teal-600': d.status === 'accepted', 'bg-red-50 text-red-500': d.status === 'rejected' }]">
-                  {{ { pending: '待提交', submitted: '已提交', accepted: '已验收', rejected: '已驳回' }[d.status] || d.status }}
+                  {{ ({ pending: '待提交', submitted: '已提交', accepted: '已验收', rejected: '已驳回' } as Record<string, string>)[d.status] || d.status }}
                 </span>
               </div>
             </div>

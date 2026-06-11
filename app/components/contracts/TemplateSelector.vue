@@ -48,7 +48,7 @@ function getPlaceholderList(placeholdersJson: string) {
     >
       <div class="flex items-center gap-2 mb-2">
         <span
-          :class="['text-[10px] px-1.5 py-0.5 rounded-full border', categoryConfig[t.category]?.color || categoryConfig.other.color]"
+          :class="['text-[10px] px-1.5 py-0.5 rounded-full border', categoryConfig[t.category]?.color || categoryConfig.other!.color]"
         >
           {{ categoryConfig[t.category]?.label || t.category }}
         </span>

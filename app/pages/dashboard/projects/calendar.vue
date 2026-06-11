@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { Dayjs } from 'dayjs'
+
 definePageMeta({ layout: 'dashboard', title: '项目日历', middleware: ['auth'] })
 
 const toast = useToast()
@@ -48,7 +50,7 @@ async function fetchProjects() {
 const monthDays = computed(() => {
   const start = dayjs(currentMonth.value).startOf('month')
   const end = dayjs(currentMonth.value).endOf('month')
-  const days: dayjs.Dayjs[] = []
+  const days: Dayjs[] = []
   // padding before first day
   const startDay = start.day() // 0=Sun
   const padStart = startDay === 0 ? 6 : startDay - 1 // Monday=0
@@ -62,7 +64,7 @@ const weekDays = computed(() => {
   return Array.from({ length: 7 }, (_, i) => start.add(i, 'day'))
 })
 
-function dateKey(d: dayjs.Dayjs) { return d.format('YYYY-MM-DD') }
+function dateKey(d: Dayjs) { return d.format('YYYY-MM-DD') }
 function taskCount(date: string) { return (calendarTasks.value[date] || []).length }
 function priorityColor(p: string) {
   return { high: 'bg-red-400', medium: 'bg-amber-400', low: 'bg-stone-300' }[p] || 'bg-stone-300'
@@ -71,9 +73,9 @@ function statusColor(s: string) {
   return { todo: 'ring-stone-300', in_progress: 'ring-blue-400', completed: 'ring-teal-400' }[s] || 'ring-stone-300'
 }
 
-function selectDate(d: dayjs.Dayjs) {
+function selectDate(d: Dayjs) {
   selectedDate.value = dateKey(d)
-  selectedDateTasks.value = calendarTasks.value[selectedDate.value] || []
+  selectedDateTasks.value = calendarTasks.value[selectedDate.value!] || []
 }
 
 watch([currentMonth, projectFilter], () => fetchCalendar())

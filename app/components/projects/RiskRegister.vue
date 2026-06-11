@@ -38,7 +38,7 @@ const statusColors: Record<string, string> = {
 }
 
 function riskScore(r: Risk): number {
-  return impactScore[r.impact] * impactScore[r.probability]
+  return (impactScore[r.impact] ?? 0) * (impactScore[r.probability] ?? 0)
 }
 
 function scoreColor(score: number): string {
@@ -60,7 +60,7 @@ const editTarget = ref<string | null>(null)
         <div v-for="pi in ['低', '中', '高']" :key="pi" class="text-[10px] text-stone-400 text-center p-1">概率{{ pi }}</div>
         <template v-for="imp in ['高', '中', '低']" :key="imp">
           <div class="text-[10px] text-stone-400 p-1">影响{{ imp }}</div>
-          <div v-for="prob in ['low', 'medium', 'high']" :key="prob" :class="['text-center p-1 rounded text-xs', scoreColor(impactScore[imp === '高' ? 'high' : imp === '中' ? 'medium' : 'low'] * impactScore[prob])]">
+          <div v-for="prob in ['low', 'medium', 'high']" :key="prob" :class="['text-center p-1 rounded text-xs', scoreColor((impactScore[imp === '高' ? 'high' : imp === '中' ? 'medium' : 'low'] ?? 0) * (impactScore[prob] ?? 0))]">
             {{ risks.filter(r => r.impact === (imp === '高' ? 'high' : imp === '中' ? 'medium' : 'low') && r.probability === prob).length || '-' }}
           </div>
         </template>

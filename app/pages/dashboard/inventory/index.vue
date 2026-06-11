@@ -63,10 +63,10 @@ function handleExport() {
       { key: 'productName', label: '产品' },
       { key: 'type', label: '类型' },
       { key: 'quantity', label: '数量' },
-      { key: 'unitPrice', label: '单价', format: (v: any) => v ? '¥' + v : '-' },
+      { key: 'unitPrice', label: '单价', format: (v: unknown) => v ? '¥' + v : '-' },
       { key: 'batchNo', label: '批次' },
       { key: 'remark', label: '备注' },
-      { key: 'createdAt', label: '时间', format: (v: string) => (v || '').slice(0, 10) },
+      { key: 'createdAt', label: '时间', format: (v: unknown) => (v || '').toString().slice(0, 10) },
     ]
     const csv = jsonToCsv(rows, columns)
     downloadCsv(csv, `库存流水_${new Date().toISOString().slice(0, 10)}.csv`)
