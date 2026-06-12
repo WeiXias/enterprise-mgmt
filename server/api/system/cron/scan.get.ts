@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import { db } from '#database'
-import { notifications, contracts, paymentPlans, projects, products, opportunities, invoices } from '#schema'
+import { notifications, contracts, paymentPlans, projects, products, opportunities, invoices, todos } from '#schema'
 import { eq, and, lte, gte, lt, isNull } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 
@@ -82,12 +82,39 @@ export default defineEventHandler(async () => {
   }
 
   // 6. 商机跟进超期（14天无更新）
+
+  // 7. 待办即将到期（7天内，且未完成）
+  const dueTodos = await db.select({
+    id: todos.id, title: todos.title, dueDate: todos.dueDate, userId: todos.userId,
+  }).from(todos).where(and(
+    gte(todos.dueDate, today),
+    lte(todos.dueDate, weekLater),
+    isNull(todos.deletedAt),
+    isNull(todos.completedAt),
+  ))
+  for (const t of dueTodos) {
+    if (t.userId) add(t.userId, 'remind', '待办即将到期', `待办「${t.title}」截止日期是 ${t.dueDate}`, t.id, 'todo')
+  }
+
+  // 8. 待办已逾期（截止日期已过，未完成）
   const twoWeeksAgo = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10)
   const staleOpps = await db.select({
     id: opportunities.id, name: opportunities.name, ownerUserId: opportunities.ownerUserId,
   }).from(opportunities).where(and(lt(opportunities.updatedAt, twoWeeksAgo), isNull(opportunities.deletedAt)))
   for (const o of staleOpps) {
     if (o.ownerUserId) add(o.ownerUserId, 'remind', '商机需要跟进', `商机「${o.name}」已超过 14 天未更新`, o.id, 'opportunity')
+  }
+
+  // 8. 待办已逾期（截止日期已过，未完成）
+  const overdueTodos = await db.select({
+    id: todos.id, title: todos.title, dueDate: todos.dueDate, userId: todos.userId,
+  }).from(todos).where(and(
+    lt(todos.dueDate, today),
+    isNull(todos.deletedAt),
+    isNull(todos.completedAt),
+  ))
+  for (const t of overdueTodos) {
+    if (t.userId) add(t.userId, 'remind', '待办已逾期', `待办「${t.title}」已于 ${t.dueDate} 到期`, t.id, 'todo')
   }
 
   // 批量写入

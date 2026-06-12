@@ -72,7 +72,8 @@ const sidebarItems = computed(() => {
   const configSort = (key: string) => sidebarOrder.value[key] ?? 99
   const items: any[] = [
     { label: '首页', icon: 'i-lucide-home', to: '/dashboard', exact: true, sort: configSort('home') !== 99 ? configSort('home') : 0 },
-    { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 1 },
+    { label: '待办', icon: 'i-lucide-list-checks', to: '/dashboard/todos', sort: configSort('todos') !== 99 ? configSort('todos') : 1 },
+    { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 2 },
     { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 2 },
     { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 3 },
     { label: '合同', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 4 },
@@ -129,13 +130,15 @@ function formatTime(dateStr: string): string {
       <!-- 侧边栏 -->
       <aside :class="[sidebarCollapsed ? 'w-16' : 'w-60', 'shrink-0 border-r border-[var(--color-border-warm)] bg-white flex flex-col transition-all duration-300']">
         <div class="h-14 flex items-center gap-2 px-3 border-b border-[var(--color-border-warm)]" :class="sidebarCollapsed ? 'justify-center' : 'px-5'">
-          <div v-if="logoUrl" class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
-            <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
-          </div>
-          <div v-else class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
-            <span class="text-white text-sm font-medium">E</span>
-          </div>
-          <span v-show="!sidebarCollapsed" class="text-sm font-medium text-stone-800 truncate">{{ systemName }}</span>
+          <NuxtLink to="/dashboard" class="flex items-center gap-2 hover:opacity-80 transition-opacity" :class="sidebarCollapsed ? 'justify-center' : ''">
+            <div v-if="logoUrl" class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+              <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
+            </div>
+            <div v-else class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
+              <span class="text-white text-sm font-medium">E</span>
+            </div>
+            <span v-show="!sidebarCollapsed" class="text-sm font-medium text-stone-800 truncate">{{ systemName }}</span>
+          </NuxtLink>
         </div>
 
         <nav class="flex-1 overflow-y-auto py-3 px-3">
