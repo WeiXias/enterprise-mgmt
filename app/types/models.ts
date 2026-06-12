@@ -814,7 +814,7 @@ export interface ImportResult {
 // ============================================================
 
 export type AIProviderType = 'deepseek' | 'custom'
-export type AIEmployeeRole = 'contract_reviewer' | 'opportunity_analyst' | 'customer_insight' | 'custom'
+export type AIEmployeeRole = 'contract_reviewer' | 'contract_writer' | 'opportunity_analyst' | 'customer_insight' | 'custom'
 export type AIReviewStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type AIRiskLevel = 'low' | 'medium' | 'high' | 'critical'
 
@@ -1037,4 +1037,24 @@ export interface UpdateTodoSubtaskPayload {
 export interface CreateTodoTagPayload {
   name: string
   color?: string
+}
+
+// ---- 合同模板 AI 生成 & Word 导入 ----
+export interface AIGenerateTemplateRequest {
+  prompt: string
+  category?: string
+  aiEmployeeId?: string
+}
+
+export interface AIGenerateTemplateResponse {
+  content: string
+  placeholders: { key: string; label: string }[]
+  suggestedName: string
+  suggestedDescription: string
+}
+
+export interface ImportDocxResponse {
+  content: string
+  placeholders: { key: string; label: string }[]
+  suggestedName: string
 }

@@ -27,6 +27,7 @@ export const imMessages = sqliteTable('im_messages', {
   type: text('type', { enum: ['text', 'file'] }).notNull().default('text'),
   content: text('content').notNull(),
   mentions: text('mentions'),
+  replyTo: text('reply_to'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),

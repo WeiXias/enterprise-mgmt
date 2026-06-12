@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     userId: users.id,
     name: users.name,
     avatar: users.avatar,
-    role: users.role,
+    groupRole: imMembers.role,
   })
     .from(imMembers)
     .innerJoin(users, eq(imMembers.userId, users.id))

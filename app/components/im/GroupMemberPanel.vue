@@ -21,7 +21,7 @@ async function fetchMembers() {
     ])
     if (memRes?.code === 0) {
       members.value = memRes.data || []
-      myRole.value = members.value.find((m: any) => m.userId === authStore.user?.id)?.role || ''
+      myRole.value = members.value.find((m: any) => m.userId === authStore.user?.id)?.groupRole || ''
     }
   } catch { /* ignore */ } finally { loading.value = false }
 }
@@ -89,7 +89,7 @@ onMounted(() => fetchMembers())
               <span class="text-amber-700 text-[10px] font-medium">{{ m.name?.charAt(0) || '?' }}</span>
             </div>
             <span class="text-sm text-stone-700">{{ m.name }}</span>
-            <span v-if="m.role === 'owner'" class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">群主</span>
+            <span v-if="m.groupRole === 'owner'" class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">群主</span>
           </div>
           <UButton v-if="myRole === 'owner' && m.userId !== authStore.user?.id" icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="handleRemove(m.userId)" />
         </div>

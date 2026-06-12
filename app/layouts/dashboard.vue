@@ -77,7 +77,6 @@ const sidebarItems = computed(() => {
     { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 2 },
     { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 3 },
     { label: '合同', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 4 },
-    { label: '分包合同', icon: 'i-lucide-share-2', to: '/dashboard/contracts/subcontracts', sort: configSort('subcontracts') !== 99 ? configSort('subcontracts') : 45 },
     { label: '项目', icon: 'i-lucide-folder-open', to: '/dashboard/projects', sort: configSort('projects') !== 99 ? configSort('projects') : 5 },
   ]
   if (authStore.isAdmin || authStore.isSalesManager) {

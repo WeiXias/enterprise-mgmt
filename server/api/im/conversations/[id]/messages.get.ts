@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParams, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { imConversations, imMembers, imMessages, users } from '#schema'
-import { eq, and, isNull, desc, sql } from 'drizzle-orm'
+import { eq, and, desc, sql, inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -22,15 +22,12 @@ export default defineEventHandler(async (event) => {
   const page = Math.max(1, Number(query.page) || 1)
   const pageSize = Math.min(Number(query.pageSize) || 50, 100)
 
-  // 消息按时间正序（旧→新），前端从最新页开始加载
   const totalRes = await db.select({ cnt: sql<number>`COUNT(*)` })
     .from(imMessages)
-    .where(and(eq(imMessages.conversationId, convId), isNull(imMessages.deletedAt)))
+    .where(eq(imMessages.conversationId, convId))
   const total = totalRes[0]?.cnt ?? 0
   const totalPages = Math.ceil(total / pageSize)
 
-  // 前端希望最新页在最前 — 前端翻页时传 page 越大=越新
-  // 这里用标准分页，ASC 序
   const rows = await db.select({
     id: imMessages.id,
     conversationId: imMessages.conversationId,
@@ -43,14 +40,37 @@ export default defineEventHandler(async (event) => {
     type: imMessages.type,
     isDeleted: sql<number>`CASE WHEN ${imMessages.deletedAt} IS NOT NULL THEN 1 ELSE 0 END`.as('is_deleted'),
     mentions: imMessages.mentions,
+    replyTo: imMessages.replyTo,
     createdAt: imMessages.createdAt,
   })
     .from(imMessages)
     .leftJoin(users, eq(imMessages.senderId, users.id))
-    .where(and(eq(imMessages.conversationId, convId), isNull(imMessages.deletedAt)))
+    .where(eq(imMessages.conversationId, convId))
     .orderBy(desc(imMessages.createdAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize)
+
+  // 批量查引用消息
+  const replyIds = rows.map(m => m.replyTo).filter(Boolean) as string[]
+  const replyMap = new Map<string, { content: string | null; sender: { id: string; name: string } | null }>()
+  if (replyIds.length > 0) {
+    const replyMsgs = await db.select({
+      id: imMessages.id,
+      content: imMessages.content,
+      isDeleted: sql<number>`CASE WHEN ${imMessages.deletedAt} IS NOT NULL THEN 1 ELSE 0 END`.as('is_deleted'),
+      senderId: imMessages.senderId,
+      senderName: users.name,
+    })
+      .from(imMessages)
+      .leftJoin(users, eq(imMessages.senderId, users.id))
+      .where(inArray(imMessages.id, replyIds))
+    for (const r of replyMsgs) {
+      replyMap.set(r.id, {
+        content: r.isDeleted ? null : r.content,
+        sender: r.senderName ? { id: r.senderId, name: r.senderName } : null,
+      })
+    }
+  }
 
   return {
     code: 0,
@@ -63,6 +83,7 @@ export default defineEventHandler(async (event) => {
         content: m.content,
         isDeleted: !!(m.isDeleted as unknown),
         mentions: m.mentions ? (() => { try { return JSON.parse(m.mentions as string) } catch { return null } })() : null,
+        replyTo: m.replyTo ? replyMap.get(m.replyTo) || null : null,
         createdAt: m.createdAt,
       })),
       total,

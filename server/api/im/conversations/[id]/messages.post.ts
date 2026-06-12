@@ -8,6 +8,7 @@ import { logOperation } from '#server-utils/log'
 
 const schema = z.object({
   content: z.string().min(1, '消息不能为空').max(5000),
+  replyTo: z.string().optional(),
 })
 
 function parseMentions(content: string): string[] {
@@ -57,7 +58,7 @@ export default defineEventHandler(async (event) => {
       .innerJoin(users, eq(imMembers.userId, users.id))
       .where(eq(imMembers.conversationId, convId))
     mentionUserIds = convMembers
-      .filter(m => m.userId !== user.userId && mentionedNames.some(n => m.name === n || m.name.includes(n)))
+      .filter(m => m.userId !== user.userId && mentionedNames.some(n => m.name === n))
       .map(m => m.userId)
   }
 
@@ -69,6 +70,7 @@ export default defineEventHandler(async (event) => {
     conversationId: convId,
     senderId: user.userId,
     content,
+    replyTo: parsed.data.replyTo || null,
     mentions: mentionUserIds.length > 0 ? JSON.stringify(mentionUserIds) : null,
     createdAt: now,
     updatedAt: now,

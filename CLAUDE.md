@@ -130,6 +130,17 @@ enterprise-mgmt/              # 主应用目录
 - 加载状态用骨架屏，不用转圈动画
 - 表单默认聚焦第一个输入框，回车提交
 
+### 组件规范
+
+1. **公共组件优先**：新建组件前先检查 `app/components/common/` 是否已有可复用的组件。如果有，必须复用；如果没有，且该组件可能被其他模块使用，则应放在 `common/` 目录
+2. **必须复用的公共组件**：StatusBadge、ConfirmDialog、FormModal、PageHeader、CommonPagination、SearchBar、UserSelect、EmptyState、DataTable
+3. **2 模块规则**：当一个组件被 2 个及以上模块使用时，必须从业务目录提升到 `common/`。例如 FollowUpList 最初在 customers/ 下，现已提升到 common/
+4. **新组件放置规则**：
+   - 通用 UI 组件（选择器、表单项、展示组件）→ `common/`
+   - 业务逻辑组件（只能被当前模块用）→ `todos/`、`projects/` 等
+   - 有疑问时默认放 `common/`，后续如果确认只有单模块使用再移到业务目录
+5. **Composable 同理**：新建 composable 前检查 `app/composables/` 是否已有可复用的（useTable、useExportCsv、useEnum、useConfirm 等）。列表页必须用 useTable + CommonPagination
+
 ## API 规范
 
 - API 路由在 `server/api/` 中按模块分目录，Nuxt 自动生成路由（本地直连路径如 `/api/auth/login`，Nginx 反向代理加 `/api/v1` 前缀）

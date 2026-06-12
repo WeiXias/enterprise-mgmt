@@ -33,7 +33,14 @@ export function useIMPolling() {
   }
 
   function switchConversation(conversationId: string) {
+    imStore.stopMessagePolling()
     imStore.setActiveConversation(conversationId)
+    imStore.startMessagePolling(conversationId)
+    // 用最新一条消息标记已读
+    const lastMsg = imStore.messages[imStore.messages.length - 1]
+    if (lastMsg) {
+      imStore.markAsRead(conversationId, lastMsg.id)
+    }
   }
 
   onUnmounted(() => {

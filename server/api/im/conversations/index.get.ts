@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
-import { imConversations, imMembers, imMessages, users } from '#schema'
+import { imConversations, imMembers, imMessages, users, imReadCursors } from '#schema'
 import { eq, and, isNull, ne, desc, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -11,8 +11,8 @@ export default defineEventHandler(async (event) => {
   const page = Math.max(1, Number(query.page) || 1)
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
 
-  // 获取用户参与的会话
-  const conList = await db.select({
+  // 用户参与的私聊会话（含对方信息和最后消息）
+  const directCons = await db.select({
     id: imConversations.id,
     type: imConversations.type,
     title: imConversations.title,
@@ -21,24 +21,38 @@ export default defineEventHandler(async (event) => {
     participantId: users.id,
     participantName: users.name,
     participantAvatar: users.avatar,
+    lastMsgContent: imMessages.content,
+    lastMsgSenderName: sql<string>`msg_sender.name`.as('last_msg_sender_name'),
+    lastMsgCreatedAt: imMessages.createdAt,
   })
     .from(imConversations)
-    .innerJoin(imMembers, and(
-      eq(imMembers.conversationId, imConversations.id),
-      ne(imMembers.userId, user.userId),
-    ))
+    .innerJoin(imMembers, eq(imMembers.conversationId, imConversations.id))
     .innerJoin(users, eq(imMembers.userId, users.id))
+    .leftJoin(
+      db.select({
+        id: imMessages.id,
+        conversationId: imMessages.conversationId,
+        content: imMessages.content,
+        senderId: imMessages.senderId,
+        createdAt: imMessages.createdAt,
+        rowNum: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${imMessages.conversationId} ORDER BY ${imMessages.createdAt} DESC)`.as('rn'),
+      }).from(imMessages).where(isNull(imMessages.deletedAt)).as('last_msg'),
+      and(
+        eq(sql`last_msg.conversationId`, imConversations.id),
+        eq(sql`last_msg.rn`, 1),
+      ),
+    )
+    .leftJoin(sql`users AS msg_sender`, eq(sql`last_msg.senderId`, sql`msg_sender.id`))
     .where(and(
       isNull(imConversations.deletedAt),
       eq(imConversations.type, 'direct'),
+      ne(imMembers.userId, user.userId),
       sql`EXISTS (SELECT 1 FROM im_members WHERE conversation_id = ${imConversations.id} AND user_id = ${user.userId})`,
     ))
     .orderBy(desc(imConversations.updatedAt))
-    .limit(pageSize)
-    .offset((page - 1) * pageSize)
 
-  // 群聊列表（单独查，去重 - 用 groupBy 代替 selectDistinct）
-  const groupList = await db.select({
+  // 用户参与的群聊
+  const groupCons = await db.select({
     id: imConversations.id,
     type: imConversations.type,
     title: imConversations.title,
@@ -54,8 +68,95 @@ export default defineEventHandler(async (event) => {
     .groupBy(imConversations.id)
     .orderBy(desc(imConversations.updatedAt))
 
-  const allConversations = [...conList.map(c => ({ ...c, title: null })), ...groupList.map(c => ({ ...c, participantId: null as string | null, participantName: null as string | null, participantAvatar: null as string | null }))]
-    .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''))
+  // 收集所有会话 ID 做批量查询
+  const directIds = directCons.map(c => c.id)
+  const groupIds = groupCons.map(c => c.id)
+  const allConvIds = [...directIds, ...groupIds]
+
+  // 批量查群聊最后消息
+  const groupLastMsgs = allConvIds.length > 0
+    ? await db.select({
+        conversationId: imMessages.conversationId,
+        content: imMessages.content,
+        senderName: users.name,
+        createdAt: imMessages.createdAt,
+        rowNum: sql<number>`ROW_NUMBER() OVER (PARTITION BY ${imMessages.conversationId} ORDER BY ${imMessages.createdAt} DESC)`.as('rn'),
+      })
+        .from(imMessages)
+        .leftJoin(users, eq(imMessages.senderId, users.id))
+        .where(and(
+          sql`${imMessages.conversationId} IN (${sql.join(allConvIds.map(id => sql`${id}`), sql`, `)})`,
+          isNull(imMessages.deletedAt),
+        ))
+    : []
+  const groupLastMsgMap = new Map<string, { content: string; senderName: string | null; createdAt: string }>()
+  for (const m of groupLastMsgs) {
+    if ((m.rn as number) === 1) groupLastMsgMap.set(m.conversationId, { content: m.content, senderName: m.senderName, createdAt: m.createdAt })
+  }
+
+  // 批量查未读数
+  const unreadCounts = allConvIds.length > 0
+    ? await db.select({
+        conversationId: imMessages.conversationId,
+        cnt: sql<number>`COUNT(*)`.as('cnt'),
+      })
+        .from(imMessages)
+        .where(and(
+          sql`${imMessages.conversationId} IN (${sql.join(allConvIds.map(id => sql`${id}`), sql`, `)})`,
+          ne(imMessages.senderId, user.userId),
+          isNull(imMessages.deletedAt),
+          sql`NOT EXISTS (
+            SELECT 1 FROM im_read_cursors
+            WHERE conversation_id = ${imMessages.conversationId}
+            AND user_id = ${user.userId}
+            AND updated_at >= ${imMessages.createdAt}
+          )`,
+        ))
+        .groupBy(imMessages.conversationId)
+    : []
+  const unreadMap = new Map<string, number>()
+  for (const u of unreadCounts) unreadMap.set(u.conversationId, u.cnt)
+
+  // 批量查群聊成员数
+  const memberCounts = groupIds.length > 0
+    ? await db.select({
+        conversationId: imMembers.conversationId,
+        cnt: sql<number>`COUNT(*)`.as('cnt'),
+      })
+        .from(imMembers)
+        .where(sql`${imMembers.conversationId} IN (${sql.join(groupIds.map(id => sql`${id}`), sql`, `)})`)
+        .groupBy(imMembers.conversationId)
+    : []
+  const memberCntMap = new Map<string, number>()
+  for (const m of memberCounts) memberCntMap.set(m.conversationId, m.cnt)
+
+  // 组装结果
+  const directItems = directCons.map(c => ({
+    id: c.id,
+    type: 'direct' as const,
+    title: null as string | null,
+    memberCount: null as number | null,
+    participant: { id: c.participantId, name: c.participantName, avatar: c.participantAvatar },
+    lastMessage: c.lastMsgContent ? { content: c.lastMsgContent, senderName: c.lastMsgSenderName || '未知', createdAt: c.lastMsgCreatedAt } : null,
+    unreadCount: unreadMap.get(c.id) ?? 0,
+  }))
+
+  const groupItems = groupCons.map(c => ({
+    id: c.id,
+    type: 'group' as const,
+    title: c.title,
+    memberCount: memberCntMap.get(c.id) ?? 0,
+    participant: null,
+    lastMessage: groupLastMsgMap.get(c.id) || null,
+    unreadCount: unreadMap.get(c.id) ?? 0,
+  }))
+
+  const items = [...directItems, ...groupItems]
+    .sort((a, b) => {
+      const aTime = a.lastMessage?.createdAt || ''
+      const bTime = b.lastMessage?.createdAt || ''
+      return bTime.localeCompare(aTime)
+    })
     .slice(0, pageSize)
 
   // 获取总数
@@ -66,59 +167,6 @@ export default defineEventHandler(async (event) => {
       sql`EXISTS (SELECT 1 FROM im_members WHERE conversation_id = ${imConversations.id} AND user_id = ${user.userId})`,
     ))
   const total = totalRes[0]?.total ?? 0
-
-  // 为每个会话获取最后一条消息和未读数
-  const items = await Promise.all(allConversations.map(async c => {
-    // 最后一条消息
-    const lastMsgs = await db.select({
-      content: imMessages.content,
-      senderName: users.name,
-      createdAt: imMessages.createdAt,
-    })
-      .from(imMessages)
-      .leftJoin(users, eq(imMessages.senderId, users.id))
-      .where(and(eq(imMessages.conversationId, c.id), isNull(imMessages.deletedAt)))
-      .orderBy(desc(imMessages.createdAt))
-      .limit(1)
-
-    // 未读数
-    const unreadRes = await db.select({ cnt: sql<number>`COUNT(*)`.as('cnt') })
-      .from(imMessages)
-      .where(and(
-        eq(imMessages.conversationId, c.id),
-        ne(imMessages.senderId, user.userId),
-        isNull(imMessages.deletedAt),
-        sql`NOT EXISTS (
-          SELECT 1 FROM im_read_cursors
-          WHERE conversation_id = ${c.id}
-          AND user_id = ${user.userId}
-          AND updated_at >= ${imMessages.createdAt}
-        )`,
-      ))
-
-    // 群聊取 memberCount
-    let memberCount = null
-    if (c.type === 'group') {
-      const cnt = await db.select({ cnt: sql<number>`COUNT(*)`.as('cnt') })
-        .from(imMembers)
-        .where(eq(imMembers.conversationId, c.id))
-      memberCount = cnt[0]?.cnt ?? 0
-    }
-
-    return {
-      id: c.id,
-      type: c.type as string,
-      title: c.title,
-      memberCount,
-      participant: c.type === 'group' ? null : { id: c.participantId, name: c.participantName, avatar: c.participantAvatar },
-      lastMessage: lastMsgs.length > 0 ? {
-        content: lastMsgs[0].content,
-        senderName: lastMsgs[0].senderName || '未知',
-        createdAt: lastMsgs[0].createdAt,
-      } : null,
-      unreadCount: unreadRes[0]?.cnt ?? 0,
-    }
-  }))
 
   return {
     code: 0,

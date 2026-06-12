@@ -13,7 +13,9 @@ interface IMConversation {
 interface IMMessage {
   id: string; conversationId: string; type?: string
   sender: { id: string; name: string; avatar: string | null }
-  content: string | null; isDeleted: boolean; mentions: string[] | null; attachments?: any[]; createdAt: string
+  content: string | null; isDeleted: boolean; mentions: string[] | null; attachments?: any[]
+  replyTo?: { content: string | null; sender: { id: string; name: string } | null } | null
+  createdAt: string
 }
 
 interface UnreadResult { code: number; data: { count: number } }
@@ -77,19 +79,22 @@ export const useIMConversationStore = defineStore('im-conversation', {
       try {
         const result = await $fetch(`/api/im/conversations/${conversationId}/messages`, { params: { page: p, pageSize: 50 }, headers: this._authHeaders() }) as MsgListResult
         if (result?.code === 0) {
-          if (replace) { this.messages = result.data.items || [] }
-          else if (p > 1 || page) {
+          // API 返回 DESC（最新在前），reverse 为 ASC（旧→新）便于渲染
+          const items = (result.data.items || []).reverse()
+          if (replace) { this.messages = items }
+          else if (p > 1) {
+            // 加载更早的消息，prepend
             const existing = new Set(this.messages.map(m => m.id))
-            this.messages = [...(result.data.items || []).filter(m => !existing.has(m.id)), ...this.messages]
-          } else { this.messages = result.data.items || [] }
+            this.messages = [...items.filter((m: IMMessage) => !existing.has(m.id)), ...this.messages]
+          } else { this.messages = items }
           this.messagesTotal = result.data.total; this.messagesTotalPages = result.data.totalPages; this.messagesPage = p
         }
       } catch { /* ignore */ } finally { this.messagesLoading = false }
     },
 
-    async sendMessage(conversationId: string, content: string): Promise<boolean> {
+    async sendMessage(conversationId: string, content: string, replyTo?: string): Promise<boolean> {
       try {
-        const result = await $fetch(`/api/im/conversations/${conversationId}/messages`, { method: 'POST', body: { content }, headers: this._authHeaders() }) as any
+        const result = await $fetch(`/api/im/conversations/${conversationId}/messages`, { method: 'POST', body: { content, replyTo }, headers: this._authHeaders() }) as any
         return result?.code === 0
       } catch { return false }
     },

@@ -21,7 +21,7 @@ export const aiEmployees = sqliteTable('ai_employees', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   role: text('role', {
-    enum: ['contract_reviewer', 'opportunity_analyst', 'customer_insight', 'custom'],
+    enum: ['contract_reviewer', 'contract_writer', 'opportunity_analyst', 'customer_insight', 'custom'],
   }).notNull(),
   roleLabel: text('role_label').notNull(),    // 显示名称如"合同审核员"
   providerId: text('provider_id').notNull().references(() => aiProviders.id),

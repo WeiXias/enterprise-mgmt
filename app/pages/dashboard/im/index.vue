@@ -125,9 +125,8 @@ async function handleSend() {
   const content = messageInput.value.trim()
   if (!content || !imStore.activeConversationId) return
   sending.value = true
-  const body: any = { content }
-  if (replyTarget.value) { body.replyTo = replyTarget.value.id }
-  const ok = await imStore.sendMessage(imStore.activeConversationId, content)
+  const replyToId = replyTarget.value?.id
+  const ok = await imStore.sendMessage(imStore.activeConversationId, content, replyToId)
   if (ok) {
     messageInput.value = ''
     replyTarget.value = null
@@ -156,7 +155,7 @@ async function handleDeleteConversation() {
   try {
     const token = authStore.accessToken
     await $fetch(`/api/im/conversations/${deleteConvTarget.value.id}`, {
-      method: 'patch' as any, body: { isDeleted: true }, headers: token ? { Authorization: `Bearer ${token}` } : {},
+      method: 'PATCH' as 'GET', body: { isDeleted: true }, headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
     toast.add({ title: '会话已删除', color: 'success' })
     showDeleteConvModal.value = false; deleteConvTarget.value = null
@@ -313,6 +312,12 @@ onUnmounted(() => { imStore.stopAllPolling(); loadMoreObserver?.disconnect() })
             </div>
 
             <div :class="['max-w-[70%] px-3 py-2 rounded-xl text-sm', msg.sender.id === authStore.user?.id ? 'bg-amber-100 text-stone-800 rounded-br-md' : 'bg-white border border-stone-200 text-stone-800 rounded-bl-md', msg.isDeleted ? 'italic text-stone-400' : '']">
+              <!-- 引用回复 -->
+              <div v-if="msg.replyTo && !msg.isDeleted" class="mb-1.5 pl-2 border-l-2 border-amber-300 text-xs text-stone-500 bg-amber-50/50 rounded py-0.5">
+                <span class="text-amber-600">{{ msg.replyTo.sender?.name || '已注销' }}</span>
+                <span v-if="msg.replyTo.content" class="line-clamp-1">{{ msg.replyTo.content.slice(0, 50) }}</span>
+                <span v-else class="italic">消息已撤回</span>
+              </div>
               <!-- 文件消息 -->
               <template v-if="msg.type === 'file' && !msg.isDeleted">
                 <FileMessage
