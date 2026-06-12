@@ -1,4 +1,4 @@
-import type { CustomerStatus, OpportunityStatus, ContractStatus, ProjectStatus, TaskStatus, TaskPriority, ProductStatus, CommissionStatus, FollowUpType, PaymentMethod } from '~/types/models'
+import type { CustomerStatus, OpportunityStatus, ContractStatus, ProjectStatus, TaskStatus, TaskPriority, ProductStatus, CommissionStatus, FollowUpType, PaymentMethod, TodoPriority as TodoPriorityType, TodoStatus as TodoStatusType, ListColor as ListColorType } from '~/types/models'
 
 /**
  * 通用状态配置映射
@@ -95,4 +95,35 @@ export const INDUSTRY_OPTIONS = [
 
 export const OPPORTUNITY_SOURCE_OPTIONS = [
   '主动联系', '客户介绍', '展会', '网络推广', '电话营销', '其他',
+]
+
+// ============ 待办模块 ============
+
+export const TODO_PRIORITY_CONFIG: Record<TodoPriorityType, { label: string; color: string; dotColor: string }> = {
+  urgent_important: { label: '紧急重要', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
+  urgent_not_important: { label: '紧急不重要', color: 'bg-orange-50 text-orange-600', dotColor: 'bg-orange-400' },
+  important_not_urgent: { label: '重要不紧急', color: 'bg-amber-50 text-amber-700', dotColor: 'bg-amber-400' },
+  not_urgent_not_important: { label: '不紧急不重要', color: 'bg-stone-100 text-stone-500', dotColor: 'bg-stone-400' },
+}
+
+export const TODO_STATUS_CONFIG: Record<TodoStatusType, { label: string; color: string; dotColor: string }> = {
+  todo: { label: '待办', color: 'bg-stone-100 text-stone-600', dotColor: 'bg-stone-400' },
+  in_progress: { label: '进行中', color: 'bg-blue-50 text-blue-600', dotColor: 'bg-blue-400' },
+  completed: { label: '已完成', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
+}
+
+export const LIST_COLOR_CONFIG: Record<ListColorType, { label: string; bg: string; text: string; border: string; dot: string }> = {
+  amber: { label: '琥珀', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-400' },
+  teal: { label: '青绿', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', dot: 'bg-teal-400' },
+  blue: { label: '蓝色', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', dot: 'bg-blue-400' },
+  coral: { label: '珊瑚', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', dot: 'bg-orange-400' },
+  stone: { label: '石色', bg: 'bg-stone-50', text: 'text-stone-600', border: 'border-stone-200', dot: 'bg-stone-400' },
+  violet: { label: '紫罗兰', bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-200', dot: 'bg-violet-400' },
+}
+
+export const TODO_PRIORITY_QUADRANT: { key: TodoPriorityType; label: string; icon: string; position: string }[] = [
+  { key: 'urgent_important', label: '紧急重要', icon: 'i-lucide-alert-circle', position: 'top-left' },
+  { key: 'urgent_not_important', label: '紧急不重要', icon: 'i-lucide-clock', position: 'top-right' },
+  { key: 'important_not_urgent', label: '重要不紧急', icon: 'i-lucide-target', position: 'bottom-left' },
+  { key: 'not_urgent_not_important', label: '不紧急不重要', icon: 'i-lucide-minus', position: 'bottom-right' },
 ]

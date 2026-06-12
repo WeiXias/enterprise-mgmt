@@ -349,3 +349,34 @@ export const IMMemberRoleLabels: Record<IMMemberRole, string> = {
   [IMMemberRole.OWNER]: '群主',
   [IMMemberRole.MEMBER]: '成员',
 }
+
+// ---- TodoPriority (四象限优先级) ----
+export const TodoPriority = { URGENT_IMPORTANT: 'urgent_important', URGENT_NOT_IMPORTANT: 'urgent_not_important', IMPORTANT_NOT_URGENT: 'important_not_urgent', NOT_URGENT_NOT_IMPORTANT: 'not_urgent_not_important' } as const
+export type TodoPriority = (typeof TodoPriority)[keyof typeof TodoPriority]
+export const TodoPriorityLabels: Record<TodoPriority, string> = {
+  [TodoPriority.URGENT_IMPORTANT]: '紧急重要',
+  [TodoPriority.URGENT_NOT_IMPORTANT]: '紧急不重要',
+  [TodoPriority.IMPORTANT_NOT_URGENT]: '重要不紧急',
+  [TodoPriority.NOT_URGENT_NOT_IMPORTANT]: '不紧急不重要',
+}
+
+// ---- TodoStatus ----
+export const TodoStatus = { TODO: 'todo', IN_PROGRESS: 'in_progress', COMPLETED: 'completed' } as const
+export type TodoStatus = (typeof TodoStatus)[keyof typeof TodoStatus]
+export const TodoStatusLabels: Record<TodoStatus, string> = {
+  [TodoStatus.TODO]: '待办',
+  [TodoStatus.IN_PROGRESS]: '进行中',
+  [TodoStatus.COMPLETED]: '已完成',
+}
+
+// ---- ListColor (清单颜色) ----
+export const ListColor = { AMBER: 'amber', TEAL: 'teal', BLUE: 'blue', CORAL: 'coral', STONE: 'stone', VIOLET: 'violet' } as const
+export type ListColor = (typeof ListColor)[keyof typeof ListColor]
+export const ListColorLabels: Record<ListColor, string> = {
+  [ListColor.AMBER]: '琥珀',
+  [ListColor.TEAL]: '青绿',
+  [ListColor.BLUE]: '蓝色',
+  [ListColor.CORAL]: '珊瑚',
+  [ListColor.STONE]: '石色',
+  [ListColor.VIOLET]: '紫罗兰',
+}

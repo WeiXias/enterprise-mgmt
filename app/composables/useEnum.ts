@@ -58,6 +58,25 @@ const ENUM_LABELS: Record<string, Record<string, string>> = {
     wechat: '微信',
     email: '邮件',
     other: '其他'
+  },
+  TodoPriority: {
+    urgent_important: '紧急重要',
+    urgent_not_important: '紧急不重要',
+    important_not_urgent: '重要不紧急',
+    not_urgent_not_important: '不紧急不重要'
+  },
+  TodoStatus: {
+    todo: '待办',
+    in_progress: '进行中',
+    completed: '已完成'
+  },
+  ListColor: {
+    amber: '琥珀',
+    teal: '青绿',
+    blue: '蓝色',
+    coral: '珊瑚',
+    stone: '石色',
+    violet: '紫罗兰'
   }
 }
 

@@ -14,6 +14,7 @@ const MODULE_NAMES: Record<string, string> = {
   finance: '财务', reimbursement: '报销',
   ai_employee: 'AI 员工', ai_review: 'AI 审核',
   user: '用户', system: '系统',
+  todo_list: '清单', todo: '待办', todo_tag: '标签',
 }
 
 const ACTION_NAMES: Record<string, string> = {

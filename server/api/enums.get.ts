@@ -15,6 +15,9 @@ import {
   AIProviderType, AIProviderTypeLabels,
   AIReviewStatus, AIReviewStatusLabels,
   AIRiskLevel, AIRiskLevelLabels,
+  TodoPriority, TodoPriorityLabels,
+  TodoStatus, TodoStatusLabels,
+  ListColor, ListColorLabels,
   enumToOptions
 } from '#enums'
 
@@ -37,6 +40,9 @@ export default defineEventHandler(() => {
       aiProviderTypes: enumToOptions(AIProviderType, AIProviderTypeLabels),
       aiReviewStatus: enumToOptions(AIReviewStatus, AIReviewStatusLabels),
       aiRiskLevels: enumToOptions(AIRiskLevel, AIRiskLevelLabels),
+      todoPriority: enumToOptions(TodoPriority, TodoPriorityLabels),
+      todoStatus: enumToOptions(TodoStatus, TodoStatusLabels),
+      listColor: enumToOptions(ListColor, ListColorLabels),
     }
   }
 })

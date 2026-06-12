@@ -22,6 +22,7 @@ export default defineConfig({
       '#schema/system': fileURLToPath(new URL('./server/database/schema/system', import.meta.url)),
       '#schema/ai': fileURLToPath(new URL('./server/database/schema/ai', import.meta.url)),
       '#schema/im': fileURLToPath(new URL('./server/database/schema/im', import.meta.url)),
+      '#schema/todos': fileURLToPath(new URL('./server/database/schema/todos', import.meta.url)),
       '#enums': fileURLToPath(new URL('./server/database/schema/enums', import.meta.url)),
       '#server-utils': fileURLToPath(new URL('./server/utils', import.meta.url)),
       '#ai-utils': fileURLToPath(new URL('./server/utils/ai', import.meta.url)),
