@@ -29,8 +29,8 @@ export default defineEventHandler(async (event) => {
   const project = projList[0]
 
   // Determine date range from query or project defaults
-  const rawStart = (query.startDate as string) || project.startDate
-  const rawEnd   = (query.endDate   as string) || project.endDate
+  const rawStart = (query.startDate as string) || project!.startDate
+  const rawEnd   = (query.endDate   as string) || project!.endDate
   if (!rawStart || !rawEnd) {
     throw createError({ statusCode: 400, statusMessage: '缺少开始或结束日期，请设置项目日期或传入查询参数' })
   }
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
     const nextDayStr = formatDate(nextDay)
 
     // Count tasks: status != 'completed' AND createdAt < nextDay
-    const remaining = taskList.filter(t => {
+    const remaining = taskList.filter((t: any) => {
       return t.status !== 'completed' && t.createdAt < nextDayStr
     }).length
 

@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     .orderBy(todoLists.sortOrder)
 
   // 统计每个清单的任务数量
-  const listIds = lists.map(l => l.id)
+  const listIds = lists.map((l: any) => l.id)
   const countMap: Record<string, { total: number; completed: number }> = {}
 
   if (listIds.length > 0) {
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     code: 0,
-    data: lists.map(l => ({
+    data: lists.map((l: any) => ({
       ...l,
       todoCount: countMap[l.id]?.total || 0,
       completedCount: countMap[l.id]?.completed || 0,

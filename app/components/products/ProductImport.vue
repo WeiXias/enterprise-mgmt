@@ -24,20 +24,20 @@ const props = defineProps<Props>()
 
 <template>
   <div>
-    <div :class="['border-2 border-dashed rounded-xl p-6 text-center transition-colors', uploading ? 'border-amber-400 bg-amber-50' : 'border-stone-200 hover:border-amber-300']">
+    <div :class="['border-2 border-dashed rounded-xl p-6 text-center transition-colors', uploading ? 'border-brand-400 bg-brand-50' : 'border-gray-200 hover:border-brand-300']">
       <input type="file" accept=".xlsx,.xls,.csv" class="hidden" id="import-file" @change="handleFile" :disabled="uploading" />
       <label for="import-file" class="cursor-pointer">
-        <UIcon v-if="uploading" name="i-lucide-loader-2" class="w-8 h-8 text-amber-500 mx-auto mb-2 animate-spin" />
-        <UIcon v-else name="i-lucide-file-spreadsheet" class="w-8 h-8 text-stone-300 mx-auto mb-2" />
-        <p class="text-sm text-stone-500">{{ uploading ? '导入中...' : '点击上传 Excel 文件' }}</p>
-        <p class="text-xs text-stone-400 mt-1">支持 .xlsx .xls .csv</p>
+        <UIcon v-if="uploading" name="i-lucide-loader-2" class="w-8 h-8 text-brand-500 mx-auto mb-2 animate-spin" />
+        <UIcon v-else name="i-lucide-file-spreadsheet" class="w-8 h-8 text-gray-300 mx-auto mb-2" />
+        <p class="text-sm text-gray-500">{{ uploading ? '导入中...' : '点击上传 Excel 文件' }}</p>
+        <p class="text-xs text-gray-400 mt-1">支持 .xlsx .xls .csv</p>
       </label>
     </div>
     <div v-if="result" class="mt-3 warm-card space-y-1 text-sm">
-      <p class="text-stone-700">导入结果：<span class="text-teal-600">{{ result.success }}</span> 成功，<span v-if="result.failed > 0" class="text-red-500">{{ result.failed }} 失败</span></p>
+      <p class="text-gray-700">导入结果：<span class="text-teal-600">{{ result.success }}</span> 成功，<span v-if="result.failed > 0" class="text-red-500">{{ result.failed }} 失败</span></p>
       <div v-if="result.errors?.length" class="mt-2 text-xs text-red-500 space-y-0.5">
         <p v-for="(err, i) in result.errors.slice(0, 5)" :key="i">第 {{ err.row }} 行：{{ err.reason }}</p>
-        <p v-if="result.errors.length > 5" class="text-stone-400">还有 {{ result.errors.length - 5 }} 条错误...</p>
+        <p v-if="result.errors.length > 5" class="text-gray-400">还有 {{ result.errors.length - 5 }} 条错误...</p>
       </div>
     </div>
   </div>

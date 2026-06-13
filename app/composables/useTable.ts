@@ -2,6 +2,8 @@ interface TableOptions {
   apiUrl: string
   pageSize?: number
   debounceMs?: number
+  /** 可选的搜索端点，传入则 keyword 变更时调用此端点而非走原有 apiUrl + keyword */
+  searchApiUrl?: string
 }
 
 interface PaginatedResult<T = unknown> {
@@ -10,7 +12,7 @@ interface PaginatedResult<T = unknown> {
 }
 
 export function useTable<T = unknown>(options: TableOptions) {
-  const { apiUrl, pageSize: defaultPageSize = 20, debounceMs = 300 } = options
+  const { apiUrl, pageSize: defaultPageSize = 20, debounceMs = 300, searchApiUrl } = options
   const { $api } = useNuxtApp()
 
   const loading = ref(false)
@@ -30,7 +32,26 @@ export function useTable<T = unknown>(options: TableOptions) {
         page: page.value,
         pageSize: pageSize.value
       }
-      if (keyword.value) params.keyword = keyword.value
+
+      // 如果有独立搜索端点，有 keyword 时走搜索端点
+      if (keyword.value && searchApiUrl) {
+        const searchRes = await $api('/api/search', {
+          params: {
+            q: keyword.value,
+            type: new URLSearchParams(searchApiUrl.startsWith('/') ? searchApiUrl.slice(1) : searchApiUrl).get('type') || undefined,
+            page: page.value,
+            pageSize: pageSize.value,
+          }
+        }) as { code: number; data: { items: { id: string }[]; total: number } }
+        if (searchRes?.code === 0 && searchRes.data) {
+          const ids = searchRes.data.items.map((i: { id: string }) => i.id)
+          params.ids = ids.join(',')
+          params.page = 1
+          params.pageSize = ids.length || 1
+        }
+      } else if (keyword.value) {
+        params.keyword = keyword.value
+      }
       Object.assign(params, filters.value)
 
       const res = await $api(apiUrl, { params }) as PaginatedResult<T>

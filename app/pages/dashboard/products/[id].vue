@@ -28,7 +28,7 @@ const inventoryForm = ref({ type: 'inbound', quantity: 1, unitPrice: 0, batchNo:
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   on_sale: { label: '在售', color: 'bg-teal-50 text-teal-700' },
-  off_shelf: { label: '已下架', color: 'bg-stone-100 text-stone-500' },
+  off_shelf: { label: '已下架', color: 'bg-gray-100 text-gray-500' },
 }
 
 function formatPrice(price: number | null) {
@@ -42,7 +42,7 @@ function formatDate(date: string | null) {
 }
 
 function getStatusLabel(status: string) { return statusConfig[status]?.label || status }
-function getStatusColor(status: string) { return statusConfig[status]?.color || 'bg-stone-100 text-stone-500' }
+function getStatusColor(status: string) { return statusConfig[status]?.color || 'bg-gray-100 text-gray-500' }
 
 const profitMargin = computed(() => {
   if (!product.value) return null
@@ -138,8 +138,8 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="!product" class="text-center py-12 text-stone-400">产品不存在</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-else-if="!product" class="text-center py-12 text-gray-400">产品不存在</div>
     <template v-else>
       <UTabs :items="[{ label: '基本信息' }, { label: '库存流水' }]" :default-value="'0'" :unmount-on-hide="false">
         <template #content="{ index }">
@@ -149,8 +149,8 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
             <div class="mb-6">
               <div class="flex items-center gap-2 mb-2">
                 <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/products')" />
-                <h1 class="text-lg font-medium text-stone-800">{{ product.name }}</h1>
-                <span class="text-xs text-stone-400">{{ product.code }}</span>
+                <h1 class="text-lg font-medium text-gray-800">{{ product.name }}</h1>
+                <span class="text-xs text-gray-400">{{ product.code }}</span>
                 <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(product.status)]">{{ getStatusLabel(product.status) }}</span>
               </div>
               <div class="flex items-center gap-2">
@@ -164,31 +164,31 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div class="lg:col-span-2 space-y-4">
                 <div class="warm-card">
-                  <h3 class="text-sm font-medium text-stone-700 mb-3">价格与库存</h3>
+                  <h3 class="text-sm font-medium text-gray-700 mb-3">价格与库存</h3>
                   <div class="grid grid-cols-4 gap-4">
-                    <div><span class="text-xs text-stone-400">标准价格</span><p class="text-lg text-stone-800 font-medium">{{ formatPrice(product.standardPrice) }}</p></div>
-                    <div><span class="text-xs text-stone-400">成本价格</span><p class="text-lg text-stone-800">{{ formatPrice(product.costPrice) }}</p></div>
-                    <div><span class="text-xs text-stone-400">利润率</span><p class="text-lg" :class="profitMargin && Number(profitMargin) > 0 ? 'text-teal-600' : 'text-stone-400'">{{ profitMargin !== null ? profitMargin + '%' : '-' }}</p></div>
-                    <div><span class="text-xs text-stone-400">当前库存</span><p class="text-lg font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-red-400'">{{ product.stockQuantity ?? 0 }}</p></div>
+                    <div><span class="text-xs text-gray-400">标准价格</span><p class="text-lg text-gray-800 font-medium">{{ formatPrice(product.standardPrice) }}</p></div>
+                    <div><span class="text-xs text-gray-400">成本价格</span><p class="text-lg text-gray-800">{{ formatPrice(product.costPrice) }}</p></div>
+                    <div><span class="text-xs text-gray-400">利润率</span><p class="text-lg" :class="profitMargin && Number(profitMargin) > 0 ? 'text-teal-600' : 'text-gray-400'">{{ profitMargin !== null ? profitMargin + '%' : '-' }}</p></div>
+                    <div><span class="text-xs text-gray-400">当前库存</span><p class="text-lg font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-red-400'">{{ product.stockQuantity ?? 0 }}</p></div>
                   </div>
                 </div>
                 <div class="warm-card">
-                  <h3 class="text-sm font-medium text-stone-700 mb-3">产品描述</h3>
-                  <p v-if="product.description" class="text-sm text-stone-600 whitespace-pre-wrap">{{ product.description }}</p>
-                  <p v-else class="text-xs text-stone-400">暂无描述</p>
+                  <h3 class="text-sm font-medium text-gray-700 mb-3">产品描述</h3>
+                  <p v-if="product.description" class="text-sm text-gray-600 whitespace-pre-wrap">{{ product.description }}</p>
+                  <p v-else class="text-xs text-gray-400">暂无描述</p>
                 </div>
               </div>
               <div class="space-y-4">
                 <div class="warm-card">
-                  <h3 class="text-sm font-medium text-stone-700 mb-3">产品分类</h3>
-                  <div v-if="product.category"><div class="flex items-center gap-2 text-sm"><UIcon name="i-lucide-tag" class="w-4 h-4 text-amber-500" /><span class="text-stone-800">{{ product.category.name }}</span></div></div>
-                  <p v-else class="text-xs text-stone-400">未分类</p>
+                  <h3 class="text-sm font-medium text-gray-700 mb-3">产品分类</h3>
+                  <div v-if="product.category"><div class="flex items-center gap-2 text-sm"><UIcon name="i-lucide-tag" class="w-4 h-4 text-brand-500" /><span class="text-gray-800">{{ product.category.name }}</span></div></div>
+                  <p v-else class="text-xs text-gray-400">未分类</p>
                 </div>
                 <div class="warm-card">
-                  <h3 class="text-sm font-medium text-stone-700 mb-3">时间线</h3>
-                  <div class="space-y-2 text-xs text-stone-400">
-                    <div class="flex justify-between"><span>创建时间</span><span class="text-stone-600">{{ formatDate(product.createdAt) }}</span></div>
-                    <div class="flex justify-between"><span>更新时间</span><span class="text-stone-600">{{ formatDate(product.updatedAt) }}</span></div>
+                  <h3 class="text-sm font-medium text-gray-700 mb-3">时间线</h3>
+                  <div class="space-y-2 text-xs text-gray-400">
+                    <div class="flex justify-between"><span>创建时间</span><span class="text-gray-600">{{ formatDate(product.createdAt) }}</span></div>
+                    <div class="flex justify-between"><span>更新时间</span><span class="text-gray-600">{{ formatDate(product.updatedAt) }}</span></div>
                   </div>
                 </div>
               </div>
@@ -198,25 +198,25 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
           <!-- 库存流水 -->
           <div v-if="index === 1" class="mt-4">
             <div class="flex items-center justify-between mb-3">
-              <span class="text-sm text-stone-500">出入库记录</span>
+              <span class="text-sm text-gray-500">出入库记录</span>
               <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="showInventoryModal = true; inventoryForm = { type: 'inbound', quantity: 1, unitPrice: 0, batchNo: '', remark: '' }">登记流水</UButton>
             </div>
-            <div v-if="!transactions?.length" class="text-center py-8 text-stone-400 text-sm">暂无库存流水</div>
+            <div v-if="!transactions?.length" class="text-center py-8 text-gray-400 text-sm">暂无库存流水</div>
             <div v-else class="warm-card overflow-hidden">
               <table class="w-full text-sm">
                 <thead>
-                  <tr class="border-b border-stone-100 text-left text-xs text-stone-400">
+                  <tr class="border-b border-gray-100 text-left text-xs text-gray-400">
                     <th class="py-2 px-3">类型</th><th class="py-2 px-3 text-right">数量</th><th class="py-2 px-3 text-right">单价</th><th class="py-2 px-3">批次</th><th class="py-2 px-3">备注</th><th class="py-2 px-3">时间</th><th class="py-2 px-3" />
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="t in transactions" :key="t.id" class="border-b border-stone-50">
-                    <td class="py-2 px-3"><span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-500']">{{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}</span></td>
+                  <tr v-for="t in transactions" :key="t.id" class="border-b border-gray-50">
+                    <td class="py-2 px-3"><span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500']">{{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}</span></td>
                     <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-red-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
-                    <td class="py-2 px-3 text-right text-stone-600">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
-                    <td class="py-2 px-3 text-xs text-stone-400">{{ t.batchNo || '-' }}</td>
-                    <td class="py-2 px-3 text-xs text-stone-500 max-w-[120px] truncate">{{ t.remark || '-' }}</td>
-                    <td class="py-2 px-3 text-xs text-stone-400">{{ formatDate(t.createdAt) }}</td>
+                    <td class="py-2 px-3 text-right text-gray-600">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
+                    <td class="py-2 px-3 text-xs text-gray-400">{{ t.batchNo || '-' }}</td>
+                    <td class="py-2 px-3 text-xs text-gray-500 max-w-[120px] truncate">{{ t.remark || '-' }}</td>
+                    <td class="py-2 px-3 text-xs text-gray-400">{{ formatDate(t.createdAt) }}</td>
                     <td class="py-2 px-3"><UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDeleteTransaction(t)" /></td>
                   </tr>
                 </tbody>
@@ -230,13 +230,13 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
         <template #header>登记库存流水</template>
         <template #body>
           <form class="space-y-3" @submit.prevent="handleSaveInventory">
-            <div><label class="block text-sm text-stone-600 mb-1">类型</label><select v-model="inventoryForm.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="inbound">入库</option><option value="outbound">出库</option><option value="adjustment">盘点调整</option></select></div>
+            <div><label class="block text-sm text-gray-600 mb-1">类型</label><select v-model="inventoryForm.type" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="inbound">入库</option><option value="outbound">出库</option><option value="adjustment">盘点调整</option></select></div>
             <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-stone-600 mb-1">数量 <span class="text-red-400">*</span></label><input v-model.number="inventoryForm.quantity" type="number" step="1" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-              <div><label class="block text-sm text-stone-600 mb-1">单价</label><input v-model.number="inventoryForm.unitPrice" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
+              <div><label class="block text-sm text-gray-600 mb-1">数量 <span class="text-red-400">*</span></label><input v-model.number="inventoryForm.quantity" type="number" step="1" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+              <div><label class="block text-sm text-gray-600 mb-1">单价</label><input v-model.number="inventoryForm.unitPrice" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
             </div>
-            <div><label class="block text-sm text-stone-600 mb-1">批次号</label><input v-model="inventoryForm.batchNo" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">备注</label><input v-model="inventoryForm.remark" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">批次号</label><input v-model="inventoryForm.batchNo" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">备注</label><input v-model="inventoryForm.remark" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
           </form>
         </template>
         <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showInventoryModal = false">取消</UButton><UButton color="primary" :loading="inventorySaving" @click="handleSaveInventory">保存</UButton></div></template>
@@ -248,15 +248,15 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
         <template #body>
           <form class="space-y-4" @submit.prevent="handleEdit">
             <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-stone-600 mb-1">产品名称 <span class="text-red-400">*</span></label><input v-model="editForm.name" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-              <div><label class="block text-sm text-stone-600 mb-1">产品编码</label><input v-model="editForm.code" type="text" disabled class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-stone-50 text-stone-400" /></div>
+              <div><label class="block text-sm text-gray-600 mb-1">产品名称 <span class="text-red-400">*</span></label><input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+              <div><label class="block text-sm text-gray-600 mb-1">产品编码</label><input v-model="editForm.code" type="text" disabled class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-400" /></div>
             </div>
-            <div><label class="block text-sm text-stone-600 mb-1">产品分类</label><select v-model="editForm.categoryId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">未分类</option><option v-for="c in categoryOptions" :key="c.id" :value="c.id">{{ c.name }}</option></select></div>
+            <div><label class="block text-sm text-gray-600 mb-1">产品分类</label><select v-model="editForm.categoryId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="">未分类</option><option v-for="c in categoryOptions" :key="c.id" :value="c.id">{{ c.name }}</option></select></div>
             <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-stone-600 mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-              <div><label class="block text-sm text-stone-600 mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
+              <div><label class="block text-sm text-gray-600 mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+              <div><label class="block text-sm text-gray-600 mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
             </div>
-            <div><label class="block text-sm text-stone-600 mb-1">描述</label><textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">描述</label><textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
           </form>
         </template>
         <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton><UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton></div></template>

@@ -23,9 +23,9 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      byStatus: statusRows.map(r => ({ status: r.status, count: Number(r.count) })),
-      byOwner: ownerRows.map(r => ({ ownerId: r.ownerId, name: r.name, count: Number(r.count) })),
-      byIndustry: industryRows.filter(r => r.industry).map(r => ({ industry: r.industry, count: Number(r.count) })),
+      byStatus: statusRows.map((r: any) => ({ status: r.status, count: Number(r.count) })),
+      byOwner: ownerRows.map((r: any) => ({ ownerId: r.ownerId, name: r.name, count: Number(r.count) })),
+      byIndustry: industryRows.filter((r: any) => r.industry).map((r: any) => ({ industry: r.industry, count: Number(r.count) })),
     }
   }
 })

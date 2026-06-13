@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     code: 0,
     data: {
       ...p,
-      category: p.categoryId ? { id: p.categoryId, name: p.categoryName } : null,
+      category: p!.categoryId ? { id: p.categoryId, name: p.categoryName } : null,
     }
   }
 })

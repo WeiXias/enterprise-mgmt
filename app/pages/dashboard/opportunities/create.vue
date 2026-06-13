@@ -34,8 +34,8 @@ onMounted(fetchCustomers)
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div>
-        <h1 class="text-lg font-medium text-stone-800">新建商机</h1>
-        <p class="text-sm text-stone-400 mt-0.5">创建新的销售机会</p>
+        <h1 class="text-lg font-medium text-gray-800">新建商机</h1>
+        <p class="text-sm text-gray-400 mt-0.5">创建新的销售机会</p>
       </div>
     </div>
     <div class="warm-card">

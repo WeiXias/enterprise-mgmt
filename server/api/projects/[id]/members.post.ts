@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   // Check if already a member
   const existing = await db.select({ id: projectMembers.id }).from(projectMembers)
     .where(eq(projectMembers.projectId, projectId))
-  const already = existing.find(m => m.id === parsed.data.userId)
+  const already = existing.find((m: any) => m.id === parsed.data.userId)
   if (already) throw createError({ statusCode: 409, statusMessage: '已经是项目成员了' })
 
   await db.insert(projectMembers).values({

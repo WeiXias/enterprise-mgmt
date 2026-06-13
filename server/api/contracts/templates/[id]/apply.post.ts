@@ -37,22 +37,22 @@ export default defineEventHandler(async (event) => {
   // 获取客户名
   let customerName = ''
   const customerResult = await db.select({ name: customers.name }).from(customers)
-    .where(eq(customers.id, c.customerId)).limit(1)
+    .where(eq(customers.id, c!.customerId)).limit(1)
   if (customerResult.length > 0) customerName = customerResult[0].name
 
   // 构建替换映射
   const replacements: Record<string, string> = {
-    partyA: c.partyA || '',
-    partyB: c.partyB || '',
+    partyA: c!.partyA || '',
+    partyB: c!.partyB || '',
     customerName,
-    totalAmount: c.totalAmount ? `¥${c.totalAmount.toLocaleString('zh-CN')}` : '',
-    startDate: c.startDate || '',
-    endDate: c.endDate || '',
-    paymentMethod: c.paymentMethod || '',
+    totalAmount: c!.totalAmount ? `¥${c.totalAmount.toLocaleString('zh-CN')}` : '',
+    startDate: c!.startDate || '',
+    endDate: c!.endDate || '',
+    paymentMethod: c!.paymentMethod || '',
   }
 
   // 占位符替换
-  let content = tmpl.content || ''
+  let content = tmpl!.content || ''
   for (const [key, value] of Object.entries(replacements)) {
     content = content.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value || `{{${key}}}`)
   }
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
   await db.update(contracts).set({ content, updatedAt: now })
     .where(eq(contracts.id, parsed.data.contractId))
 
-  await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: parsed.data.contractId, detail: `应用了模板「${tmpl.name}」生成合同正文` })
+  await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: parsed.data.contractId, detail: `应用了模板「${tmpl!.name}」生成合同正文` })
 
   return { code: 0, data: { content }, message: '模板已应用' }
 })

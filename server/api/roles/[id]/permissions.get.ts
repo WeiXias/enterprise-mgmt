@@ -11,5 +11,5 @@ export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
   const result = await db.select({ permissionId: rolePermissions.permissionId }).from(rolePermissions).where(eq(rolePermissions.roleId, id))
 
-  return { code: 0, data: result.map(r => r.permissionId) }
+  return { code: 0, data: result.map((r: any) => r.permissionId) }
 })

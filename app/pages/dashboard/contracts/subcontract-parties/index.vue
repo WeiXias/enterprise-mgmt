@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '分包对象', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '分包对象', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -53,14 +53,14 @@ onMounted(fetchItems)
 <template>
   <div>
     <div class="mb-6 flex items-center justify-between">
-      <div><h1 class="text-lg font-medium text-stone-800">分包对象</h1><p class="text-sm text-stone-400 mt-0.5">管理分包合作方</p></div>
+      <div><h1 class="text-lg font-medium text-gray-800">分包对象</h1><p class="text-sm text-gray-400 mt-0.5">管理分包合作方</p></div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">添加分包对象</UButton>
     </div>
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="items.length === 0" class="warm-card text-center py-10"><p class="text-sm text-stone-400">还没有分包对象</p></div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-else-if="items.length === 0" class="warm-card text-center py-10"><p class="text-sm text-gray-400">还没有分包对象</p></div>
     <div v-else class="space-y-2">
-      <div v-for="p in items" :key="p.id" class="warm-card flex items-center gap-4 !py-3 !px-4 hover:bg-stone-50">
-        <div class="flex-1"><p class="text-sm font-medium text-stone-800">{{ p.name }}</p><p class="text-xs text-stone-400 mt-0.5">{{ p.contactPerson || '-' }} {{ p.phone ? '· ' + p.phone : '' }}</p></div>
+      <div v-for="p in items" :key="p.id" class="warm-card flex items-center gap-4 !py-3 !px-4 hover:bg-gray-50">
+        <div class="flex-1"><p class="text-sm font-medium text-gray-800">{{ p.name }}</p><p class="text-xs text-gray-400 mt-0.5">{{ p.contactPerson || '-' }} {{ p.phone ? '· ' + p.phone : '' }}</p></div>
         <div class="flex gap-1">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(p)" />
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = p; showDeleteModal = true" />
@@ -72,10 +72,10 @@ onMounted(fetchItems)
       <template #header>{{ editTarget ? '编辑' : '添加' }}分包对象</template>
       <template #body>
         <form class="space-y-3" @submit.prevent="handleSave">
-          <div><label class="block text-sm text-stone-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-stone-600 mb-1">联系人</label><input v-model="form.contactPerson" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div><div><label class="block text-sm text-stone-600 mb-1">电话</label><input v-model="form.phone" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-stone-600 mb-1">邮箱</label><input v-model="form.email" type="email" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div><div><label class="block text-sm text-stone-600 mb-1">地址</label><input v-model="form.address" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div></div>
-          <div><label class="block text-sm text-stone-600 mb-1">备注</label><textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-600 mb-1">联系人</label><input v-model="form.contactPerson" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div><div><label class="block text-sm text-gray-600 mb-1">电话</label><input v-model="form.phone" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-600 mb-1">邮箱</label><input v-model="form.email" type="email" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div><div><label class="block text-sm text-gray-600 mb-1">地址</label><input v-model="form.address" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div></div>
+          <div><label class="block text-sm text-gray-600 mb-1">备注</label><textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
         </form>
       </template>
       <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton><UButton color="primary" :loading="saving" @click="handleSave">保存</UButton></div></template>

@@ -3,7 +3,7 @@ definePageMeta({ layout: 'dashboard', title: '设置', middleware: ['auth'] })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
-const { getOptions } = useEnum()
+const { getOptions, getLabel } = useEnum()
 
 // ---- 数据字典 ----
 const dictData = ref<Record<string, { label: string; value: string }[]>>({})
@@ -103,10 +103,6 @@ const modules = [
   { key: 'customer', label: '客户编号' },
   { key: 'project', label: '项目编号' },
 ]
-
-const datePartLabels: Record<string, string> = {
-  none: '不使用日期', year: '年份', year_month: '年-月', year_month_day: '年-月-日',
-}
 
 const tabs = [
   { key: 'basic', label: '基本信息', icon: 'i-lucide-info' },
@@ -214,8 +210,7 @@ async function handleRoleSave() {
   finally { roleSaving.value = false }
 }
 async function handleDeleteRole(r: any) { if (r.isSystem) { toast.add({ title: '内置角色不能删除', color: 'warning' }); return }; if (!confirm(`确定删除「${r.name}」吗？`)) return; try { await $api(`/api/roles/${r.id}`, { method: 'DELETE' }); toast.add({ title: '角色已删除', color: 'success' }); if (selectedRole.value?.id === r.id) selectedRole.value = null; fetchRoles() } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) } }
-const resourceLabels: Record<string, string> = { customer: '客户', opportunity: '商机', contract: '合同', project: '项目', product: '产品', commission: '提成', user: '用户', finance: '财务', system: '系统' }
-const actionLabels: Record<string, string> = { view: '查看', create: '创建', edit: '编辑', delete: '删除', transfer: '转交', approve: '审批', adjust: '调整', manage: '管理', config: '配置', logs: '日志', backup: '备份' }
+
 
 // ==================== AI 设置 ====================
 const { providers, employees, loadingProviders, loadingEmployees,
@@ -341,7 +336,7 @@ watch(() => employeeForm.value.role, (newRole) => {
     employeeForm.value.systemPrompt = generateSystemPrompt(employeeForm.value.name, newRole)
   }
   if (!editingEmployeeId.value || !employeeForm.value.roleLabel) {
-    employeeForm.value.roleLabel = roleLabels[newRole] || ''
+    employeeForm.value.roleLabel = getLabel('AIEmployeeRole', newRole) || ''
   }
 })
 async function handleSaveEmployee() {
@@ -382,20 +377,10 @@ watch(() => employeeForm.value.providerId, async (pid) => {
 
 function onEmployeeRoleChange() {
   if (!employeeForm.value.roleLabel) {
-    employeeForm.value.roleLabel = roleLabels[employeeForm.value.role] || ''
+    employeeForm.value.roleLabel = getLabel('AIEmployeeRole', employeeForm.value.role) || ''
   }
 }
 
-const roleLabels: Record<string, string> = {
-  contract_reviewer: '合同审核员',
-  opportunity_analyst: '商机分析师',
-  customer_insight: '客户洞察师',
-  custom: '自定义角色',
-}
-const providerTypeLabels: Record<string, string> = {
-  deepseek: 'DeepSeek',
-  custom: '自定义',
-}
 async function fetchAll() {
   try {
     const [configRes, rulesRes, smtpRes, secRes] = await Promise.all([
@@ -771,12 +756,12 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
             <div v-else-if="Object.keys(permissionGroups).length === 0" class="text-xs text-stone-400 py-4 text-center">暂无权限数据</div>
             <div v-else class="space-y-4">
               <div v-for="(perms, resource) in permissionGroups" :key="resource">
-                <h4 class="text-xs font-medium text-stone-500 mb-2 uppercase tracking-wide">{{ resourceLabels[resource] || resource }}</h4>
+                <h4 class="text-xs font-medium text-stone-500 mb-2 uppercase tracking-wide">{{ getLabel('PermissionResource', resource) || resource }}</h4>
                 <div class="grid grid-cols-2 gap-1">
                   <label v-for="p in perms" :key="p.id" class="flex items-center gap-2 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-stone-50">
                     <input type="checkbox" class="w-3.5 h-3.5 rounded border-stone-300 text-amber-500" :checked="rolePermissions.includes(p.id)" @change="togglePerm(p.id)" />
                     <span class="text-stone-600">{{ p.name }}</span>
-                    <span class="text-[10px] text-stone-400 ml-auto">{{ actionLabels[p.action] || p.action }}</span>
+                    <span class="text-[10px] text-stone-400 ml-auto">{{ getLabel('PermissionAction', p.action) || p.action }}</span>
                   </label>
                 </div>
               </div>
@@ -818,7 +803,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
                 class="w-full px-2 py-1.5 text-sm rounded border border-stone-200 bg-white mt-0.5"
                 @change="(e: any) => updateRule(mod.key, 'datePart', e.target.value)"
               >
-                <option v-for="(label, val) in datePartLabels" :key="val" :value="val">{{ label }}</option>
+                <option v-for="opt in getOptions('CodeRuleDatePart')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
             </div>
             <div>
@@ -1076,7 +1061,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-stone-700">{{ p.name }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-100 text-stone-500">{{ providerTypeLabels[p.type] || p.type }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-100 text-stone-500">{{ getLabel('AIProviderType', p.type) || p.type }}</span>
                 <span v-if="p.isDefault" class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">默认</span>
               </div>
               <p class="text-xs text-stone-400 mt-0.5 truncate">{{ p.baseUrl }}</p>
@@ -1261,11 +1246,11 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
         <div class="space-y-3">
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-sm text-stone-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="employeeForm.name" type="text" placeholder="如：合同审核助手" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">角色</label><select v-model="employeeForm.role" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="onEmployeeRoleChange"><option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option></select></div>
+            <div><label class="block text-sm text-stone-600 mb-1">角色</label><select v-model="employeeForm.role" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="onEmployeeRoleChange"><option v-for="opt in getOptions('AIEmployeeRole')" :key="opt.value" :value="opt.value">{{ opt.label }}</option></select></div>
           </div>
           <div><label class="block text-sm text-stone-600 mb-1">角色显示名</label><input v-model="employeeForm.roleLabel" type="text" placeholder="如：合同审核员" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">供应商 <span class="text-red-400">*</span></label><select v-model="employeeForm.providerId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择供应商</option><option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }} ({{ providerTypeLabels[p.type] || p.type }})</option></select></div>
+            <div><label class="block text-sm text-stone-600 mb-1">供应商 <span class="text-red-400">*</span></label><select v-model="employeeForm.providerId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择供应商</option><option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }} ({{ getLabel('AIProviderType', p.type) || p.type }})</option></select></div>
             <div><label class="block text-sm text-stone-600 mb-1">模型 <span class="text-red-400">*</span></label><select v-model="employeeForm.model" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择模型</option><option v-for="m in availableModels" :key="m" :value="m">{{ m }}</option></select></div>
           </div>
           <div><label class="block text-sm text-stone-600 mb-1">系统提示词 <span class="text-red-400">*</span></label><textarea v-model="employeeForm.systemPrompt" rows="6" placeholder="你是专业的合同审核专家..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none font-mono text-xs leading-relaxed" /></div>

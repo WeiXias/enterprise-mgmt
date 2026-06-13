@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
   let customerName = ''
   const customerResult = await db.select({ name: customers.name }).from(customers)
-    .where(eq(customers.id, c.customerId)).limit(1)
+    .where(eq(customers.id, c!.customerId)).limit(1)
   if (customerResult.length > 0) customerName = customerResult[0].name
 
   const uploadDir = await getUploadDir()
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
   const pdfFileName = `${id}.pdf`
   const pdfFilePath = path.join(pdfDir, pdfFileName)
 
-  const totalAmount = c.totalAmount ? `¥${Number(c.totalAmount).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '-'
+  const totalAmount = c!.totalAmount ? `¥${Number(c.totalAmount).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '-'
 
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -58,22 +58,22 @@ export default defineEventHandler(async (event) => {
 <div class="meta-box">
 <table>
 <tr>
-  <td class="label">合同编号：</td><td class="value">${c.code || '-'}</td>
+  <td class="label">合同编号：</td><td class="value">${c!.code || '-'}</td>
   <td class="label">客户：</td><td class="value">${customerName || '-'}</td>
 </tr>
 <tr>
-  <td class="label">甲方：</td><td class="value">${c.partyA || '-'}</td>
-  <td class="label">乙方：</td><td class="value">${c.partyB || '-'}</td>
+  <td class="label">甲方：</td><td class="value">${c!.partyA || '-'}</td>
+  <td class="label">乙方：</td><td class="value">${c!.partyB || '-'}</td>
 </tr>
 <tr>
   <td class="label">合同金额：</td><td class="value">${totalAmount}</td>
-  <td class="label">签约日期：</td><td class="value">${c.startDate || '-'}</td>
+  <td class="label">签约日期：</td><td class="value">${c!.startDate || '-'}</td>
 </tr>
 </table>
 </div>
 
 <div class="content-area">
-${c.content || '<p style="color:#999;text-align:center;">（合同正文待起草）</p>'}
+${c!.content || '<p style="color:#999;text-align:center;">（合同正文待起草）</p>'}
 </div>
 
 <div class="sign-area">

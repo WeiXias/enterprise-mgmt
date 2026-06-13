@@ -40,13 +40,13 @@ export default defineEventHandler(async (event) => {
     </tr>`).join('')
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,'PingFang SC',sans-serif;color:#333;padding:20px}</style></head><body>
-    <h1 style="font-size:20px;margin-bottom:4px">${q.name || '报价单'}</h1>
+    <h1 style="font-size:20px;margin-bottom:4px">${q!.name || '报价单'}</h1>
     <p style="color:#888;font-size:12px;margin-bottom:16px">生成时间：${timestamp}</p>
     <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">
       <thead><tr style="background:#f5f5f5"><th style="padding:8px;border:1px solid #ddd;text-align:left">产品</th><th style="padding:8px;border:1px solid #ddd;text-align:right">数量</th><th style="padding:8px;border:1px solid #ddd;text-align:right">单价</th><th style="padding:8px;border:1px solid #ddd;text-align:right">折扣</th><th style="padding:8px;border:1px solid #ddd;text-align:right">小计</th></tr></thead>
       <tbody>${itemsHtml}</tbody>
     </table>
-    <p style="text-align:right;font-size:14px;font-weight:bold">合计：¥${q.totalAmount?.toLocaleString() || '0'}</p>
+    <p style="text-align:right;font-size:14px;font-weight:bold">合计：¥${q!.totalAmount?.toLocaleString() || '0'}</p>
   </body></html>`
 
   await generatePdf(html, filePath)

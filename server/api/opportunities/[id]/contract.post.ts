@@ -25,12 +25,12 @@ export default defineEventHandler(async (event) => {
   await db.insert(contracts).values({
     id: contractId,
     code,
-    name: o.name + ' 合同',
-    customerId: o.customerId,
+    name: o!.name + ' 合同',
+    customerId: o!.customerId,
     opportunityId: oppId,
-    partyA: o.name,
+    partyA: o!.name,
     partyB: '',
-    totalAmount: o.estimatedAmount || 0,
+    totalAmount: o!.estimatedAmount || 0,
     status: 'draft',
     createdBy: user.userId,
   })
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(opportunityProducts.opportunityId, oppId))
   if (oppProducts.length > 0) {
     await db.insert(contractProducts).values(
-      oppProducts.map(p => ({
+      oppProducts.map((p: any) => ({
         id: generateId(),
         contractId,
         productId: p.productId,

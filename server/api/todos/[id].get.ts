@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   // 获取标签
   const tagRels = await db.select().from(todoTagRelations)
     .where(eq(todoTagRelations.todoId, id))
-  const tagIds = tagRels.map(r => r.tagId)
+  const tagIds = tagRels.map((r: any) => r.tagId)
   const tags = tagIds.length > 0
     ? await db.select().from(todoTags).where(inArray(todoTags.id, tagIds))
     : []

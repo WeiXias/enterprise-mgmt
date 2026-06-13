@@ -1,6 +1,7 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
 import { risks } from '#schema'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'

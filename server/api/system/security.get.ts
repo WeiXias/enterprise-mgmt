@@ -7,7 +7,7 @@ const SECURITY_KEYS = ['password_min_length', 'login_max_attempts', 'login_lock_
 export default defineEventHandler(async () => {
   const list = await db.select().from(systemConfig)
   const config: Record<string, string> = {}
-  list.forEach(item => { config[item.key] = item.value })
+  list.forEach((item: any) => { config[item.key] = item.value })
 
   const security: Record<string, string> = {
     password_min_length: config.password_min_length || '8',

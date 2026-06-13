@@ -38,14 +38,12 @@ const passwordLoading = ref(false)
 const resetPwdTarget = ref<any>(null)
 const newPassword = ref('')
 
-const roleLabels: Record<string, string> = {
-  admin: '管理员', sales_manager: '销售负责人', sales_member: '销售/项目成员', finance: '财务',
-}
+const { getLabel, getOptions } = useEnum()
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   active: { label: '正常', color: 'bg-teal-50 text-teal-700' },
-  disabled: { label: '已停用', color: 'bg-stone-100 text-stone-500' },
-  pending: { label: '待审批', color: 'bg-amber-50 text-amber-700' },
+  disabled: { label: '已停用', color: 'bg-gray-100 text-gray-500' },
+  pending: { label: '待审批', color: 'bg-brand-50 text-brand-700' },
 }
 
 // 删除确认
@@ -200,8 +198,8 @@ onMounted(() => { fetchItems(); loadOptions() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">同事</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理团队账号</p>
+        <h1 class="text-lg font-medium text-[var(--color-content-primary)]">同事</h1>
+        <p class="text-sm text-[var(--color-content-secondary)] mt-0.5">管理团队账号</p>
       </div>
       <UButton icon="i-lucide-user-plus" color="primary" @click="openCreate">添加成员</UButton>
     </div>
@@ -209,33 +207,33 @@ onMounted(() => { fetchItems(); loadOptions() })
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-        <input v-model="keyword" type="text" placeholder="搜索姓名..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-content-secondary)]" />
+        <input v-model="keyword" type="text" placeholder="搜索姓名..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" @input="onSearchInput" />
       </div>
-      <select v-model="roleFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="page=1; fetchItems()">
+      <select v-model="roleFilter" class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" @change="page=1; fetchItems()">
         <option value="">全部角色</option>
-        <option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option>
+        <option v-for="opt in getOptions('UserRole')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 人</span>
+      <span class="text-xs text-[var(--color-content-secondary)]">共 {{ total }} 人</span>
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">还没有成员，加一个？</div>
+    <div v-if="loading" class="text-center py-12 text-[var(--color-content-secondary)]">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-[var(--color-content-secondary)]">还没有成员，加一个？</div>
     <div v-else class="space-y-2">
       <div v-for="u in items" :key="u.id" class="warm-card flex items-center gap-4 group">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', u.status === 'active' ? 'bg-teal-400' : 'bg-stone-300']" />
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', u.status === 'active' ? 'bg-teal-400' : 'bg-[var(--color-line)]']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-800">{{ u.name }}</span>
+            <span class="text-sm font-medium text-[var(--color-content-primary)]">{{ u.name }}</span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[u.status]?.color || '']">{{ statusConfig[u.status]?.label || u.status }}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">{{ roleLabels[u.role] || u.role }}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-700">{{ getLabel('UserRole', u.role) || u.role }}</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-stone-400">
+          <div class="flex items-center gap-3 text-xs text-[var(--color-content-secondary)]">
             <span class="font-mono">{{ u.username }}</span>
             <span v-if="u.phone">{{ u.phone }}</span>
             <span v-if="u.email">{{ u.email }}</span>
-            <span v-if="u.departmentName" class="text-amber-600">{{ u.departmentName }}</span>
+            <span v-if="u.departmentName" class="text-[var(--color-brand-600)]">{{ u.departmentName }}</span>
           </div>
         </div>
         <div class="flex items-center gap-1">
@@ -258,54 +256,85 @@ onMounted(() => { fetchItems(); loadOptions() })
     </div>
 
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-[var(--color-content-secondary)]">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1"><UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上页</UButton><UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下页</UButton></div>
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <UModal v-model:open="showModal">
-      <template #header>{{ editTarget ? '编辑成员' : '添加成员' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleSave">
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">账号 <span class="text-red-400">*</span></label><input v-model="form.username" type="text" :disabled="!!editTarget" placeholder="登录用户名" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 disabled:bg-stone-50" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">姓名 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="真实姓名" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
+    <CommonFormModal v-model="showModal" :title="editTarget ? '编辑成员' : '添加成员'" size="standard" :loading="saving" @confirm="handleSave">
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">账号 <span class="text-[var(--color-danger-600)]">*</span></label>
+            <input v-model="form.username" type="text" :disabled="!!editTarget" placeholder="登录用户名" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 disabled:bg-[var(--color-line-light)]" />
           </div>
-          <div v-if="!editTarget"><label class="block text-sm text-stone-600 mb-1">密码 <span class="text-red-400">*</span></label><input v-model="form.password" type="password" placeholder="至少8位" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">手机</label><input v-model="form.phone" type="text" placeholder="手机号" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">邮箱</label><input v-model="form.email" type="email" placeholder="邮箱" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">姓名 <span class="text-[var(--color-danger-600)]">*</span></label>
+            <input v-model="form.name" type="text" placeholder="真实姓名" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
           </div>
-          <div><label class="block text-sm text-stone-600 mb-1">角色</label><select v-model="form.role" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option></select></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">部门</label>
-              <select v-model="form.departmentId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
-                <option value="">未分配</option>
-                <option v-for="d in deptOptions" :key="d.id" :value="d.id">{{ d._label }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">权限角色</label>
-              <select v-model="form.roleId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
-                <option value="">使用基础角色</option>
-                <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
-              </select>
-            </div>
+        </div>
+        <div v-if="!editTarget" class="mt-3">
+          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">密码 <span class="text-[var(--color-danger-600)]">*</span></label>
+          <input v-model="form.password" type="password" placeholder="至少8位" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+        </div>
+      </div>
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">联系方式</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">手机</label>
+            <input v-model="form.phone" type="text" placeholder="手机号" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
           </div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton><UButton color="primary" :loading="saving" @click="handleSave">{{ editTarget ? '保存' : '添加' }}</UButton></div></template>
-    </UModal>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">邮箱</label>
+            <input v-model="form.email" type="email" placeholder="邮箱" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+        </div>
+      </div>
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">权限分配</span>
+        </div>
+        <div>
+          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">角色</label>
+          <select v-model="form.role" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+            <option v-for="opt in getOptions('UserRole')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">部门</label>
+            <select v-model="form.departmentId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+              <option value="">未分配</option>
+              <option v-for="d in deptOptions" :key="d.id" :value="d.id">{{ d._label }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">权限角色</label>
+            <select v-model="form.roleId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+              <option value="">使用基础角色</option>
+              <option v-for="r in roleOptions" :key="r.id" :value="r.id">{{ r.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </CommonFormModal>
 
     <!-- 重置密码弹窗 -->
-    <UModal v-model:open="showPasswordModal">
-      <template #header>重置密码 — {{ resetPwdTarget?.name }}</template>
-      <template #body>
-        <div><label class="block text-sm text-stone-600 mb-1">新密码</label><input v-model="newPassword" type="password" placeholder="至少8位" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showPasswordModal = false">取消</UButton><UButton color="warning" :loading="passwordLoading" @click="handleResetPwd">确认重置</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-model="showPasswordModal" :title="'重置密码 — ' + (resetPwdTarget?.name || '')" size="compact" :loading="passwordLoading" @confirm="handleResetPwd">
+      <div>
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">新密码</label>
+        <input v-model="newPassword" type="password" placeholder="至少8位" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+      </div>
+    </CommonFormModal>
 
     <!-- 删除确认弹窗 -->
     <CommonConfirmDialog
@@ -321,25 +350,14 @@ onMounted(() => { fetchItems(); loadOptions() })
     />
 
     <!-- 审批弹窗 -->
-    <UModal v-model:open="showApprovalModal">
-      <template #header>审批通过 — {{ approvalTarget?.name }}</template>
-      <template #body>
-        <div class="space-y-3">
-          <p class="text-sm text-stone-600">请为该用户分配角色权限：</p>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">角色</label>
-            <select v-model="approvalRole" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
-              <option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option>
-            </select>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showApprovalModal = false">取消</UButton>
-          <UButton color="primary" :loading="approvalLoading" @click="confirmApprove">确认审批</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonFormModal v-model="showApprovalModal" :title="'审批通过 — ' + (approvalTarget?.name || '')" size="compact" :loading="approvalLoading" @confirm="confirmApprove">
+      <p class="text-sm text-[var(--color-content-secondary)] mb-3">请为该用户分配角色权限：</p>
+      <div>
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">角色</label>
+        <select v-model="approvalRole" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+          <option v-for="opt in getOptions('UserRole')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+    </CommonFormModal>
   </div>
 </template>

@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
   // Generate CSV
   const headers = '日期,类型,分类,金额,说明,关联合同'
-  const rows = list.map(r =>
+  const rows = list.map((r: any) =>
     `${r.date},${r.type === 'income' ? '收入' : '支出'},${r.category},${r.amount},"${r.description || ''}","${r.contractName || ''}"`
   )
   const csv = [headers, ...rows].join('\n')

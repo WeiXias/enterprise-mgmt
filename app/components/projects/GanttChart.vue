@@ -27,12 +27,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const STATUS_COLORS: Record<string, string> = {
-  todo: 'bg-stone-300',
-  in_progress: 'bg-amber-400',
+  todo: 'bg-gray-300',
+  in_progress: 'bg-brand-400',
   completed: 'bg-teal-400',
 }
 
-function getColor(status: string) { return STATUS_COLORS[status] || 'bg-stone-300' }
+function getColor(status: string) { return STATUS_COLORS[status] || 'bg-gray-300' }
 function formatDate(v: string | null | undefined) {
   if (!v) return '-'
   return v.slice(5, 10)
@@ -78,12 +78,12 @@ function computeRange(tasks: GanttTask[]) {
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-8 text-stone-400">马上就好...</div>
-    <div v-else-if="tasks.length === 0 && milestones.length === 0" class="text-center py-8 text-stone-400">暂无任务</div>
+    <div v-if="loading" class="text-center py-8 text-gray-400">马上就好...</div>
+    <div v-else-if="tasks.length === 0 && milestones.length === 0" class="text-center py-8 text-gray-400">暂无任务</div>
     <div v-else class="overflow-x-auto">
       <div class="min-w-[600px]">
         <!-- 表头 -->
-        <div class="flex items-center gap-3 text-xs text-stone-400 font-medium mb-2 px-2">
+        <div class="flex items-center gap-3 text-xs text-gray-400 font-medium mb-2 px-2">
           <div class="w-28 flex-shrink-0">任务</div>
           <div class="flex-1">时间线</div>
         </div>
@@ -91,16 +91,16 @@ function computeRange(tasks: GanttTask[]) {
         <!-- 里程碑行 -->
         <template v-if="milestones.length > 0">
           <div class="mb-3">
-            <div class="text-[10px] text-stone-400 font-medium mb-1 px-2">里程碑</div>
-            <div class="relative h-7 bg-stone-50 rounded-full overflow-visible mb-1 flex items-center">
+            <div class="text-[10px] text-gray-400 font-medium mb-1 px-2">里程碑</div>
+            <div class="relative h-7 bg-gray-50 rounded-full overflow-visible mb-1 flex items-center">
               <template v-for="m in milestones" :key="m.id">
                 <div
                   v-if="computeRange(tasks).milestonePosition(m) !== null"
                   class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center"
                   :style="{ left: computeRange(tasks).milestonePosition(m)! + '%' }"
                 >
-                  <div :class="['w-3 h-3 rotate-45 rounded-sm flex-shrink-0', m.completedAt ? 'bg-teal-400' : 'bg-amber-400']" />
-                  <span class="text-[9px] mt-1 whitespace-nowrap" :class="m.completedAt ? 'text-teal-600' : 'text-amber-600'">{{ m.name }}</span>
+                  <div :class="['w-3 h-3 rotate-45 rounded-sm flex-shrink-0', m.completedAt ? 'bg-teal-400' : 'bg-brand-400']" />
+                  <span class="text-[9px] mt-1 whitespace-nowrap" :class="m.completedAt ? 'text-teal-600' : 'text-brand-600'">{{ m.name }}</span>
                 </div>
               </template>
             </div>
@@ -113,14 +113,14 @@ function computeRange(tasks: GanttTask[]) {
             <!-- 任务名称 -->
             <div class="w-28 flex-shrink-0 min-w-0">
               <div class="flex items-center gap-1">
-                <UIcon v-if="task.parentId" name="i-lucide-link" class="w-3 h-3 text-stone-300 flex-shrink-0" />
-                <p class="text-sm text-stone-800 truncate">{{ task.title }}</p>
+                <UIcon v-if="task.parentId" name="i-lucide-link" class="w-3 h-3 text-gray-300 flex-shrink-0" />
+                <p class="text-sm text-gray-800 truncate">{{ task.title }}</p>
               </div>
-              <p v-if="task.assigneeName || task.assignee" class="text-[10px] text-stone-400">{{ task.assigneeName || task.assignee }}</p>
+              <p v-if="task.assigneeName || task.assignee" class="text-[10px] text-gray-400">{{ task.assigneeName || task.assignee }}</p>
             </div>
 
             <!-- 甘特条 -->
-            <div class="flex-1 h-7 bg-stone-50 rounded-full overflow-hidden relative">
+            <div class="flex-1 h-7 bg-gray-50 rounded-full overflow-hidden relative">
               <template v-if="computeRange(tasks).taskPosition(task)">
                 <div
                   :class="[getColor(task.status), 'h-full rounded-full flex items-center px-2']"
@@ -136,7 +136,7 @@ function computeRange(tasks: GanttTask[]) {
                   <span class="relative text-[10px] text-white truncate">{{ task.progress }}%</span>
                 </div>
               </template>
-              <div v-else class="h-full flex items-center px-2 text-[10px] text-stone-400">
+              <div v-else class="h-full flex items-center px-2 text-[10px] text-gray-400">
                 {{ formatDate(task.startDate) }} ~ {{ formatDate(task.endDate) }}
               </div>
             </div>

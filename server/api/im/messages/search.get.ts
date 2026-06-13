@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     .offset((page - 1) * pageSize)
 
   // 为每条消息取附件
-  const items = await Promise.all(rows.map(async m => {
+  const items = await Promise.all(rows.map(async (m: any) => {
     const atts = await db.select({
       id: imAttachments.id, fileName: imAttachments.fileName, fileSize: imAttachments.fileSize,
       fileType: imAttachments.fileType, filePath: imAttachments.filePath,

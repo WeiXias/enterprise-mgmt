@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     code: 0,
     data: {
       ...u,
-      isActive: u.status === 'active',
+      isActive: u!.status === 'active',
     }
   }
 })

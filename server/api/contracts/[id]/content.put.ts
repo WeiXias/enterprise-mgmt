@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
   const c = existing[0]
   // 仅草稿状态可编辑，或管理员可编辑任意状态
-  if (c.status !== 'draft' && !(await checkPermission(event, 'contract:manage')))
+  if (c!.status !== 'draft' && !(await checkPermission(event, 'contract:manage')))
     throw createError({ statusCode: 400, statusMessage: '只有草稿状态的合同才能修改正文' })
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')

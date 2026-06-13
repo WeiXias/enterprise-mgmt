@@ -34,12 +34,12 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      byCategory: byCategory.map(r => ({
+      byCategory: byCategory.map((r: any) => ({
         categoryId: r.categoryId,
         categoryName: r.categoryName,
         productCount: Number(r.productCount || 0),
       })),
-      byProduct: byProduct.map(r => ({
+      byProduct: byProduct.map((r: any) => ({
         productId: r.productId,
         productName: r.productName,
         productCode: r.productCode,

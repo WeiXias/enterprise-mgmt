@@ -36,8 +36,8 @@ export default defineEventHandler(async (event) => {
       totalAmount: Number(s?.totalAmount || 0),
       paidAmount: Number(s?.paidAmount || 0),
       pendingAmount: Number(s?.pendingAmount || 0),
-      byUser: byUser.map(u => ({ ...u, totalAmount: Number(u.totalAmount), count: Number(u.count) })),
-      byMonth: byMonth.map(m => ({ ...m, totalAmount: Number(m.totalAmount), count: Number(m.count) })),
+      byUser: byUser.map((u: any) => ({ ...u, totalAmount: Number(u.totalAmount), count: Number(u.count) })),
+      byMonth: byMonth.map((m: any) => ({ ...m, totalAmount: Number(m.totalAmount), count: Number(m.count) })),
     },
   }
 })

@@ -16,7 +16,21 @@ export default defineNuxtConfig({
     enabled: true
   },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+  ],
+
+  vite: {
+    build: {
+      cssMinify: true,
+    },
+    optimizeDeps: {
+      include: ['@eigenpal/docx-editor-vue'],
+    },
+    ssr: {
+      noExternal: [],
+    },
+  },
 
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET || process.env.NUXT_JWT_SECRET || '',
@@ -43,6 +57,13 @@ export default defineNuxtConfig({
       '#schema/ai': resolve(__dirname, 'server/database/schema/ai'),
       '#schema/im': resolve(__dirname, 'server/database/schema/im'),
       '#schema/todos': resolve(__dirname, 'server/database/schema/todos'),
+      '#schema/seals': resolve(__dirname, 'server/database/schema/seals'),
+      '#schema/suppliers': resolve(__dirname, 'server/database/schema/suppliers'),
+      '#schema/purchases': resolve(__dirname, 'server/database/schema/purchases'),
+      '#schema/sales': resolve(__dirname, 'server/database/schema/sales'),
+      '#schema/workflow': resolve(__dirname, 'server/database/schema/workflow'),
+      '#schema/accounting': resolve(__dirname, 'server/database/schema/accounting'),
+      '#schema/reports': resolve(__dirname, 'server/database/schema/reports'),
       '#enums': resolve(__dirname, 'server/database/schema/enums'),
       '#server-utils': resolve(__dirname, 'server/utils'),
       '#ai-utils': resolve(__dirname, 'server/utils/ai')

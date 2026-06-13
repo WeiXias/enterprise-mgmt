@@ -22,15 +22,15 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      id: q.id,
-      name: q.name,
-      totalAmount: q.totalAmount,
-      finalAmount: q.totalAmount,
-      validUntil: q.validUntil,
-      status: q.status,
-      pdfUrl: q.pdfPath || null,
+      id: q!.id,
+      name: q!.name,
+      totalAmount: q!.totalAmount,
+      finalAmount: q!.totalAmount,
+      validUntil: q!.validUntil,
+      status: q!.status,
+      pdfUrl: q!.pdfPath || null,
       items,
-      createdAt: q.createdAt,
+      createdAt: q!.createdAt,
     },
   }
 })

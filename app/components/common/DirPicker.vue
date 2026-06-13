@@ -52,11 +52,11 @@ watch(isOpen, (v) => {
     <template #body>
       <div class="space-y-3">
         <!-- 面包屑导航 -->
-        <div class="flex items-center gap-1 text-xs text-stone-500 overflow-x-auto pb-1">
+        <div class="flex items-center gap-1 text-xs text-gray-500 overflow-x-auto pb-1">
           <button
             v-for="crumb in breadcrumbs"
             :key="crumb.path"
-            class="whitespace-nowrap hover:text-amber-600 transition-colors"
+            class="whitespace-nowrap hover:text-brand-600 transition-colors"
             @click="browse(crumb.path)"
           >
             {{ crumb.name }}
@@ -70,23 +70,23 @@ watch(isOpen, (v) => {
 
         <!-- 加载 -->
         <div v-else-if="loading" class="flex justify-center py-4">
-          <UIcon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-stone-400" />
+          <UIcon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-gray-400" />
         </div>
 
         <!-- 当前路径 + 选中按钮 -->
         <div v-else class="space-y-2">
-          <div class="text-xs text-stone-400 truncate">{{ current }}</div>
-          <div class="border border-stone-200 rounded-lg max-h-64 overflow-y-auto">
-            <div v-if="dirs.length === 0" class="text-sm text-stone-400 text-center py-8">
+          <div class="text-xs text-gray-400 truncate">{{ current }}</div>
+          <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+            <div v-if="dirs.length === 0" class="text-sm text-gray-400 text-center py-8">
               该目录下没有子目录
             </div>
             <button
               v-for="d in dirs"
               :key="d.path"
-              class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-amber-50 transition-colors border-b border-stone-100 last:border-b-0"
+              class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-brand-50 transition-colors border-b border-gray-100 last:border-b-0"
               @click="browse(d.path)"
             >
-              <UIcon name="i-lucide-folder" class="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <UIcon name="i-lucide-folder" class="w-4 h-4 text-brand-500 flex-shrink-0" />
               <span class="truncate">{{ d.name }}</span>
             </button>
           </div>

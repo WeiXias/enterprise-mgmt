@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      items: list.map(b => ({
+      items: list.map((b: any) => ({
         ...b,
         amount: Number(b.amount),
         actualAmount: Number(b.actualAmount),

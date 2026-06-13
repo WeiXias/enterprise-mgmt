@@ -53,22 +53,22 @@ watch(() => props.modelValue, (v) => { if (v) { title.value = ''; selectedIds.va
     <template #body>
       <div class="space-y-3">
         <div>
-          <label class="block text-sm text-stone-600 mb-1">群聊名称 <span class="text-red-400">*</span></label>
-          <input v-model="title" type="text" placeholder="输入群聊名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+          <label class="block text-sm text-gray-600 mb-1">群聊名称 <span class="text-red-400">*</span></label>
+          <input v-model="title" type="text" placeholder="输入群聊名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
         </div>
         <div>
-          <label class="block text-sm text-stone-600 mb-1">选择成员（至少2位）</label>
-          <div v-if="loading" class="text-xs text-stone-400 py-4 text-center">加载中...</div>
-          <div v-else class="max-h-48 overflow-y-auto space-y-1 border border-stone-100 rounded-lg p-2">
-            <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-stone-50 cursor-pointer">
-              <input type="checkbox" :checked="selectedIds.includes(u.id)" @change="toggleUser(u.id)" class="rounded border-stone-300 text-amber-500 focus:ring-amber-400" />
-              <span class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <span class="text-amber-700 text-[10px] font-medium">{{ u.name?.charAt(0) || '?' }}</span>
+          <label class="block text-sm text-gray-600 mb-1">选择成员（至少2位）</label>
+          <div v-if="loading" class="text-xs text-gray-400 py-4 text-center">加载中...</div>
+          <div v-else class="max-h-48 overflow-y-auto space-y-1 border border-gray-100 rounded-lg p-2">
+            <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer">
+              <input type="checkbox" :checked="selectedIds.includes(u.id)" @change="toggleUser(u.id)" class="rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
+              <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-brand-700 text-[10px] font-medium">{{ u.name?.charAt(0) || '?' }}</span>
               </span>
-              <span class="text-sm text-stone-700">{{ u.name }}</span>
+              <span class="text-sm text-gray-700">{{ u.name }}</span>
             </label>
           </div>
-          <p class="text-xs text-stone-400 mt-1">已选 {{ selectedIds.length }} 人</p>
+          <p class="text-xs text-gray-400 mt-1">已选 {{ selectedIds.length }} 人</p>
         </div>
       </div>
     </template>

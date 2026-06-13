@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(paymentPlans.status, 'pending'), sql`${paymentPlans.planDate} < ${today}`))
     .limit(20)
 
-  const overduePayments = overdueRows.map(row => ({
+  const overduePayments = overdueRows.map((row: any) => ({
     ...row,
     overdueDays: Math.max(0, Math.floor((Date.now() - new Date(row.planDate!).getTime()) / 86400000)),
   }))

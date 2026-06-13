@@ -32,13 +32,13 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      totalProjects:    Number(p.totalProjects),
-      inProgress:       Number(p.inProgress ?? 0),
-      delayed:          Number(p.delayed ?? 0),
-      completed:        Number(p.completed ?? 0),
-      totalBudget:      Number(p.totalBudget ?? 0),
-      taskCount:        Number(t.taskCount),
-      completedTaskCount: Number(t.completedTaskCount ?? 0),
+      totalProjects:    Number(p!.totalProjects),
+      inProgress:       Number(p!.inProgress ?? 0),
+      delayed:          Number(p!.delayed ?? 0),
+      completed:        Number(p!.completed ?? 0),
+      totalBudget:      Number(p!.totalBudget ?? 0),
+      taskCount:        Number(t!.taskCount),
+      completedTaskCount: Number(t!.completedTaskCount ?? 0),
     },
   }
 })

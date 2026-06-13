@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // 显式导入组件防止懒加载导致 SSR hydration mismatch
 import ContractForm from '~/components/contracts/ContractForm.vue'
-import ContractEditor from '~/components/contracts/ContractEditor.vue'
+import ContractEditor from '~/components/contracts/ContractEditor.client.vue'
 import TemplateSelector from '~/components/contracts/TemplateSelector.vue'
 
-definePageMeta({ layout: 'dashboard', title: '新建合同', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '新建合同', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const router = useRouter()
@@ -114,8 +114,8 @@ onMounted(() => {
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div>
-        <h1 class="text-lg font-medium text-stone-800">新建合同</h1>
-        <p class="text-sm text-stone-400 mt-0.5">创建一份新合同</p>
+        <h1 class="text-lg font-medium text-gray-800">新建合同</h1>
+        <p class="text-sm text-gray-400 mt-0.5">创建一份新合同</p>
       </div>
     </div>
 
@@ -128,8 +128,8 @@ onMounted(() => {
     <div class="warm-card mt-4">
       <div class="flex items-center justify-between mb-3">
         <div>
-          <h3 class="text-sm font-medium text-stone-700">从模板开始</h3>
-          <p class="text-xs text-stone-400 mt-0.5">选一个模板快速生成合同正文，占位符会自动替换为合同实际信息</p>
+          <h3 class="text-sm font-medium text-gray-700">从模板开始</h3>
+          <p class="text-xs text-gray-400 mt-0.5">选一个模板快速生成合同正文，占位符会自动替换为合同实际信息</p>
         </div>
         <UButton
           v-if="!selectedTemplate"
@@ -144,11 +144,11 @@ onMounted(() => {
       </div>
 
       <!-- 已选模板提示 -->
-      <div v-if="selectedTemplate" class="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-        <UIcon name="i-lucide-file-check" class="w-4 h-4 text-amber-600 flex-shrink-0" />
+      <div v-if="selectedTemplate" class="flex items-center gap-3 p-3 bg-brand-50 rounded-lg border border-brand-200">
+        <UIcon name="i-lucide-file-check" class="w-4 h-4 text-brand-600 flex-shrink-0" />
         <div class="flex-1 min-w-0">
-          <span class="text-sm text-amber-800 font-medium">{{ selectedTemplate.name }}</span>
-          <span class="text-xs text-amber-600 ml-2">（保存时将自动应用模板生成合同正文）</span>
+          <span class="text-sm text-brand-800 font-medium">{{ selectedTemplate.name }}</span>
+          <span class="text-xs text-brand-600 ml-2">（保存时将自动应用模板生成合同正文）</span>
         </div>
         <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" @click="selectedTemplate = null; showTemplateModal = false" />
       </div>
@@ -156,7 +156,7 @@ onMounted(() => {
 
     <!-- 合同正文编辑区 -->
     <div class="warm-card mt-4">
-      <h3 class="text-sm font-medium text-stone-700 mb-3">合同正文</h3>
+      <h3 class="text-sm font-medium text-gray-700 mb-3">合同正文</h3>
       <ContractEditor v-model="content" placeholder="开始撰写合同正文，或从上方选择模板快速生成..." />
     </div>
 
@@ -172,7 +172,7 @@ onMounted(() => {
     <UModal v-model:open="showTemplateModal">
       <template #header>选择合同模板</template>
       <template #body>
-        <p class="text-xs text-stone-400 mb-4">选一个模板，保存时占位符会自动替换为合同中的实际信息（如客户名称、金额、日期等）。</p>
+        <p class="text-xs text-gray-400 mb-4">选一个模板，保存时占位符会自动替换为合同中的实际信息（如客户名称、金额、日期等）。</p>
         <TemplateSelector
           :templates="templates"
           :selected-id="selectedTemplate?.id"

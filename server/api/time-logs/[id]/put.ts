@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
 import { timeLogs } from '#schema'
-import { eq, isNull } from 'drizzle-orm'
+import { eq, isNull, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
 

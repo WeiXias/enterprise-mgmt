@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '报销管理', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '报销管理', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -26,7 +26,7 @@ const rejectReason = ref('')
 const expenseTypes = ref<any[]>([])
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  pending: { label: '待审批', color: 'bg-amber-50 text-amber-700' },
+  pending: { label: '待审批', color: 'bg-brand-50 text-brand-700' },
   approved: { label: '已通过', color: 'bg-blue-50 text-blue-600' },
   rejected: { label: '已驳回', color: 'bg-red-50 text-red-600' },
   paid: { label: '已付款', color: 'bg-teal-50 text-teal-700' },
@@ -106,36 +106,36 @@ onMounted(() => fetchItems())
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">报销管理</h1>
-        <p class="text-sm text-stone-400 mt-0.5">提交和审批报销单</p>
+        <h1 class="text-lg font-medium text-gray-800">报销管理</h1>
+        <p class="text-sm text-gray-400 mt-0.5">提交和审批报销单</p>
       </div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">提交报销</UButton>
     </div>
 
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
-      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="page=1; fetchItems()">
+      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white" @change="page=1; fetchItems()">
         <option value="">全部状态</option>
         <option value="pending">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option><option value="paid">已付款</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 条</span>
+      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">还没有报销单，提交一单？</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-gray-400">还没有报销单，提交一单？</div>
     <div v-else class="space-y-2">
       <div v-for="r in items" :key="r.id" class="warm-card flex items-center gap-3">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', {
-          'bg-amber-400': r.status === 'pending', 'bg-blue-400': r.status === 'approved',
+          'bg-brand-400': r.status === 'pending', 'bg-blue-400': r.status === 'approved',
           'bg-red-400': r.status === 'rejected', 'bg-teal-400': r.status === 'paid'
         }]" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm text-stone-700">{{ r.reason }}</span>
+            <span class="text-sm text-gray-700">{{ r.reason }}</span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[r.status]?.color || '']">{{ statusConfig[r.status]?.label || r.status }}</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-stone-400">
+          <div class="flex items-center gap-3 text-xs text-gray-400">
             <span>{{ formatMoney(r.amount) }}</span>
             <span>{{ r.type }}</span>
             <span v-if="r.user?.name"><UIcon name="i-lucide-user" class="w-3 h-3 inline mr-0.5" />{{ r.user.name }}</span>
@@ -153,7 +153,7 @@ onMounted(() => fetchItems())
     </div>
 
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1"><UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上页</UButton><UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下页</UButton></div>
     </div>
 
@@ -162,13 +162,13 @@ onMounted(() => fetchItems())
       <template #header>{{ editTarget ? '编辑报销' : '提交报销' }}</template>
       <template #body>
         <form class="space-y-3" @submit.prevent="handleSave">
-          <div><label class="block text-sm text-stone-600 mb-1">报销类型</label><select v-model="form.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option v-for="t in expenseTypes" :key="t" :value="t">{{ t }}</option></select></div>
-          <div><label class="block text-sm text-stone-600 mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">事由 <span class="text-red-400">*</span></label><textarea v-model="form.reason" rows="2" placeholder="写清楚报销什么..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">报销类型</label><select v-model="form.type" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option v-for="t in expenseTypes" :key="t" :value="t">{{ t }}</option></select></div>
+          <div><label class="block text-sm text-gray-600 mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">事由 <span class="text-red-400">*</span></label><textarea v-model="form.reason" rows="2" placeholder="写清楚报销什么..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">凭证附件</label>
-            <input type="file" multiple accept="image/*,.pdf" class="w-full text-sm text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100" @change="(e: Event) => { const files = (e.target as HTMLInputElement).files; if (!files) return; const urls: string[] = []; Array.from(files).forEach(f => urls.push(f.name)); form.receiptUrls = urls.join(',') }" />
-            <p class="text-xs text-stone-400 mt-1">支持图片和 PDF，可多选</p>
+            <label class="block text-sm text-gray-600 mb-1">凭证附件</label>
+            <input type="file" multiple accept="image/*,.pdf" class="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" @change="(e: Event) => { const files = (e.target as HTMLInputElement).files; if (!files) return; const urls: string[] = []; Array.from(files).forEach(f => urls.push(f.name)); form.receiptUrls = urls.join(',') }" />
+            <p class="text-xs text-gray-400 mt-1">支持图片和 PDF，可多选</p>
           </div>
         </form>
       </template>
@@ -179,7 +179,7 @@ onMounted(() => fetchItems())
     <UModal v-model:open="showRejectModal">
       <template #header>驳回报销</template>
       <template #body>
-        <div><label class="block text-sm text-stone-600 mb-1">驳回原因</label><textarea v-model="rejectReason" rows="2" placeholder="写明原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
+        <div><label class="block text-sm text-gray-600 mb-1">驳回原因</label><textarea v-model="rejectReason" rows="2" placeholder="写明原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
       </template>
       <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showRejectModal = false">取消</UButton><UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton></div></template>
     </UModal>

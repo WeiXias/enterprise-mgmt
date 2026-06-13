@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      overdue: overdue.map(p => ({
+      overdue: overdue.map((p: any) => ({
         ...p,
         overdueDays: Math.max(0, Math.floor((Date.now() - new Date(p.planDate).getTime()) / 86400000)),
       })),

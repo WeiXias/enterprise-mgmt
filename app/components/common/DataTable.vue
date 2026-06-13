@@ -105,7 +105,7 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
     <!-- 工具栏 -->
     <div v-if="showToolbar" class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2">
-        <span v-if="selectedIds.size > 0" class="text-xs text-amber-700">
+        <span v-if="selectedIds.size > 0" class="text-xs text-brand-700">
           已选 {{ selectedIds.size }} 项
         </span>
       </div>
@@ -118,18 +118,18 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
         :key="i"
         class="warm-card flex items-center gap-4 animate-pulse"
       >
-        <div class="w-1 h-10 rounded-full bg-stone-200 flex-shrink-0" />
+        <div class="w-1 h-10 rounded-full bg-gray-200 flex-shrink-0" />
         <div class="flex-1 space-y-2">
-          <div class="h-3 bg-stone-200 rounded w-1/3" />
-          <div class="h-2 bg-stone-100 rounded w-1/2" />
+          <div class="h-3 bg-gray-200 rounded w-1/3" />
+          <div class="h-2 bg-gray-100 rounded w-1/2" />
         </div>
       </div>
     </div>
 
     <!-- 空状态 -->
     <div v-else-if="items.length === 0" class="warm-card text-center py-10">
-      <UIcon name="i-lucide-inbox" class="w-8 h-8 text-stone-300 mx-auto mb-3" />
-      <p class="text-sm text-stone-400 mb-3">{{ emptyText }}</p>
+      <UIcon name="i-lucide-inbox" class="w-8 h-8 text-gray-300 mx-auto mb-3" />
+      <p class="text-sm text-gray-400 mb-3">{{ emptyText }}</p>
       <UButton
         v-if="emptyActionLabel"
         variant="outline"
@@ -144,12 +144,12 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
     <!-- 表格（列表卡片风格） -->
     <div v-else>
       <!-- 表头 -->
-      <div class="flex items-center gap-4 px-4 py-2 text-xs text-stone-400 font-medium border-b border-stone-100 mb-1">
+      <div class="flex items-center gap-4 px-4 py-2 text-xs text-gray-400 font-medium border-b border-gray-100 mb-1">
         <div v-if="selectable" class="w-5 flex-shrink-0">
           <input
             type="checkbox"
             :checked="toggleAll"
-            class="rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+            class="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
             @change="toggleSelectAll"
           />
         </div>
@@ -160,7 +160,7 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
           :class="[
             'flex-1 min-w-0',
             col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : '',
-            col.sortable ? 'cursor-pointer hover:text-amber-600 select-none' : ''
+            col.sortable ? 'cursor-pointer hover:text-brand-600 select-none' : ''
           ]"
           :style="col.width ? `max-width: ${col.width}` : ''"
           @click="handleSort(col)"
@@ -181,7 +181,7 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
           :key="row.id ?? i"
           :class="[
             'warm-card flex items-center gap-4 !py-3 !px-4 transition-colors',
-            clickable ? 'cursor-pointer hover:bg-stone-50 group' : '',
+            clickable ? 'cursor-pointer hover:bg-gray-50 group' : '',
             rowClass ? rowClass(row, i) : ''
           ]"
           @click="clickable && $emit('row-click', row, i)"
@@ -191,13 +191,13 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
             <input
               type="checkbox"
               :checked="selectedIds.has(i)"
-              class="rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+              class="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
               @change="toggleSelection(i)"
             />
           </div>
 
           <!-- 状态色条 -->
-          <div v-if="columns[0]?.key === '_statusDot'" class="w-1 h-9 rounded-full flex-shrink-0" :class="columns[0].class || 'bg-stone-300'" />
+          <div v-if="columns[0]?.key === '_statusDot'" class="w-1 h-9 rounded-full flex-shrink-0" :class="columns[0].class || 'bg-gray-300'" />
 
           <!-- 数据列 -->
           <template v-for="col in columns.filter(c => c.key !== '_statusDot')" :key="col.key">
@@ -212,7 +212,7 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
               <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]" :index="i">
                 <!-- eslint-disable-next-line vue/no-v-html -->
                 <span v-if="col.render" v-html="col.render(row[col.key], row, i)" />
-                <span v-else class="text-sm text-stone-700 truncate block">
+                <span v-else class="text-sm text-gray-700 truncate block">
                   {{ getCellValue(row, col) }}
                 </span>
               </slot>
@@ -228,7 +228,7 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
 
       <!-- 分页 -->
       <div v-if="totalPages > 1" class="flex items-center justify-between mt-4 pt-2">
-        <span class="text-xs text-stone-400">
+        <span class="text-xs text-gray-400">
           第 {{ props.page }} / {{ totalPages }} 页，共 {{ props.total }} 条
         </span>
         <div class="flex gap-1">

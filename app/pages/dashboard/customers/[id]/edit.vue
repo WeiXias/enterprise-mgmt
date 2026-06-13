@@ -39,9 +39,9 @@ onMounted(fetchCustomer)
   <div class="max-w-lg mx-auto">
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
-      <h1 class="text-lg font-medium text-stone-800">编辑客户</h1>
+      <h1 class="text-lg font-medium text-gray-800">编辑客户</h1>
     </div>
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
     <div v-else class="warm-card">
       <CustomerForm v-model="form" mode="edit" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2">

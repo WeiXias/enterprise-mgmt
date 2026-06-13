@@ -25,10 +25,10 @@ export default defineEventHandler(async (event) => {
   // 构建树
   const map: Record<string, any> = {}
   const roots: { id: string; name: string; managerId: string; parentId: string | null; children: typeof roots }[] = []
-  all.forEach(d => {
+  all.forEach((d: any) => {
     map[d.id] = { ...d, memberCount: memberCounts[d.id] || 0, children: [] }
   })
-  all.forEach(d => {
+  all.forEach((d: any) => {
     if (d.parentId && map[d.parentId]) {
       map[d.parentId].children.push(map[d.id])
     } else {

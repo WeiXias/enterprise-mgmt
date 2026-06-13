@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
       winRate: totalCount > 0 ? Math.round(wonCount / totalCount * 100) : 0,
       totalAmount: Number(t?.totalAmount || 0),
       wonAmount: Number(t?.wonAmount || 0),
-      byStatus: byStatus.map(r => ({
+      byStatus: byStatus.map((r: any) => ({
         status: r.status,
         count: Number(r.count),
         totalAmount: Number(r.totalAmount || 0),

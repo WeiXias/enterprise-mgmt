@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
   const comment = existing[0]
 
   // 校验所有权：只能编辑自己的评论
-  if (comment.userId !== user.userId) {
+  if (comment!.userId !== user.userId) {
     throw createError({ statusCode: 403, statusMessage: '只能编辑自己的评论' })
   }
 
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
       .where(and(
         ...mentionNames.map(name => like(users.name, `%${name}%`))
       ))
-    const exactMatches = foundUsers.filter(u => mentionNames.some(n => u.name === n))
+    const exactMatches = foundUsers.filter((u: any) => mentionNames.some(n => u.name === n))
     for (const u of exactMatches) {
       mentionUserIds.push(u.id)
     }
@@ -66,8 +66,8 @@ export default defineEventHandler(async (event) => {
 
   // 解析旧的 mention 列表
   let oldMentionIds: string[] = []
-  if (comment.mentions) {
-    try { oldMentionIds = JSON.parse(comment.mentions) } catch { /* ignore */ }
+  if (comment!.mentions) {
+    try { oldMentionIds = JSON.parse(comment!.mentions) } catch { /* ignore */ }
   }
 
   // 更新评论

@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
   if (mentionedNames.length > 0) {
     const resolved = await db.select({ id: users.id }).from(users)
       .where(inArray(users.name, mentionedNames))
-    mentionUserIds = resolved.map(u => u.id)
+    mentionUserIds = resolved.map((u: any) => u.id)
   }
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')

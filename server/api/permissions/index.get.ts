@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   // 按 resource 分组
   const groups: Record<string, any[]> = {}
-  list.forEach(p => {
+  list.forEach((p: any) => {
     if (!groups[p.resource]) groups[p.resource] = []
     groups[p.resource].push(p)
   })

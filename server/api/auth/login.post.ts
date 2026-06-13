@@ -29,17 +29,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const user = result[0]
-  if (user.status === 'disabled') {
+  if (user!.status === 'disabled') {
     throw createError({ statusCode: 403, statusMessage: '账号已被停用' })
   }
 
-  const valid = await verifyPassword(password, user.password)
+  const valid = await verifyPassword(password, user!.password)
   if (!valid) {
     throw createError({ statusCode: 401, statusMessage: '用户名或密码不对' })
   }
 
-  const accessToken = await generateAccessToken({ userId: user.id, role: user.role, name: user.name })
-  const refreshToken = await generateRefreshToken({ userId: user.id })
+  const accessToken = await generateAccessToken({ userId: user!.id, role: user.role, name: user.name })
+  const refreshToken = await generateRefreshToken({ userId: user!.id })
 
   return {
     code: 0,
@@ -47,11 +47,11 @@ export default defineEventHandler(async (event) => {
       accessToken,
       refreshToken,
       user: {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        role: user.role,
-        avatar: user.avatar,
+        id: user!.id,
+        name: user!.name,
+        username: user!.username,
+        role: user!.role,
+        avatar: user!.avatar,
       }
     },
     message: '登录成功！'

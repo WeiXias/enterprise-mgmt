@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const { id: contractId } = getRouterParams(event)
   const files = await readMultipartFormData(event)
   if (!files || files.length === 0) throw createError({ statusCode: 422, statusMessage: '还没选文件呢' })
-  const file = files[0]
+  const file = files[0]!
   if (!file.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
   const fileSize = file.data.length
   if (fileSize > 20 * 1024 * 1024) throw createError({ statusCode: 422, statusMessage: '文件不能超过20MB' })

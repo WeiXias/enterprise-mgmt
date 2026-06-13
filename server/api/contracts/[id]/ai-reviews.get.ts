@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     .limit(pageSize)
     .offset((page - 1) * pageSize)
 
-  const items = list.map(r => ({
+  const items = list.map((r: any) => ({
     ...r,
     result: r.result ? JSON.parse(r.result) : null,
   }))

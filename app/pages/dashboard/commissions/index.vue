@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '提成', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '提成', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -163,50 +163,50 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="warm-card flex items-center gap-3 !py-3">
-        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-amber-500" /></div>
-        <div><p class="text-lg font-semibold text-stone-700">{{ formatMoney(stats.totalAmount) }}</p><p class="text-xs text-stone-400">总提成金额</p></div>
+        <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-brand-500" /></div>
+        <div><p class="text-lg font-semibold text-gray-700">{{ formatMoney(stats.totalAmount) }}</p><p class="text-xs text-gray-400">总提成金额</p></div>
       </div>
       <div class="warm-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-check-circle" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-lg font-semibold text-teal-600">{{ formatMoney(stats.paidAmount) }}</p><p class="text-xs text-stone-400">已发放</p></div>
+        <div><p class="text-lg font-semibold text-teal-600">{{ formatMoney(stats.paidAmount) }}</p><p class="text-xs text-gray-400">已发放</p></div>
       </div>
       <div class="warm-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><UIcon name="i-lucide-clock" class="w-5 h-5 text-blue-400" /></div>
-        <div><p class="text-lg font-semibold text-blue-600">{{ formatMoney(stats.pendingAmount) }}</p><p class="text-xs text-stone-400">待审批</p></div>
+        <div><p class="text-lg font-semibold text-blue-600">{{ formatMoney(stats.pendingAmount) }}</p><p class="text-xs text-gray-400">待审批</p></div>
       </div>
       <div class="warm-card flex items-center gap-3 !py-3">
-        <div class="w-10 h-10 rounded-lg bg-stone-50 flex items-center justify-center"><UIcon name="i-lucide-users" class="w-5 h-5 text-stone-400" /></div>
-        <div><p class="text-lg font-semibold text-stone-700">{{ stats.byUser.length }}</p><p class="text-xs text-stone-400">涉及人员</p></div>
+        <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center"><UIcon name="i-lucide-users" class="w-5 h-5 text-gray-400" /></div>
+        <div><p class="text-lg font-semibold text-gray-700">{{ stats.byUser.length }}</p><p class="text-xs text-gray-400">涉及人员</p></div>
       </div>
     </div>
 
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
-      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
+      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
         <option value="">全部状态</option>
         <option value="pending">待审批</option>
         <option value="approved">已通过</option>
         <option value="rejected">已驳回</option>
         <option value="paid">已发放</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 条提成记录</span>
+      <span class="text-xs text-gray-400">共 {{ total }} 条提成记录</span>
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">还没有提成记录，先计算一单？</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-gray-400">还没有提成记录，先计算一单？</div>
     <div v-else class="space-y-2">
       <NuxtLink v-for="c in items" :key="c.id" :to="`/dashboard/commissions/${c.id}`" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-700">{{ c.user?.name }} - {{ c.contract?.name }}</span>
+            <span class="text-sm font-medium text-gray-700">{{ c.user?.name }} - {{ c.contract?.name }}</span>
             <StatusBadge :value="c.status" enum-type="commissionStatus" />
           </div>
-          <div class="flex items-center gap-4 text-xs text-stone-400">
+          <div class="flex items-center gap-4 text-xs text-gray-400">
             <span>基数 {{ formatMoney(c.baseAmount) }}</span>
             <span>比例 {{ (Number(c.rate) * 100).toFixed(1) }}%</span>
-            <span class="font-medium text-stone-700">{{ formatMoney(Number(c.adjustAmount) || Number(c.amount)) }}</span>
-            <span v-if="c.adjustReason" class="text-amber-600">（已调整：{{ c.adjustReason }}）</span>
+            <span class="font-medium text-gray-700">{{ formatMoney(Number(c.adjustAmount) || Number(c.amount)) }}</span>
+            <span v-if="c.adjustReason" class="text-brand-600">（已调整：{{ c.adjustReason }}）</span>
             <span>{{ c.periodMonth }}</span>
           </div>
         </div>
@@ -228,16 +228,16 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
       <template #header>计算提成</template>
       <template #body>
         <div class="space-y-3">
-          <p class="text-sm text-stone-500">选择合同，根据已配置的提成规则自动计算。</p>
+          <p class="text-sm text-gray-500">选择合同，根据已配置的提成规则自动计算。</p>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">合同 <span class="text-red-400">*</span></label>
-            <select v-model="calcForm.contractId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
+            <label class="block text-sm text-gray-600 mb-1">合同 <span class="text-red-400">*</span></label>
+            <select v-model="calcForm.contractId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
               <option value="">选择合同</option>
               <option v-for="c in contractOptions" :key="c.id" :value="c.id">{{ c.name }} ({{ c.code }}) - {{ formatMoney(c.totalAmount) }}</option>
             </select>
           </div>
-          <div v-if="rules.length === 0" class="text-xs text-amber-600 bg-amber-50 p-2 rounded-lg">还没有提成规则，请先去「规则设置」配置。</div>
-          <div v-else class="text-xs text-stone-400">
+          <div v-if="rules.length === 0" class="text-xs text-brand-600 bg-brand-50 p-2 rounded-lg">还没有提成规则，请先去「规则设置」配置。</div>
+          <div v-else class="text-xs text-gray-400">
             当前 {{ rules.length }} 条生效规则：
             <span v-for="r in rules" :key="r.id" class="ml-2">{{ r.name }}({{ (Number(r.rate) * 100).toFixed(1) }}%)</span>
           </div>
@@ -257,12 +257,12 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
       <template #body>
         <form class="space-y-3" @submit.prevent="handleAdjust">
           <div>
-            <label class="block text-sm text-stone-600 mb-1">调整后金额 <span class="text-red-400">*</span></label>
-            <input v-model.number="adjustForm.adjustAmount" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">调整后金额 <span class="text-red-400">*</span></label>
+            <input v-model.number="adjustForm.adjustAmount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">调整原因</label>
-            <input v-model="adjustForm.adjustReason" type="text" placeholder="说明调整原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">调整原因</label>
+            <input v-model="adjustForm.adjustReason" type="text" placeholder="说明调整原因..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
         </form>
       </template>

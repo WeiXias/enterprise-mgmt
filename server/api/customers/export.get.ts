@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { customers, opportunities, contracts, commissions } from '#schema'
-import { and, isNull, sql } from 'drizzle-orm'
+import { and, isNull, sql, eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user

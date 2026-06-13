@@ -23,23 +23,56 @@ const emit = defineEmits<{
   confirm: []
   cancel: []
 }>()
+
+function close() {
+  emit('update:open', false)
+  emit('cancel')
+}
 </script>
 
 <template>
-  <UModal :open="open" @update:open="emit('update:open', $event)">
-    <template #header>{{ title }}</template>
+  <UModal
+    :open="open"
+    :ui="{ content: 'sm:max-w-xl rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--color-shadow-elevated)]' }"
+    @update:open="emit('update:open', $event)"
+  >
     <template #body>
-      <p class="text-sm text-stone-600">{{ message }}</p>
+      <div class="text-center px-8 pt-8 pb-6">
+        <!-- 危险图标 -->
+        <div
+          v-if="danger"
+          class="w-12 h-12 rounded-xl bg-[var(--color-danger-50)] text-[var(--color-danger-600)] flex items-center justify-center mx-auto mb-4"
+        >
+          <UIcon name="i-lucide-triangle-alert" class="w-6 h-6" />
+        </div>
+        <!-- 普通图标 -->
+        <div
+          v-else
+          class="w-12 h-12 rounded-xl bg-[var(--color-brand-50)] text-[var(--color-brand-600)] flex items-center justify-center mx-auto mb-4"
+        >
+          <UIcon name="i-lucide-circle-alert" class="w-6 h-6" />
+        </div>
+
+        <h3 class="text-base font-medium text-[var(--color-content-primary)] mb-2">{{ title }}</h3>
+        <p class="text-sm text-[var(--color-content-secondary)] leading-relaxed whitespace-pre-wrap">{{ message }}</p>
+      </div>
     </template>
+
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="emit('cancel'); emit('update:open', false)">
+      <div class="flex justify-center gap-2 px-8 pb-8">
+        <UButton
+          variant="ghost"
+          color="neutral"
+          class="min-w-[100px] justify-center"
+          @click="close"
+        >
           {{ cancelText }}
         </UButton>
         <UButton
           :color="danger ? 'error' : 'primary'"
           :loading="loading"
-          @click="emit('confirm')"
+          class="min-w-[100px] justify-center"
+          @click="$emit('confirm')"
         >
           {{ confirmText }}
         </UButton>

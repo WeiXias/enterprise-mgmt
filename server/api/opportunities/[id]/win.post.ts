@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       .where(eq(opportunityProducts.opportunityId, id))
     if (oppProducts.length > 0) {
       await db.insert(contractProducts).values(
-        oppProducts.map(p => ({
+        oppProducts.map((p: any) => ({
           id: generateId(),
           contractId,
           productId: p.productId,

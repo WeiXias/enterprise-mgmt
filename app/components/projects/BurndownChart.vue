@@ -63,8 +63,8 @@ const tooltip = computed(() => {
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-8 text-stone-400 text-xs">加载中...</div>
-    <div v-else-if="days.length === 0" class="text-center py-8 text-stone-300 text-xs">暂无数据</div>
+    <div v-if="loading" class="text-center py-8 text-gray-400 text-xs">加载中...</div>
+    <div v-else-if="days.length === 0" class="text-center py-8 text-gray-300 text-xs">暂无数据</div>
     <div v-else class="overflow-x-auto">
       <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="w-full max-w-lg mx-auto">
         <!-- Grid lines -->
@@ -75,10 +75,10 @@ const tooltip = computed(() => {
         <line :x1="padding.left" :y1="padding.top+h" :x2="padding.left+w" :y2="padding.top+h" stroke="#d4d4d4" stroke-width="1" />
 
         <!-- Y labels -->
-        <text v-for="i in 5" :key="'y'+i" :x="padding.left-5" :y="padding.top + (h/4)*(5-i) + 4" text-anchor="end" class="text-[8px] fill-stone-400">{{ Math.round(maxVal * i / 5) }}</text>
+        <text v-for="i in 5" :key="'y'+i" :x="padding.left-5" :y="padding.top + (h/4)*(5-i) + 4" text-anchor="end" class="text-[8px] fill-gray-400">{{ Math.round(maxVal * i / 5) }}</text>
 
         <!-- X labels -->
-        <text v-for="(l, i) in xLabels" :key="'x'+i" :x="padding.left + (i / (xLabels.length-1)) * w" :y="padding.top+h+18" text-anchor="middle" class="text-[8px] fill-stone-400">{{ l }}</text>
+        <text v-for="(l, i) in xLabels" :key="'x'+i" :x="padding.left + (i / (xLabels.length-1)) * w" :y="padding.top+h+18" text-anchor="middle" class="text-[8px] fill-gray-400">{{ l }}</text>
 
         <!-- Ideal line (dashed) -->
         <path :d="points.ideal" fill="none" stroke="#d4d4d4" stroke-width="1.5" stroke-dasharray="4,3" />
@@ -108,10 +108,10 @@ const tooltip = computed(() => {
       <!-- Legend -->
       <div class="flex items-center justify-center gap-4 mt-2 text-xs">
         <div class="flex items-center gap-1">
-          <div class="w-4 h-0.5 bg-amber-400" /><span class="text-stone-500">实际</span>
+          <div class="w-4 h-0.5 bg-brand-400" /><span class="text-gray-500">实际</span>
         </div>
         <div class="flex items-center gap-1">
-          <div class="w-4 h-0.5 bg-stone-300 border-t border-dashed border-stone-300" /><span class="text-stone-500">理想</span>
+          <div class="w-4 h-0.5 bg-gray-300 border-t border-dashed border-gray-300" /><span class="text-gray-500">理想</span>
         </div>
       </div>
     </div>

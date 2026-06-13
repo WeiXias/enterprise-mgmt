@@ -58,8 +58,8 @@ export default defineEventHandler(async (event) => {
       .innerJoin(users, eq(imMembers.userId, users.id))
       .where(eq(imMembers.conversationId, convId))
     mentionUserIds = convMembers
-      .filter(m => m.userId !== user.userId && mentionedNames.some(n => m.name === n))
-      .map(m => m.userId)
+      .filter((m: any) => m.userId !== user.userId && mentionedNames.some(n => m.name === n))
+      .map((m: any) => m.userId)
   }
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')

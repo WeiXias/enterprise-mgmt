@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '收支明细', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '收支明细', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -34,8 +34,7 @@ const deleteLoading = ref(false)
 
 const incomeCategories = ref<any[]>([])
 const expenseCategories = ref<any[]>([])
-const paymentMethods: Record<string, string> = { bank_transfer: '银行转账', cash: '现金', alipay: '支付宝', wechat_pay: '微信', other: '其他' }
-const sourceLabels: Record<string, string> = { contract_payment: '合同收款', commission_payout: '提成发放', reimbursement: '报销', manual: '手动' }
+const { getLabel } = useEnum()
 
 function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '¥' + n.toLocaleString('zh-CN') }
 
@@ -124,8 +123,8 @@ onMounted(() => { fetchItems(); fetchCategories() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">收支明细</h1>
-        <p class="text-sm text-stone-400 mt-0.5">所有收入和支出都在这里</p>
+        <h1 class="text-lg font-medium text-gray-800">收支明细</h1>
+        <p class="text-sm text-gray-400 mt-0.5">所有收入和支出都在这里</p>
       </div>
       <div class="flex gap-2">
         <UButton icon="i-lucide-download" variant="outline" color="neutral" size="sm" @click="handleExport">导出</UButton>
@@ -137,34 +136,34 @@ onMounted(() => { fetchItems(); fetchCategories() })
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-        <input v-model="keyword" type="text" placeholder="搜索..." class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input v-model="keyword" type="text" placeholder="搜索..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" @input="onSearchInput" />
       </div>
-      <select v-model="typeFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="page=1; fetchItems()">
+      <select v-model="typeFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white" @change="page=1; fetchItems()">
         <option value="">全部类型</option><option value="income">收入</option><option value="expense">支出</option>
       </select>
-      <input v-model="startDate" type="date" class="px-3 py-2 text-sm rounded-lg border border-stone-200" @change="page=1; fetchItems()" />
-      <span class="text-stone-300">~</span>
-      <input v-model="endDate" type="date" class="px-3 py-2 text-sm rounded-lg border border-stone-200" @change="page=1; fetchItems()" />
-      <span class="text-xs text-stone-400">共 {{ total }} 条</span>
+      <input v-model="startDate" type="date" class="px-3 h-9 text-sm rounded-lg border border-gray-200" @change="page=1; fetchItems()" />
+      <span class="text-gray-300">~</span>
+      <input v-model="endDate" type="date" class="px-3 h-9 text-sm rounded-lg border border-gray-200" @change="page=1; fetchItems()" />
+      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">还没有收支记录，记一笔？</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-gray-400">还没有收支记录，记一笔？</div>
     <div v-else class="space-y-2">
       <div v-for="t in items" :key="t.id" class="warm-card flex items-center gap-3 group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', t.type === 'income' ? 'bg-teal-400' : 'bg-red-400']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm text-stone-700">{{ t.description || t.category }}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-100 text-stone-500">{{ sourceLabels[t.sourceType] || t.sourceType }}</span>
+            <span class="text-sm text-gray-700">{{ t.description || t.category }}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ getLabel('TransactionSourceType', t.sourceType) || t.sourceType }}</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-stone-400">
+          <div class="flex items-center gap-3 text-xs text-gray-400">
             <span>{{ t.category }}</span>
             <span>{{ t.transactionDate }}</span>
             <span v-if="t.paymentMethod">{{ paymentMethods[t.paymentMethod] || t.paymentMethod }}</span>
-            <NuxtLink v-if="t.contractId" :to="`/dashboard/contracts/${t.contractId}`" class="text-amber-600 hover:underline">← {{ t.contractName || t.contractCode }}</NuxtLink>
+            <NuxtLink v-if="t.contractId" :to="`/dashboard/contracts/${t.contractId}`" class="text-brand-600 hover:underline">← {{ t.contractName || t.contractCode }}</NuxtLink>
           </div>
         </div>
         <span :class="['text-sm font-semibold', t.type === 'income' ? 'text-teal-600' : 'text-red-500']">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
@@ -177,7 +176,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
 
     <!-- 分页 -->
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1"><UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上一页</UButton><UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下一页</UButton></div>
     </div>
 
@@ -190,11 +189,11 @@ onMounted(() => { fetchItems(); fetchCategories() })
             <UButton :color="form.type === 'income' ? 'primary' : 'neutral'" :variant="form.type === 'income' ? 'solid' : 'outline'" size="sm" @click="form.type = 'income'; form.category = ''">收入</UButton>
             <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'; form.category = ''">支出</UButton>
           </div>
-          <div><label class="block text-sm text-stone-600 mb-1">分类</label><select v-model="form.category" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择</option><option v-for="c in getCategories()" :key="c" :value="c">{{ c }}</option></select></div>
-          <div><label class="block text-sm text-stone-600 mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">日期</label><input v-model="form.transactionDate" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">说明</label><input v-model="form.description" type="text" placeholder="简单描述..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">支付方式</label><select v-model="form.paymentMethod" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择</option><option v-for="(label, key) in paymentMethods" :key="key" :value="key">{{ label }}</option></select></div>
+          <div><label class="block text-sm text-gray-600 mb-1">分类</label><select v-model="form.category" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="">选择</option><option v-for="c in getCategories()" :key="c" :value="c">{{ c }}</option></select></div>
+          <div><label class="block text-sm text-gray-600 mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">日期</label><input v-model="form.transactionDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">说明</label><input v-model="form.description" type="text" placeholder="简单描述..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">支付方式</label><select v-model="form.paymentMethod" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="">选择</option><option v-for="(label, key) in paymentMethods" :key="key" :value="key">{{ label }}</option></select></div>
         </form>
       </template>
       <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton><UButton color="primary" :loading="saving" @click="handleSave">保存</UButton></div></template>

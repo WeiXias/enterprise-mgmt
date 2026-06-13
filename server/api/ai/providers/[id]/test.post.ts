@@ -14,10 +14,10 @@ export default defineEventHandler(async (event) => {
 
   const provider = rows[0]
   const config = useRuntimeConfig()
-  const apiKey = decryptApiKey(provider.apiKey, config.aiEncryptionKey || config.jwtSecret)
+  const apiKey = decryptApiKey(provider!.apiKey, config.aiEncryptionKey || config.jwtSecret)
 
   try {
-    const aiProvider = createProvider({ type: provider.type, baseUrl: provider.baseUrl, apiKey })
+    const aiProvider = createProvider({ type: provider!.type, baseUrl: provider.baseUrl, apiKey })
     const ok = await aiProvider.testConnection()
     if (ok) {
       return { code: 0, data: { success: true }, message: '连接成功！' }

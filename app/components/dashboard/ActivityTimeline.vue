@@ -21,17 +21,17 @@ function getIcon(type: string) { return typeIcons[type] || 'i-lucide-circle-dot'
 
 <template>
   <div class="warm-card">
-    <h3 class="text-sm font-medium text-stone-700 mb-3">最近动态</h3>
-    <div v-if="loading" class="space-y-2"><div v-for="i in 5" :key="i" class="h-8 bg-stone-200 rounded animate-pulse" /></div>
-    <div v-else-if="items.length === 0" class="text-xs text-stone-400 py-4 text-center">暂无动态</div>
+    <h3 class="text-sm font-medium text-gray-700 mb-3">最近动态</h3>
+    <div v-if="loading" class="space-y-2"><div v-for="i in 5" :key="i" class="h-8 bg-gray-200 rounded animate-pulse" /></div>
+    <div v-else-if="items.length === 0" class="text-xs text-gray-400 py-4 text-center">暂无动态</div>
     <div v-else class="space-y-3">
       <div v-for="act in items" :key="act.id" class="flex gap-3" >
-        <div class="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
-          <UIcon :name="getIcon(act.type)" class="w-3.5 h-3.5 text-stone-500" />
+        <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+          <UIcon :name="getIcon(act.type)" class="w-3.5 h-3.5 text-gray-500" />
         </div>
         <div class="min-w-0">
-          <p class="text-sm text-stone-700">{{ act.description }}</p>
-          <p class="text-[10px] text-stone-400 mt-0.5">{{ act.user }} · {{ formatTime(act.createdAt) }}</p>
+          <p class="text-sm text-gray-700">{{ act.description }}</p>
+          <p class="text-[10px] text-gray-400 mt-0.5">{{ act.user }} · {{ formatTime(act.createdAt) }}</p>
         </div>
       </div>
     </div>

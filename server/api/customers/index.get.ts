@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
   ])
 
   // 批量获取主联系人和标签
-  const customerIds = list.map(c => c.id)
+  const customerIds = list.map((c: any) => c.id)
   let primaryContacts: { customerId: string, name: string, phone: string }[] = []
   let allTags: { customerId: string, name: string, color: string }[] = []
 
@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      items: list.map(c => ({
+      items: list.map((c: any) => ({
         ...c,
         owner: { id: c.ownerId, name: c.ownerName },
         primaryContact: contactMap[c.id] || null,

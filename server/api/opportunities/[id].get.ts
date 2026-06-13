@@ -30,16 +30,16 @@ export default defineEventHandler(async (event) => {
   const o = oppResult[0]
 
   // 销售成员只能看自己的商机
-  if (user.role === 'sales_member' && o.ownerUserId !== user.userId) {
+  if (user.role === 'sales_member' && o!.ownerUserId !== user.userId) {
     throw createError({ statusCode: 403, statusMessage: '这个商机你无权查看' })
   }
 
   const cResult = await db.select({ id: customers.id, name: customers.name, status: customers.status })
-    .from(customers).where(eq(customers.id, o.customerId)).limit(1)
+    .from(customers).where(eq(customers.id, o!.customerId)).limit(1)
   const customer = cResult[0] || null
 
   const oResult = await db.select({ id: users.id, name: users.name })
-    .from(users).where(eq(users.id, o.ownerUserId)).limit(1)
+    .from(users).where(eq(users.id, o!.ownerUserId)).limit(1)
   const owner = oResult[0] || null
 
   const productList = await db.select({
@@ -74,21 +74,21 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      id: o.id,
-      name: o.name,
+      id: o!.id,
+      name: o!.name,
       customer,
       owner,
-      estimatedAmount: o.estimatedAmount,
-      estimatedCloseDate: o.estimatedCloseDate,
-      source: o.source,
-      competitor: o.competitor,
-      status: o.status,
-      lostReason: o.lostReason,
+      estimatedAmount: o!.estimatedAmount,
+      estimatedCloseDate: o!.estimatedCloseDate,
+      source: o!.source,
+      competitor: o!.competitor,
+      status: o!.status,
+      lostReason: o!.lostReason,
       products: productList,
       quotes: quoteList,
       followUps: followUpList,
-      createdAt: o.createdAt,
-      updatedAt: o.updatedAt,
+      createdAt: o!.createdAt,
+      updatedAt: o!.updatedAt,
     }
   }
 })

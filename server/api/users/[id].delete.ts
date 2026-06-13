@@ -6,6 +6,9 @@ import { eq } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
+  const user = event.context.user
+  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+
   await requirePermission(event, 'user:delete')
 
   const { id } = getRouterParams(event)

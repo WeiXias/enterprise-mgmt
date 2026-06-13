@@ -2,13 +2,16 @@
 interface Props {
   modelValue: boolean
   title: string
-  width?: string
+  subtitle?: string
+  size?: 'compact' | 'standard' | 'spacious'
   loading?: boolean
+  /** 在 footer 左端显示一个次要操作 */
+  secondaryAction?: { label: string; onClick: () => void }
 }
 
-withDefaults(defineProps<Props>(), {
-  width: 'w-full max-w-lg',
-  loading: false
+const props = withDefaults(defineProps<Props>(), {
+  size: 'standard',
+  loading: false,
 })
 
 const emit = defineEmits<{
@@ -16,6 +19,12 @@ const emit = defineEmits<{
   confirm: []
   cancel: []
 }>()
+
+const widthClass = {
+  compact: 'sm:max-w-lg',
+  standard: 'sm:max-w-2xl',
+  spacious: 'sm:max-w-4xl',
+}[props.size]
 
 function close() {
   emit('update:modelValue', false)
@@ -25,34 +34,46 @@ function close() {
 
 <template>
   <UModal
-    :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
+    :open="modelValue"
+    :ui="{ content: `${widthClass} rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--color-shadow-elevated)]` }"
+    @update:open="$emit('update:modelValue', $event)"
   >
-    <div :class="[width, 'bg-white rounded-xl shadow-xl']">
-      <!-- 头部 -->
-      <div class="flex items-center justify-between px-5 py-4 border-b border-stone-100">
-        <h3 class="text-sm font-medium text-stone-800">{{ title }}</h3>
-        <UButton
-          icon="i-lucide-x"
-          variant="ghost"
-          color="neutral"
-          size="xs"
-          @click="close"
-        />
+    <!-- 头部 -->
+    <template #header="{ close }">
+      <div class="flex items-center justify-between w-full">
+        <div>
+          <h3 class="text-base font-medium text-[var(--color-content-primary)]">{{ title }}</h3>
+          <p v-if="subtitle" class="text-sm text-[var(--color-content-muted)] mt-0.5">{{ subtitle }}</p>
+        </div>
+        <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-lg" @click="close(); emit('update:modelValue', false); emit('cancel')" />
       </div>
+    </template>
 
-      <!-- 内容 -->
-      <div class="px-5 py-4">
+    <!-- 内容 -->
+    <template #body>
+      <div class="max-h-[60vh] overflow-y-auto">
         <slot />
       </div>
+    </template>
 
-      <!-- 底部 -->
-      <div v-if="$slots.footer" class="px-5 py-3 border-t border-stone-100 flex justify-end gap-2">
+    <!-- 底部 -->
+    <template #footer>
+      <div class="flex items-center gap-2">
+        <UButton
+          v-if="secondaryAction"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          class="mr-auto"
+          @click="secondaryAction.onClick"
+        >
+          {{ secondaryAction.label }}
+        </UButton>
         <slot name="footer">
-          <UButton variant="ghost" color="neutral" @click="close">取消</UButton>
+          <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
           <UButton color="primary" :loading="loading" @click="$emit('confirm')">确定</UButton>
         </slot>
       </div>
-    </div>
+    </template>
   </UModal>
 </template>

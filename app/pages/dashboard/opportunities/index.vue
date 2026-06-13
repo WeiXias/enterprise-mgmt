@@ -50,9 +50,9 @@ const deleteLoading = ref(false)
 
 // 商机状态配置
 const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
-  initial_contact: { label: '初步接触', color: 'bg-stone-100 text-stone-600', dotColor: 'bg-stone-400' },
-  requirement_confirmed: { label: '需求确认', color: 'bg-blue-50 text-blue-600', dotColor: 'bg-blue-400' },
-  proposal_submitted: { label: '方案提交', color: 'bg-amber-50 text-amber-700', dotColor: 'bg-amber-400' },
+  initial_contact: { label: '初步接触', color: 'bg-gray-100 text-gray-600', dotColor: 'bg-gray-400' },
+  requirement_confirmed: { label: '需求确认', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
+  proposal_submitted: { label: '方案提交', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
   business_negotiation: { label: '商务谈判', color: 'bg-orange-50 text-orange-600', dotColor: 'bg-orange-400' },
   closed_won: { label: '已成交', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
   closed_lost: { label: '已输单', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
@@ -285,18 +285,18 @@ onMounted(() => {
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-content-muted)]" />
         <input
           v-model="keyword"
           type="text"
           placeholder="搜商机名..."
-          class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors"
+          class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
           @input="onSearchInput"
         />
       </div>
       <select
         v-model="statusFilter"
-        class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
+        class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]"
       >
         <option value="">全部阶段</option>
         <option value="initial_contact">初步接触</option>
@@ -306,13 +306,13 @@ onMounted(() => {
         <option value="closed_won">已成交</option>
         <option value="closed_lost">已输单</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 个商机</span>
+      <span class="text-xs text-[var(--color-content-muted)]">共 {{ total }} 个商机</span>
     </div>
 
     <!-- 商机列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">
-      <UIcon name="i-lucide-target" class="w-10 h-10 mx-auto mb-2 text-stone-300" />
+    <div v-if="loading" class="text-center py-12 text-[var(--color-content-muted)]">加载中...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-[var(--color-content-muted)]">
+      <UIcon name="i-lucide-target" class="w-10 h-10 mx-auto mb-2 text-[var(--color-content-muted)]" />
       <p class="text-sm">还没有商机，加一个？</p>
       <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCustomerOptions()">添加商机</UButton>
     </div>
@@ -325,16 +325,16 @@ onMounted(() => {
       >
         <!-- 阶段色条 -->
         <div
-          :class="['w-1 h-10 rounded-full flex-shrink-0', statusConfig[opp.status]?.dotColor || 'bg-stone-300']"
+          :class="['w-1 h-10 rounded-full flex-shrink-0', statusConfig[opp.status]?.dotColor || 'bg-gray-300']"
         />
 
         <!-- 主体信息 -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-800 truncate">{{ opp.name }}</span>
+            <span class="text-sm font-medium text-[var(--color-content-primary)] truncate">{{ opp.name }}</span>
             <StatusBadge :value="opp.status" enum-type="opportunityStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-stone-400">
+          <div class="flex items-center gap-3 text-xs text-[var(--color-content-muted)]">
             <span v-if="opp.customer?.name">
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline-block mr-0.5" />
               {{ opp.customer.name }}
@@ -379,95 +379,127 @@ onMounted(() => {
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchOpportunities" @next="fetchOpportunities" />
 
     <!-- 新增商机弹窗 -->
-    <UModal v-model:open="showCreateModal">
-      <template #header>添加商机</template>
-      <template #body>
+    <CommonFormModal
+      v-model="showCreateModal"
+      title="添加商机"
+      subtitle="创建新的销售机会"
+      size="standard"
+      :loading="createLoading"
+      @confirm="handleCreate"
+      @cancel="resetCreateForm"
+    >
+      <template #default>
         <form class="space-y-4" @submit.prevent="handleCreate">
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">商机名称 <span class="text-red-400">*</span></label>
-            <input v-model="createForm.name" type="text" placeholder="给这个商机起个名字" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">关联客户 <span class="text-red-400">*</span></label>
-            <select v-model="createForm.customerId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-              <option value="">选择客户</option>
-              <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">预估金额</label>
-              <input v-model.number="createForm.estimatedAmount" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+            <div class="flex items-center gap-1.5 mb-3">
+              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+              <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
             </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">预计成交日期</label>
-              <input v-model="createForm.estimatedCloseDate" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <div class="form-group mb-3">
+              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">商机名称 <span class="text-[var(--color-danger-600)]">*</span></label>
+              <input v-model="createForm.name" type="text" placeholder="给这个商机起个名字" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
             </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">来源</label>
-              <select v-model="createForm.source" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-                <option value="">选择来源</option>
-                <option v-for="s in sourceOptions" :key="s" :value="s">{{ s }}</option>
+            <div class="form-group mb-3">
+              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">关联客户 <span class="text-[var(--color-danger-600)]">*</span></label>
+              <select v-model="createForm.customerId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]">
+                <option value="">选择客户</option>
+                <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">竞争对手</label>
-              <input v-model="createForm.competitor" type="text" placeholder="竞争对手名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预估金额</label>
+                <input v-model.number="createForm.estimatedAmount" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              </div>
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预计成交日期</label>
+                <input v-model="createForm.estimatedCloseDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+            <div class="flex items-center gap-1.5 mb-3">
+              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+              <span class="text-sm font-medium text-[var(--color-brand-700)]">补充信息</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">来源</label>
+                <select v-model="createForm.source" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]">
+                  <option value="">选择来源</option>
+                  <option v-for="s in sourceOptions" :key="s" :value="s">{{ s }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">竞争对手</label>
+                <input v-model="createForm.competitor" type="text" placeholder="竞争对手名称" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              </div>
             </div>
           </div>
         </form>
       </template>
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">取消</UButton>
-          <UButton color="primary" :loading="createLoading" @click="handleCreate">添加</UButton>
-        </div>
+        <UButton variant="ghost" color="neutral" @click="showCreateModal = false; resetCreateForm()">算了</UButton>
+        <UButton color="primary" :loading="createLoading" @click="handleCreate">添加</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 编辑商机弹窗 -->
-    <UModal v-model:open="showEditModal">
-      <template #header>编辑商机</template>
-      <template #body>
+    <CommonFormModal
+      v-model="showEditModal"
+      title="编辑商机"
+      size="standard"
+      :loading="editLoading"
+      @confirm="handleEdit"
+    >
+      <template #default>
         <form class="space-y-4" @submit.prevent="handleEdit">
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">商机名称 <span class="text-red-400">*</span></label>
-            <input v-model="editForm.name" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+            <div class="flex items-center gap-1.5 mb-3">
+              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+              <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+            </div>
+            <div class="form-group mb-3">
+              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">商机名称 <span class="text-[var(--color-danger-600)]">*</span></label>
+              <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预估金额</label>
+                <input v-model.number="editForm.estimatedAmount" type="number" min="0" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              </div>
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预计成交日期</label>
+                <input v-model="editForm.estimatedCloseDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              </div>
+            </div>
           </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">预估金额</label>
-              <input v-model.number="editForm.estimatedAmount" type="number" min="0" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+            <div class="flex items-center gap-1.5 mb-3">
+              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+              <span class="text-sm font-medium text-[var(--color-brand-700)]">补充信息</span>
             </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">预计成交日期</label>
-              <input v-model="editForm.estimatedCloseDate" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">来源</label>
-              <select v-model="editForm.source" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-                <option value="">选择来源</option>
-                <option v-for="s in sourceOptions" :key="s" :value="s">{{ s }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">竞争对手</label>
-              <input v-model="editForm.competitor" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <div class="grid grid-cols-2 gap-3">
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">来源</label>
+                <select v-model="editForm.source" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]">
+                  <option value="">选择来源</option>
+                  <option v-for="s in sourceOptions" :key="s" :value="s">{{ s }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">竞争对手</label>
+                <input v-model="editForm.competitor" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              </div>
             </div>
           </div>
         </form>
       </template>
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton>
-          <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
-        </div>
+        <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
+        <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 删除确认弹窗 -->
     <CommonConfirmDialog
@@ -483,43 +515,47 @@ onMounted(() => {
     />
 
     <!-- 赢单确认弹窗 -->
-    <UModal v-model:open="showWinModal">
-      <template #header>确认赢单</template>
-      <template #body>
-        <p class="text-sm text-stone-600 mb-3">
-          确定将商机「{{ winTarget?.name }}」标记为赢单？
-        </p>
-        <label class="flex items-center gap-2 text-sm text-stone-600">
-          <input v-model="winGenerateContract" type="checkbox" class="rounded border-stone-300" />
+    <CommonFormModal
+      v-model="showWinModal"
+      title="确认赢单"
+      :subtitle="`确定将商机「${winTarget?.name}」标记为赢单？`"
+      size="compact"
+      :loading="winLoading"
+      @confirm="handleWin"
+      @cancel="winTarget = null"
+    >
+      <template #default>
+        <label class="flex items-center gap-2 text-sm text-[var(--color-content-secondary)]">
+          <input v-model="winGenerateContract" type="checkbox" class="rounded border-[var(--color-line)]" />
           同时生成合同草稿
         </label>
       </template>
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showWinModal = false; winTarget = null">取消</UButton>
-          <UButton color="primary" :loading="winLoading" @click="handleWin">确认赢单</UButton>
-        </div>
+        <UButton variant="ghost" color="neutral" @click="showWinModal = false; winTarget = null">算了</UButton>
+        <UButton color="primary" :loading="winLoading" @click="handleWin">确认赢单</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 输单确认弹窗 -->
-    <UModal v-model:open="showLoseModal">
-      <template #header>确认输单</template>
-      <template #body>
-        <p class="text-sm text-stone-600 mb-3">
-          将商机「{{ loseTarget?.name }}」标记为输单：
-        </p>
-        <div>
-          <label class="block text-sm text-stone-600 mb-1">输单原因 <span class="text-red-400">*</span></label>
-          <textarea v-model="loseReason" rows="3" placeholder="分析一下为什么输了..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
+    <CommonFormModal
+      v-model="showLoseModal"
+      title="确认输单"
+      :subtitle="`将商机「${loseTarget?.name}」标记为输单`"
+      size="compact"
+      :loading="loseLoading"
+      @confirm="handleLose"
+      @cancel="loseTarget = null; loseReason = ''"
+    >
+      <template #default>
+        <div class="form-group">
+          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">输单原因 <span class="text-[var(--color-danger-600)]">*</span></label>
+          <textarea v-model="loseReason" rows="3" placeholder="分析一下为什么输了..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
         </div>
       </template>
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showLoseModal = false; loseTarget = null; loseReason = ''">取消</UButton>
-          <UButton color="error" :loading="loseLoading" @click="handleLose">确认输单</UButton>
-        </div>
+        <UButton variant="ghost" color="neutral" @click="showLoseModal = false; loseTarget = null; loseReason = ''">算了</UButton>
+        <UButton color="error" :loading="loseLoading" @click="handleLose">确认输单</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
   </div>
 </template>

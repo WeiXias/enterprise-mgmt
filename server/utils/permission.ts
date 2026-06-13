@@ -52,7 +52,7 @@ export async function requirePermission(event: H3Event, permissionCode: string):
       .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
       .where(eq(rolePermissions.roleId, userRows[0].roleId))
 
-    const codes = result.map(r => r.code)
+    const codes = result.map((r: any) => r.code)
     if (!codes.includes(permissionCode)) {
       throw createError({ statusCode: 403, statusMessage: '这个需要权限才能操作' })
     }
@@ -82,7 +82,7 @@ export async function checkPermission(event: H3Event, permissionCode: string): P
       .from(rolePermissions)
       .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
       .where(eq(rolePermissions.roleId, userRows[0].roleId))
-    return result.some(r => r.code === permissionCode)
+    return result.some((r: any) => r.code === permissionCode)
   } catch {
     return false
   }

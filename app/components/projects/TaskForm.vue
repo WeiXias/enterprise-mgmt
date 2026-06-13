@@ -43,22 +43,22 @@ const PRIORITY_OPTIONS = [
 <template>
   <form class="space-y-4" @submit.prevent="$emit('submit')">
     <div>
-      <label class="block text-sm text-stone-600 mb-1">任务名称 <span class="text-red-400">*</span></label>
+      <label class="block text-sm text-gray-600 mb-1">任务名称 <span class="text-red-400">*</span></label>
       <input
         :value="modelValue.name"
         type="text"
         placeholder="任务名称"
-        class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
         @input="$emit('update:modelValue', { ...modelValue, name: ($event.target as HTMLInputElement).value })"
       />
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm text-stone-600 mb-1">负责人</label>
+        <label class="block text-sm text-gray-600 mb-1">负责人</label>
         <select
           :value="modelValue.assigneeId"
-          class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
+          class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
           @change="$emit('update:modelValue', { ...modelValue, assigneeId: ($event.target as HTMLSelectElement).value })"
         >
           <option value="">未分配</option>
@@ -66,10 +66,10 @@ const PRIORITY_OPTIONS = [
         </select>
       </div>
       <div>
-        <label class="block text-sm text-stone-600 mb-1">优先级</label>
+        <label class="block text-sm text-gray-600 mb-1">优先级</label>
         <select
           :value="modelValue.priority"
-          class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
+          class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
           @change="$emit('update:modelValue', { ...modelValue, priority: ($event.target as HTMLSelectElement).value })"
         >
           <option v-for="p in PRIORITY_OPTIONS" :key="p.value" :value="p.value">{{ p.label }}</option>
@@ -78,10 +78,10 @@ const PRIORITY_OPTIONS = [
     </div>
 
     <div>
-      <label class="block text-sm text-stone-600 mb-1">前置任务</label>
+      <label class="block text-sm text-gray-600 mb-1">前置任务</label>
       <select
         :value="modelValue.parentId || ''"
-        class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
+        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
         @change="$emit('update:modelValue', { ...modelValue, parentId: ($event.target as HTMLSelectElement).value || undefined })"
       >
         <option value="">无前置</option>
@@ -91,32 +91,32 @@ const PRIORITY_OPTIONS = [
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm text-stone-600 mb-1">开始日期</label>
+        <label class="block text-sm text-gray-600 mb-1">开始日期</label>
         <input
           :value="modelValue.startDate"
           type="date"
-          class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+          class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           @input="$emit('update:modelValue', { ...modelValue, startDate: ($event.target as HTMLInputElement).value })"
         />
       </div>
       <div>
-        <label class="block text-sm text-stone-600 mb-1">截止日期</label>
+        <label class="block text-sm text-gray-600 mb-1">截止日期</label>
         <input
           :value="modelValue.endDate"
           type="date"
-          class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+          class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
           @input="$emit('update:modelValue', { ...modelValue, endDate: ($event.target as HTMLInputElement).value })"
         />
       </div>
     </div>
 
     <div>
-      <label class="block text-sm text-stone-600 mb-1">备注</label>
+      <label class="block text-sm text-gray-600 mb-1">备注</label>
       <textarea
         :value="modelValue.remark"
         rows="2"
         placeholder="任务备注..."
-        class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none"
+        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none"
         @input="$emit('update:modelValue', { ...modelValue, remark: ($event.target as HTMLTextAreaElement).value })"
       />
     </div>

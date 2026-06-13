@@ -25,21 +25,21 @@ const emit = defineEmits<{
 <template>
   <div class="flex items-center gap-2">
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-stone-400 flex-shrink-0">{{ startLabel }}</label>
+      <label class="text-xs text-gray-400 flex-shrink-0">{{ startLabel }}</label>
       <input
         :value="startDate"
         type="date"
-        class="px-2 py-1.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 bg-white"
+        class="px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 bg-white"
         @input="$emit('update:startDate', ($event.target as HTMLInputElement).value)"
       />
     </div>
-    <span class="text-xs text-stone-300">—</span>
+    <span class="text-xs text-gray-300">—</span>
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-stone-400 flex-shrink-0">{{ endLabel }}</label>
+      <label class="text-xs text-gray-400 flex-shrink-0">{{ endLabel }}</label>
       <input
         :value="endDate"
         type="date"
-        class="px-2 py-1.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 bg-white"
+        class="px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 bg-white"
         @input="$emit('update:endDate', ($event.target as HTMLInputElement).value)"
       />
     </div>

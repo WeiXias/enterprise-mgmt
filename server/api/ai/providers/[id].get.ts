@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     data: {
       ...provider,
       apiKey: undefined,
-      models: JSON.parse(provider.models || '[]'),
+      models: JSON.parse(provider!.models || '[]'),
     },
   }
 })

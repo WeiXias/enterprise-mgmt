@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   // 管理员拥有所有权限
   if (u.role === 'admin') {
     const all = await db.select({ code: permissions.code }).from(permissions)
-    return { code: 0, data: all.map(p => p.code) }
+    return { code: 0, data: all.map((p: any) => p.code) }
   }
 
   // 其他用户从角色查权限
@@ -22,5 +22,5 @@ export default defineEventHandler(async (event) => {
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
     .where(eq(rolePermissions.roleId, userRows[0].roleId))
 
-  return { code: 0, data: result.map(r => r.code) }
+  return { code: 0, data: result.map((r: any) => r.code) }
 })

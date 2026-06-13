@@ -102,8 +102,8 @@ onMounted(() => { fetchItems(); fetchProducts() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">库存管理</h1>
-        <p class="text-sm text-stone-400 mt-0.5">出入库记录和库存流水</p>
+        <h1 class="text-lg font-medium text-[var(--color-content-primary)]">库存管理</h1>
+        <p class="text-sm text-[var(--color-content-secondary)] mt-0.5">出入库记录和库存流水</p>
       </div>
       <div class="flex items-center gap-2">
         <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport">导出</UButton>
@@ -114,21 +114,21 @@ onMounted(() => { fetchItems(); fetchProducts() })
     <!-- 库存概览 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="warm-card flex items-center gap-3 !py-3">
-        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><UIcon name="i-lucide-package" class="w-5 h-5 text-amber-500" /></div>
-        <div><p class="text-lg font-semibold text-stone-700">{{ overview.totalProducts }}</p><p class="text-xs text-stone-400">产品种类</p></div>
+        <div class="w-10 h-10 rounded-lg bg-[var(--color-brand-50)] flex items-center justify-center"><UIcon name="i-lucide-package" class="w-5 h-5 text-[var(--color-brand-500)]" /></div>
+        <div><p class="text-lg font-semibold text-[var(--color-content-primary)]">{{ overview.totalProducts }}</p><p class="text-xs text-[var(--color-content-secondary)]">产品种类</p></div>
       </div>
       <div class="warm-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-layers" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-lg font-semibold text-teal-600">{{ overview.totalStock }}</p><p class="text-xs text-stone-400">总库存量</p></div>
+        <div><p class="text-lg font-semibold text-teal-600">{{ overview.totalStock }}</p><p class="text-xs text-[var(--color-content-secondary)]">总库存量</p></div>
       </div>
-      <div class="warm-card flex items-center gap-3 !py-3" :class="overview.lowStockCount > 0 ? 'border-amber-300' : ''">
-        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center"><UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-amber-500" /></div>
-        <div><p class="text-lg font-semibold" :class="overview.lowStockCount > 0 ? 'text-amber-600' : 'text-stone-700'">{{ overview.lowStockCount }}</p><p class="text-xs text-stone-400">低库存预警</p></div>
+      <div class="warm-card flex items-center gap-3 !py-3" :class="overview.lowStockCount > 0 ? 'border-[var(--color-brand-300)]' : ''">
+        <div class="w-10 h-10 rounded-lg bg-[var(--color-brand-50)] flex items-center justify-center"><UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-[var(--color-brand-500)]" /></div>
+        <div><p class="text-lg font-semibold" :class="overview.lowStockCount > 0 ? 'text-[var(--color-brand-600)]' : 'text-[var(--color-content-primary)]'">{{ overview.lowStockCount }}</p><p class="text-xs text-[var(--color-content-secondary)]">低库存预警</p></div>
       </div>
       <div v-if="overview.lowStockProducts.length > 0" class="warm-card col-span-full">
-        <h3 class="text-sm font-medium text-stone-700 mb-2">低库存产品（库存 &lt; {{ LOW_STOCK_THRESHOLD }}）</h3>
+        <h3 class="text-sm font-medium text-[var(--color-content-primary)] mb-2">低库存产品（库存 &lt; {{ LOW_STOCK_THRESHOLD }}）</h3>
         <div class="flex flex-wrap gap-2">
-          <span v-for="p in overview.lowStockProducts" :key="p.id" class="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700">
+          <span v-for="p in overview.lowStockProducts" :key="p.id" class="text-xs px-2 py-1 rounded-full bg-[var(--color-brand-50)] text-[var(--color-brand-700)]">
             {{ p.name }}（{{ p.stockQuantity }}）
           </span>
         </div>
@@ -136,22 +136,22 @@ onMounted(() => { fetchItems(); fetchProducts() })
     </div>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
-      <select v-model="typeFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:border-amber-400" @change="page = 1; fetchItems()">
+      <select v-model="typeFilter" class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" @change="page = 1; fetchItems()">
         <option value="">全部类型</option>
         <option value="inbound">入库</option>
         <option value="outbound">出库</option>
         <option value="adjustment">盘点调整</option>
       </select>
       <ProductSelect v-model="productIdFilter" placeholder="筛选产品..." @update:model-value="page = 1; fetchItems()" />
-      <span class="text-xs text-stone-400">共 {{ total }} 条</span>
+      <span class="text-xs text-[var(--color-content-secondary)]">共 {{ total }} 条</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="!items.length" class="text-center py-12 text-stone-400">暂无库存流水</div>
+    <div v-if="loading" class="text-center py-12 text-[var(--color-content-secondary)]">加载中...</div>
+    <div v-else-if="!items.length" class="text-center py-12 text-[var(--color-content-secondary)]">暂无库存流水</div>
     <div v-else class="warm-card overflow-hidden">
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b border-stone-100 text-left text-xs text-stone-400">
+          <tr class="border-b border-[var(--color-line-light)] text-left text-xs text-[var(--color-content-secondary)]">
             <th class="py-2 px-3">产品</th>
             <th class="py-2 px-3">类型</th>
             <th class="py-2 px-3 text-right">数量</th>
@@ -163,18 +163,18 @@ onMounted(() => { fetchItems(); fetchProducts() })
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in items" :key="t.id" class="border-b border-stone-50">
-            <td class="py-2 px-3 font-medium text-stone-700">{{ t.productName || t.productId }}</td>
+          <tr v-for="t in items" :key="t.id" class="border-b border-[var(--color-line-light)]">
+            <td class="py-2 px-3 font-medium text-[var(--color-content-primary)]">{{ t.productName || t.productId }}</td>
             <td class="py-2 px-3">
-              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-500']">
+              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-[var(--color-line-light)] text-[var(--color-content-secondary)]']">
                 {{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}
               </span>
             </td>
             <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-red-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
-            <td class="py-2 px-3 text-right text-stone-600">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
-            <td class="py-2 px-3 text-xs text-stone-400">{{ t.batchNo || '-' }}</td>
-            <td class="py-2 px-3 text-xs text-stone-500 max-w-[150px] truncate">{{ t.remark || '-' }}</td>
-            <td class="py-2 px-3 text-xs text-stone-400">{{ (t.createdAt || '').slice(0, 10) }}</td>
+            <td class="py-2 px-3 text-right text-[var(--color-content-secondary)]">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
+            <td class="py-2 px-3 text-xs text-[var(--color-content-secondary)]">{{ t.batchNo || '-' }}</td>
+            <td class="py-2 px-3 text-xs text-[var(--color-content-secondary)] max-w-[150px] truncate">{{ t.remark || '-' }}</td>
+            <td class="py-2 px-3 text-xs text-[var(--color-content-secondary)]">{{ (t.createdAt || '').slice(0, 10) }}</td>
             <td class="py-2 px-3">
               <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(t)" />
             </td>
@@ -183,48 +183,37 @@ onMounted(() => { fetchItems(); fetchProducts() })
       </table>
     </div>
 
-    <UModal v-model:open="showModal">
-      <template #header>登记库存流水</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleSave">
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">产品 <span class="text-red-400">*</span></label>
-            <ProductSelect v-model="form.productId" placeholder="选择产品" />
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">类型</label>
-            <select v-model="form.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
-              <option value="inbound">入库</option>
-              <option value="outbound">出库</option>
-              <option value="adjustment">盘点调整</option>
-            </select>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">数量 <span class="text-red-400">*</span></label>
-              <input v-model.number="form.quantity" type="number" step="1" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">单价</label>
-              <input v-model.number="form.unitPrice" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">批次号</label>
-            <input v-model="form.batchNo" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">备注</label>
-            <input v-model="form.remark" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-          </div>
-        </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton>
-          <UButton color="primary" :loading="saving" @click="handleSave">保存</UButton>
+    <CommonFormModal v-model="showModal" title="登记库存流水" size="standard" :loading="saving" @confirm="handleSave">
+      <div>
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品 <span class="text-[var(--color-danger-600)]">*</span></label>
+        <ProductSelect v-model="form.productId" placeholder="选择产品" />
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">类型</label>
+        <select v-model="form.type" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+          <option value="inbound">入库</option>
+          <option value="outbound">出库</option>
+          <option value="adjustment">盘点调整</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <div>
+          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">数量 <span class="text-[var(--color-danger-600)]">*</span></label>
+          <input v-model.number="form.quantity" type="number" step="1" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
         </div>
-      </template>
-    </UModal>
+        <div>
+          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">单价</label>
+          <input v-model.number="form.unitPrice" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">批次号</label>
+        <input v-model="form.batchNo" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label>
+        <input v-model="form.remark" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+      </div>
+    </CommonFormModal>
   </div>
 </template>

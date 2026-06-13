@@ -5,49 +5,121 @@ const imStore = useIMStore()
 const authStore = useAuthStore()
 const toast = useToast()
 const router = useRouter()
-
 const { start, switchConversation } = useIMPolling()
+const { getDraft, setDraft, clearDraft } = useIMDraft()
+
 const messageInput = ref('')
 const sending = ref(false)
 const messagesContainer = ref<HTMLElement | null>(null)
 const shouldAutoScroll = ref(true)
 const searchKeyword = ref('')
 const loadMoreTrigger = ref<HTMLElement | null>(null)
+const showEmojiPicker = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploading = ref(false)
+const replyTarget = ref<any>(null)
+
+// 输入状态
+const typingUsers = ref<{ userId: string; name: string }[]>([])
+let typingTimer: ReturnType<typeof setTimeout> | null = null
+let typingPollTimer: ReturnType<typeof setInterval> | null = null
+
+async function sendTyping() {
+  if (!imStore.activeConversationId) return
+  try {
+    const token = authStore.accessToken
+    await $fetch(`/api/im/conversations/${imStore.activeConversationId}/typing`, { method: 'PUT', headers: token ? { Authorization: `Bearer ${token}` } : {} })
+  } catch { /* ignore */ }
+}
+
+async function fetchTyping() {
+  if (!imStore.activeConversationId) return
+  try {
+    const token = authStore.accessToken
+    const res = await $fetch(`/api/im/conversations/${imStore.activeConversationId}/typing`, { headers: token ? { Authorization: `Bearer ${token}` } : {} }) as any
+    if (res?.code === 0) typingUsers.value = res.data || []
+  } catch { typingUsers.value = [] }
+}
+
+function onInputChange() {
+  sendTyping()
+  if (typingTimer) clearTimeout(typingTimer)
+  typingTimer = setTimeout(sendTyping, 3000)
+  // 草稿
+  if (imStore.activeConversationId) setDraft(imStore.activeConversationId, messageInput.value)
+}
+
+function startTypingPoll() { stopTypingPoll(); typingPollTimer = setInterval(fetchTyping, 3000) }
+function stopTypingPoll() { if (typingPollTimer) { clearInterval(typingPollTimer); typingPollTimer = null } }
+
+const typingLabel = computed(() => {
+  if (!typingUsers.value.length) return ''
+  if (typingUsers.value.length <= 2) return typingUsers.value.map(u => u.name).join('、') + ' 正在输入...'
+  return typingUsers.value.length + ' 人正在输入...'
+})
 
 const showCreateGroup = ref(false)
 const showMemberPanel = ref(false)
 const showSearchPanel = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
-const uploading = ref(false)
-
-// 表情选择器
-const showEmojiPicker = ref(false)
-const emojis = ['😀','😂','🤣','😊','😍','🥰','😘','😎','🤩','👍','👏','🙌','❤️','🔥','🎉','💯','✅','❌','🤝','💪','🙏','🤔','😅','😢','😡','👋','🚀','⭐','💰','📌']
-
-// 对话删除
 const showDeleteConvModal = ref(false)
 const deleteConvTarget = ref<any>(null)
 const deleteConvLoading = ref(false)
-
-// 消息引用回复
-const replyTarget = ref<any>(null)
+const showColleagueList = ref(false)
+const showForwardModal = ref(false)
+const forwardTarget = ref<any>(null)
+const colleagues = ref<any[]>([])
+const colleaguesLoading = ref(false)
 
 const activeConv = computed(() => imStore.conversations.find(c => c.id === imStore.activeConversationId))
 
-// 筛选后的会话列表
-const filteredConversations = computed(() => {
-  if (!searchKeyword.value) return imStore.conversations
+// 置顶和普通会话
+const pinnedConversations = computed(() => imStore.conversations.filter(c => (c as any).isPinned))
+const normalConversations = computed(() => imStore.conversations.filter(c => !(c as any).isPinned))
+
+// 右键菜单
+const convMenuTarget = ref<any>(null)
+const convMenuPos = ref({ x: 0, y: 0 })
+function showConvMenu(conv: any, e: MouseEvent) {
+  convMenuTarget.value = conv
+  convMenuPos.value = { x: e.clientX, y: e.clientY }
+  nextTick(() => window.addEventListener('click', closeConvMenu, { once: true }))
+}
+function closeConvMenu() { convMenuTarget.value = null }
+
+async function togglePin() {
+  if (!convMenuTarget.value) return
+  try {
+    const token = authStore.accessToken
+    await $fetch(`/api/im/conversations/${convMenuTarget.value.id}`, {
+      method: 'PATCH' as 'GET', body: { isPinned: !(convMenuTarget.value.isPinned) }, headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    imStore.fetchConversations()
+  } catch { toast.add({ title: '操作失败', color: 'error' }) }
+  convMenuTarget.value = null
+}
+
+const searchFilteredConvs = computed(() => {
+  if (!searchKeyword.value) return []
   const kw = searchKeyword.value.toLowerCase()
-  return imStore.conversations.filter(c => {
-    if (c.type === 'group') return (c.title || '').toLowerCase().includes(kw)
-    return c.participant?.name?.toLowerCase().includes(kw)
-  })
+  return imStore.conversations.filter(c => c.type === 'group' ? (c.title || '').toLowerCase().includes(kw) : c.participant?.name?.toLowerCase().includes(kw))
 })
+
+// 未读分割线
+const unreadAfterId = ref<string | null>(null)
+function computeUnreadDivider(messages: any[]) {
+  // 在最后一条已读和第一条未读之间
+  unreadAfterId.value = null
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].readByCount && messages[i].readByCount > 0) {
+      unreadAfterId.value = messages[i].id
+      break
+    }
+  }
+}
 
 function formatTime(dateStr: string): string {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
-  const now = new Date()
+  const d = new Date(dateStr); const now = new Date()
   const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000)
   if (diffMin < 1) return '刚刚'
   if (diffMin < 60) return diffMin + '分钟前'
@@ -60,22 +132,14 @@ function formatTime(dateStr: string): string {
   return dateStr.slice(0, 10)
 }
 
-function formatMessageTime(dateStr: string): string {
-  if (!dateStr) return ''
-  return new Date(dateStr).toTimeString().slice(0, 5)
-}
+function formatMessageTime(dateStr: string): string { return dateStr ? new Date(dateStr).toTimeString().slice(0, 5) : '' }
 
-function parseFileJson(content: string | null) {
-  if (!content) return null
-  try { return JSON.parse(content) } catch { return null }
-}
+function parseFileJson(content: string | null) { if (!content) return null; try { return JSON.parse(content) } catch { return null } }
 
 function getLastMsgPreview(lm: any): string {
   if (!lm?.content) return '开始聊天吧'
   const c = lm.content
-  if (c.startsWith('{') && c.includes('"fileName"')) {
-    try { return '[文件] ' + JSON.parse(c).fileName } catch { }
-  }
+  if (c.startsWith('{') && c.includes('"fileName"')) { try { return '[文件] ' + JSON.parse(c).fileName } catch { } }
   return c.length > 25 ? c.slice(0, 25) + '...' : c
 }
 
@@ -87,39 +151,46 @@ function onMessagesScroll() {
 
 function scrollToBottom(smooth = false) {
   nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTo({
-        top: messagesContainer.value.scrollHeight,
-        behavior: smooth ? 'smooth' : 'auto',
+    requestAnimationFrame(() => {
+      nextTick(() => {
+        if (messagesContainer.value) {
+          messagesContainer.value.scrollTo({ top: messagesContainer.value.scrollHeight, behavior: smooth ? 'smooth' : 'instant' })
+        }
       })
-    }
+    })
   })
 }
 
 let loadMoreObserver: IntersectionObserver | null = null
-function setupLoadMore() {
+async function setupLoadMore() {
   if (!import.meta.client) return
   loadMoreObserver?.disconnect()
   if (loadMoreTrigger.value) {
+    await nextTick()
     loadMoreObserver = new IntersectionObserver((entries) => {
       if (entries[0]?.isIntersecting && !imStore.messagesLoading && imStore.messagesPage < imStore.messagesTotalPages) {
         imStore.fetchMessages(imStore.activeConversationId!, imStore.messagesPage + 1)
       }
-    })
+    }, { root: messagesContainer.value, threshold: 0 })
     loadMoreObserver.observe(loadMoreTrigger.value)
   }
 }
 
 function selectConversation(conv: any) {
   switchConversation(conv.id)
-  scrollToBottom()
+  // 恢复草稿
+  messageInput.value = getDraft(conv.id)
+  imStore.fetchMessages(conv.id, 1).then(() => {
+    computeUnreadDivider(imStore.messages)
+    const msgs = imStore.messages
+    if (msgs.length > 0) imStore.markAsRead(conv.id, msgs[msgs.length - 1]!.id)
+    scrollToBottom()
+  })
   nextTick(setupLoadMore)
+  startTypingPoll()
 }
 
-function handleGroupCreated(convId: string) {
-  imStore.fetchConversations()
-  switchConversation(convId)
-}
+function handleGroupCreated(convId: string) { imStore.fetchConversations(); switchConversation(convId); imStore.fetchMessages(convId, 1).then(() => scrollToBottom()); nextTick(setupLoadMore); startTypingPoll() }
 
 async function handleSend() {
   const content = messageInput.value.trim()
@@ -128,13 +199,10 @@ async function handleSend() {
   const replyToId = replyTarget.value?.id
   const ok = await imStore.sendMessage(imStore.activeConversationId, content, replyToId)
   if (ok) {
-    messageInput.value = ''
-    replyTarget.value = null
-    imStore.fetchMessages(imStore.activeConversationId, 1)
+    messageInput.value = ''; replyTarget.value = null
+    clearDraft(imStore.activeConversationId)
     scrollToBottom(true)
-  } else {
-    toast.add({ title: '发送失败，再试试', color: 'error' })
-  }
+  } else { toast.add({ title: '发送失败，再试试', color: 'error' }) }
   sending.value = false
 }
 
@@ -144,19 +212,14 @@ async function handleDeleteMessage(msgId: string) {
   toast.add({ title: '消息已撤回', color: 'info' })
 }
 
-function insertEmoji(emoji: string) {
-  messageInput.value += emoji
-  showEmojiPicker.value = false
-}
+function insertEmoji(emoji: string) { messageInput.value += emoji; showEmojiPicker.value = false }
 
 async function handleDeleteConversation() {
   if (!deleteConvTarget.value) return
   deleteConvLoading.value = true
   try {
     const token = authStore.accessToken
-    await $fetch(`/api/im/conversations/${deleteConvTarget.value.id}`, {
-      method: 'PATCH' as 'GET', body: { isDeleted: true }, headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    await $fetch(`/api/im/conversations/${deleteConvTarget.value.id}`, { method: 'PATCH' as 'GET', body: { isDeleted: true }, headers: token ? { Authorization: `Bearer ${token}` } : {} })
     toast.add({ title: '会话已删除', color: 'success' })
     showDeleteConvModal.value = false; deleteConvTarget.value = null
     imStore.fetchConversations()
@@ -164,243 +227,220 @@ async function handleDeleteConversation() {
   finally { deleteConvLoading.value = false }
 }
 
-// 文件上传
+async function loadColleagues() {
+  showColleagueList.value = true; colleaguesLoading.value = true
+  try {
+    const token = authStore.accessToken
+    const res = await $fetch('/api/users', { params: { pageSize: 200 }, headers: token ? { Authorization: `Bearer ${token}` } : {} }) as any
+    if (res?.code === 0) colleagues.value = (res.data.items || []).filter((u: any) => u.id !== authStore.user?.id)
+  } catch { /* ignore */ } finally { colleaguesLoading.value = false }
+}
+
+async function startDirectChat(userId: string) {
+  const convId = await imStore.createConversation(userId)
+  if (convId) { showColleagueList.value = false; switchConversation(convId); await imStore.fetchMessages(convId, 1); scrollToBottom(); nextTick(setupLoadMore); startTypingPoll() }
+}
+
 function triggerFileUpload() { fileInput.value?.click() }
 async function handleFileChange(e: Event) {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
+  const input = e.target as HTMLInputElement; const file = input.files?.[0]
   if (!file || !imStore.activeConversationId) return
   if (file.size > 20 * 1024 * 1024) { toast.add({ title: '文件不能超过20MB', color: 'warning' }); return }
   uploading.value = true
   try {
-    const formData = new FormData()
-    formData.append('file', file)
+    const formData = new FormData(); formData.append('file', file)
     const token = authStore.accessToken
-    const res = await $fetch(`/api/im/conversations/${imStore.activeConversationId}/attachments`, {
-      method: 'POST', body: formData, headers: token ? { Authorization: `Bearer ${token}` } : {},
-    }) as any
-    if (res?.code === 0) {
-      toast.add({ title: '文件已发送', color: 'success' })
-      imStore.fetchMessages(imStore.activeConversationId, 1, true)
-      scrollToBottom(true)
-    } else {
-      toast.add({ title: res?.statusMessage || '上传失败', color: 'error' })
-    }
+    const res = await $fetch(`/api/im/conversations/${imStore.activeConversationId}/attachments`, { method: 'POST', body: formData, headers: token ? { Authorization: `Bearer ${token}` } : {} }) as any
+    if (res?.code === 0) { toast.add({ title: '文件已发送', color: 'success' }); imStore.fetchMessages(imStore.activeConversationId, 1, true); scrollToBottom(true) }
+    else { toast.add({ title: res?.statusMessage || '上传失败', color: 'error' }) }
   } catch { toast.add({ title: '上传失败', color: 'error' }) }
   finally { uploading.value = false; input.value = '' }
 }
 
-// 搜索跳转
-function handleSearchSelect(conversationId: string) {
-  showSearchPanel.value = false
-  switchConversation(conversationId)
+function handleSearchSelect(conversationId: string) { showSearchPanel.value = false; switchConversation(conversationId); imStore.fetchMessages(conversationId, 1).then(() => scrollToBottom()); nextTick(setupLoadMore); startTypingPoll() }
+
+// 转发
+async function handleForward(msg: any) { forwardTarget.value = msg; showForwardModal.value = true }
+async function doForward(targetConvId: string) {
+  if (!forwardTarget.value) return
+  try {
+    const token = authStore.accessToken
+    const content = forwardTarget.value.type === 'file'
+      ? forwardTarget.value.content
+      : (forwardTarget.value.content || '[消息已撤回]')
+    const res = await $fetch(`/api/im/conversations/${targetConvId}/messages`, { method: 'POST', body: { content, forwardFrom: forwardTarget.value.id }, headers: token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : {} }) as any
+    if (res?.code === 0) toast.add({ title: '已转发', color: 'success' })
+    else toast.add({ title: '转发失败', color: 'error' })
+  } catch { toast.add({ title: '转发失败', color: 'error' }) }
+  showForwardModal.value = false; forwardTarget.value = null
 }
 
-watch(() => imStore.messages.length, () => { if (shouldAutoScroll.value) scrollToBottom() })
+// 输入法兼容
+const isComposing = ref(false)
+function onInputKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && !e.shiftKey && !isComposing.value) { e.preventDefault(); handleSend() }
+}
+
+let scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null
+watch(() => imStore.messages.length, () => { if (shouldAutoScroll.value) { if (scrollDebounceTimer) clearTimeout(scrollDebounceTimer); scrollDebounceTimer = setTimeout(() => scrollToBottom(), 500) } })
 watch(() => imStore.activeConversationId, () => { nextTick(setupLoadMore) })
 
 onMounted(() => start())
-onUnmounted(() => { imStore.stopAllPolling(); loadMoreObserver?.disconnect() })
+onUnmounted(() => { imStore.stopAllPolling(); loadMoreObserver?.disconnect(); stopTypingPoll() })
 </script>
 
 <template>
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">畅聊</h1>
-        <p class="text-sm text-stone-400 mt-0.5">和同事聊聊天</p>
+        <h1 class="text-lg font-medium text-gray-800">畅聊</h1>
+        <p class="text-sm text-gray-400 mt-0.5">和同事聊聊天</p>
       </div>
     </div>
     <div class="flex h-[calc(100vh-7rem)] -m-6">
-    <!-- ========== 左侧：会话列表 ========== -->
-    <div class="w-72 shrink-0 border-r border-stone-200 bg-white flex flex-col">
-      <div class="p-3 border-b border-stone-100 space-y-2">
-        <div class="relative">
-          <UIcon name="i-lucide-search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-          <input v-model="searchKeyword" type="text" placeholder="搜索聊天..." class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+      <!-- ========== 左侧：会话列表 ========== -->
+      <div class="w-72 shrink-0 border-r border-gray-200 bg-white flex flex-col">
+        <div class="p-3 border-b border-gray-100 space-y-2">
+          <div class="relative">
+            <UIcon name="i-lucide-search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input v-model="searchKeyword" type="text" placeholder="搜索聊天..." class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
+          </div>
+          <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" block @click="showCreateGroup = true">新建群聊</UButton>
         </div>
-        <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" block @click="showCreateGroup = true">新建群聊</UButton>
-      </div>
 
-      <div class="flex-1 overflow-y-auto">
-        <div v-if="imStore.conversationsLoading && imStore.conversations.length === 0" class="text-center py-12 text-xs text-stone-400">马上就好...</div>
-        <div v-else-if="filteredConversations.length === 0" class="text-center py-12">
-          <UIcon name="i-lucide-message-circle" class="w-8 h-8 text-stone-300 mx-auto mb-2" />
-          <p class="text-xs text-stone-400">还没有聊天</p>
-          <NuxtLink to="/dashboard/users" class="text-xs text-amber-600 hover:text-amber-700 mt-1 inline-block">去找同事聊聊</NuxtLink>
-        </div>
-        <button
-          v-for="conv in filteredConversations" :key="conv.id"
-          @click="selectConversation(conv)"
-          :class="['w-full text-left px-3 py-2.5 border-b border-stone-50 hover:bg-amber-50/50 transition-colors flex gap-2.5', conv.id === imStore.activeConversationId ? 'bg-amber-50/70' : '']"
-        >
-          <!-- 群聊图标 / 私聊头像 -->
-          <div v-if="conv.type === 'group'" class="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-users" class="w-4 h-4 text-teal-600" />
-          </div>
-          <div v-else class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <span class="text-amber-700 text-xs font-medium">{{ conv.participant?.name?.charAt(0) || '?' }}</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-stone-800 truncate">{{ conv.type === 'group' ? conv.title : conv.participant?.name }}</span>
-              <span class="text-[10px] text-stone-400 flex-shrink-0 ml-1">{{ conv.lastMessage?.createdAt ? formatTime(conv.lastMessage.createdAt) : '' }}</span>
-            </div>
-            <div class="flex items-center gap-1 mt-0.5">
-              <p class="text-xs text-stone-400 truncate flex-1">
-                {{ getLastMsgPreview(conv.lastMessage) }}
-              </p>
-              <span v-if="conv.unreadCount > 0" class="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center flex-shrink-0">
-                {{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}
-              </span>
-            </div>
-          </div>
-        </button>
-      </div>
-    </div>
-
-    <!-- ========== 右侧：聊天窗口 ========== -->
-    <div class="flex-1 flex flex-col bg-[var(--color-bg-warm)]">
-      <!-- 无选中 -->
-      <div v-if="!imStore.activeConversationId" class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <UIcon name="i-lucide-messages-square" class="w-12 h-12 text-stone-300 mx-auto mb-3" />
-          <p class="text-sm text-stone-400">选择一个对话开始聊天</p>
-        </div>
-      </div>
-
-      <template v-else>
-        <!-- 顶栏 -->
-        <div class="h-14 shrink-0 flex items-center justify-between px-4 border-b border-stone-200 bg-white">
-          <div class="flex items-center gap-2.5">
-            <div v-if="activeConv?.type === 'group'" class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-              <UIcon name="i-lucide-users" class="w-4 h-4 text-teal-600" />
-            </div>
-            <div v-else class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-              <span class="text-amber-700 text-xs font-medium">{{ activeConv?.participant?.name?.charAt(0) || '?' }}</span>
-            </div>
-            <div>
-              <span class="text-sm font-medium text-stone-800">{{ activeConv?.type === 'group' ? activeConv.title : activeConv?.participant?.name }}</span>
-              <span v-if="activeConv?.type === 'group'" class="text-xs text-stone-400 ml-2 cursor-pointer hover:text-amber-600" @click="showMemberPanel = true">{{ activeConv?.memberCount || 0 }}人</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button class="p-1.5 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-stone-100" title="搜索消息" @click="showSearchPanel = true">
-              <UIcon name="i-lucide-search" class="w-4 h-4" />
+        <div class="flex-1 overflow-y-auto">
+          <!-- 搜索模式 -->
+          <template v-if="searchKeyword.trim()">
+            <div v-if="searchFilteredConvs.length === 0" class="text-center py-12 text-xs text-gray-400">没找到相关聊天</div>
+            <button v-for="conv in searchFilteredConvs" :key="conv.id" @click="selectConversation(conv); searchKeyword = ''" :class="['w-full text-left px-3 py-2.5 border-b border-gray-50 hover:bg-brand-50/50 transition-colors flex gap-2.5', conv.id === imStore.activeConversationId ? 'bg-brand-50/70' : '']">
+              <div v-if="conv.type === 'group'" class="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0"><UIcon name="i-lucide-users" class="w-4 h-4 text-teal-600" /></div>
+              <div v-else class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0"><span class="text-brand-700 text-xs font-medium">{{ conv.participant?.name?.charAt(0) || '?' }}</span></div>
+              <div class="flex-1 min-w-0"><div class="flex items-center justify-between"><span class="text-sm text-gray-800 truncate">{{ conv.type === 'group' ? conv.title : conv.participant?.name }}</span><span class="text-[10px] text-gray-400 flex-shrink-0 ml-1">{{ conv.lastMessage?.createdAt ? formatTime(conv.lastMessage.createdAt) : '' }}</span></div><div class="flex items-center gap-1 mt-0.5"><p class="text-xs text-gray-400 truncate flex-1">{{ getLastMsgPreview(conv.lastMessage) }}</p><span v-if="conv.unreadCount > 0" class="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center flex-shrink-0">{{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}</span></div></div>
             </button>
-            <button class="p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50" title="删除会话" @click="deleteConvTarget = activeConv; showDeleteConvModal = true">
-              <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+          </template>
 
-        <!-- 消息列表 -->
-        <div ref="messagesContainer" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 relative" @scroll="onMessagesScroll">
-          <div ref="loadMoreTrigger" class="text-center py-1">
-            <span v-if="imStore.messagesLoading" class="text-xs text-stone-400">加载中...</span>
-            <span v-else-if="imStore.messagesPage < imStore.messagesTotalPages" class="text-xs text-stone-400">上滑加载更多</span>
-          </div>
-          <div v-if="!imStore.messagesLoading && imStore.messages.length === 0" class="text-center py-12">
-            <p class="text-xs text-stone-400">打个招呼吧</p>
-          </div>
-
-          <div v-for="msg in imStore.messages" :key="msg.id" :class="['flex group', msg.sender.id === authStore.user?.id ? 'justify-end' : 'justify-start']">
-            <div v-if="msg.sender.id !== authStore.user?.id" class="mr-2 flex-shrink-0">
-              <div class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
-                <span class="text-amber-700 text-[10px] font-medium">{{ msg.sender.name?.charAt(0) || '?' }}</span>
-              </div>
+          <!-- 正常模式 -->
+          <template v-else>
+            <div v-if="imStore.conversationsLoading && imStore.conversations.length === 0" class="text-center py-12 text-xs text-gray-400">马上就好...</div>
+            <div v-else-if="imStore.conversations.length === 0" class="text-center py-12">
+              <UIcon name="i-lucide-message-circle" class="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p class="text-xs text-gray-400">还没有聊天</p>
+              <button class="text-xs text-brand-600 hover:text-brand-700 mt-1 inline-block" @click="loadColleagues">找同事聊聊</button>
             </div>
-
-            <div :class="['max-w-[70%] px-3 py-2 rounded-xl text-sm', msg.sender.id === authStore.user?.id ? 'bg-amber-100 text-stone-800 rounded-br-md' : 'bg-white border border-stone-200 text-stone-800 rounded-bl-md', msg.isDeleted ? 'italic text-stone-400' : '']">
-              <!-- 引用回复 -->
-              <div v-if="msg.replyTo && !msg.isDeleted" class="mb-1.5 pl-2 border-l-2 border-amber-300 text-xs text-stone-500 bg-amber-50/50 rounded py-0.5">
-                <span class="text-amber-600">{{ msg.replyTo.sender?.name || '已注销' }}</span>
-                <span v-if="msg.replyTo.content" class="line-clamp-1">{{ msg.replyTo.content.slice(0, 50) }}</span>
-                <span v-else class="italic">消息已撤回</span>
-              </div>
-              <!-- 文件消息 -->
-              <template v-if="msg.type === 'file' && !msg.isDeleted">
-                <FileMessage
-                  :file-name="parseFileJson(msg.content)?.fileName || '文件'"
-                  :file-size="parseFileJson(msg.content)?.fileSize || 0"
-                  :file-type="parseFileJson(msg.content)?.fileType || 'application/octet-stream'"
-                  :attachment-id="parseFileJson(msg.content)?.attachmentId || ''"
-                />
+            <template v-else>
+              <!-- 置顶 -->
+              <template v-if="pinnedConversations.length > 0">
+                <div class="px-3 py-1.5 text-[10px] text-gray-400 font-medium">置顶</div>
+                <button v-for="conv in pinnedConversations" :key="conv.id" @click="selectConversation(conv)" @contextmenu.prevent="showConvMenu(conv, $event)" :class="['w-full text-left px-3 py-2.5 border-b border-gray-50 hover:bg-brand-50/50 transition-colors flex gap-2.5', conv.id === imStore.activeConversationId ? 'bg-brand-50/70' : '']">
+                  <UIcon name="i-lucide-pin" class="w-3 h-3 text-brand-500 flex-shrink-0 mt-0.5" />
+                  <div v-if="conv.type === 'group'" class="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0"><UIcon name="i-lucide-users" class="w-4 h-4 text-teal-600" /></div>
+                  <div v-else class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0"><span class="text-brand-700 text-xs font-medium">{{ conv.participant?.name?.charAt(0) || '?' }}</span></div>
+                  <div class="flex-1 min-w-0"><div class="flex items-center justify-between"><span class="text-sm text-gray-800 truncate">{{ conv.type === 'group' ? conv.title : conv.participant?.name }}</span><span class="text-[10px] text-gray-400 flex-shrink-0 ml-1">{{ conv.lastMessage?.createdAt ? formatTime(conv.lastMessage.createdAt) : '' }}</span></div><div class="flex items-center gap-1 mt-0.5"><p class="text-xs text-gray-400 truncate flex-1">{{ getLastMsgPreview(conv.lastMessage) }}</p><span v-if="conv.unreadCount > 0" class="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center flex-shrink-0">{{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}</span></div></div>
+                </button>
+                <div class="px-3 py-1.5 text-[10px] text-gray-400 font-medium">其他</div>
               </template>
-              <!-- 已撤回消息 -->
-              <p v-else-if="msg.isDeleted" class="text-stone-400 text-xs">消息已撤回</p>
-              <!-- 文本消息 -->
-              <p v-else class="whitespace-pre-wrap break-words">{{ msg.content }}</p>
-              <div class="flex items-center justify-end gap-1 mt-1">
-                <span class="text-[10px] text-stone-400">{{ formatMessageTime(msg.createdAt) }}</span>
-                <button
-                  class="text-xs text-amber-600 font-medium hover:bg-amber-50 px-2 py-0.5 rounded transition-colors"
-                  title="引用回复" @click="replyTarget = msg"
-                >引用</button>
-                <button v-if="!msg.isDeleted && msg.sender.id === authStore.user?.id"
-                  class="text-xs text-amber-600 font-medium hover:text-red-600 hover:bg-red-50 px-2 py-0.5 rounded transition-colors"
-                  title="撤回消息" @click="handleDeleteMessage(msg.id)">撤回</button>
-              </div>
-            </div>
+              <button v-for="conv in normalConversations" :key="conv.id" @click="selectConversation(conv)" @contextmenu.prevent="showConvMenu(conv, $event)" :class="['w-full text-left px-3 py-2.5 border-b border-gray-50 hover:bg-brand-50/50 transition-colors flex gap-2.5', conv.id === imStore.activeConversationId ? 'bg-brand-50/70' : '']">
+                <div v-if="conv.type === 'group'" class="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0"><UIcon name="i-lucide-users" class="w-4 h-4 text-teal-600" /></div>
+                <div v-else class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0"><span class="text-brand-700 text-xs font-medium">{{ conv.participant?.name?.charAt(0) || '?' }}</span></div>
+                <div class="flex-1 min-w-0"><div class="flex items-center justify-between"><span class="text-sm text-gray-800 truncate">{{ conv.type === 'group' ? conv.title : conv.participant?.name }}</span><span class="text-[10px] text-gray-400 flex-shrink-0 ml-1">{{ conv.lastMessage?.createdAt ? formatTime(conv.lastMessage.createdAt) : '' }}</span></div><div class="flex items-center gap-1 mt-0.5"><p class="text-xs text-gray-400 truncate flex-1">{{ getLastMsgPreview(conv.lastMessage) }}</p><span v-if="conv.unreadCount > 0" class="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center flex-shrink-0">{{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}</span></div></div>
+              </button>
+            </template>
+          </template>
+        </div>
+      </div>
 
-            <div v-if="msg.sender.id === authStore.user?.id" class="ml-2 flex-shrink-0">
-              <div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center">
-                <span class="text-teal-700 text-[10px] font-medium">{{ authStore.user?.name?.charAt(0) || '?' }}</span>
-              </div>
+      <!-- 右键菜单 -->
+      <Teleport to="body">
+        <div v-if="convMenuTarget" :style="{ position: 'fixed', left: convMenuPos.x + 'px', top: convMenuPos.y + 'px', zIndex: 9999 }" class="bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
+          <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-brand-50 flex items-center gap-2" @click="togglePin"><UIcon :name="convMenuTarget.isPinned ? 'i-lucide-pin-off' : 'i-lucide-pin'" class="w-4 h-4 text-gray-400" />{{ convMenuTarget.isPinned ? '取消置顶' : '置顶' }}</button>
+          <button class="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2" @click="deleteConvTarget = convMenuTarget; showDeleteConvModal = true; convMenuTarget = null"><UIcon name="i-lucide-trash-2" class="w-4 h-4" />删除会话</button>
+        </div>
+      </Teleport>
+
+      <!-- ========== 右侧：聊天窗口 ========== -->
+      <div class="flex-1 flex flex-col bg-[var(--color-surface-page)]">
+        <div v-if="!imStore.activeConversationId" class="flex-1 flex items-center justify-center">
+          <div class="text-center">
+            <UIcon name="i-lucide-messages-square" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p class="text-sm text-gray-400">选择同事开始聊天</p>
+            <div class="mt-4 flex flex-col items-center gap-2">
+              <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-[10px]">1</span> 点击左侧「未读」或底部的「找同事聊聊」</div>
+              <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-[10px]">2</span> 输入消息，回车发送</div>
+              <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-5 h-5 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-[10px]">3</span> 想多拉几个人就点「新建群聊」</div>
+            </div>
+          </div>
+        </div>
+
+        <template v-else>
+          <!-- 顶栏 -->
+          <div class="h-14 shrink-0 flex items-center justify-between px-4 border-b border-gray-200 bg-white">
+            <div class="flex items-center gap-2.5">
+              <div v-if="activeConv?.type === 'group'" class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center"><UIcon name="i-lucide-users" class="w-4 h-4 text-teal-600" /></div>
+              <div v-else class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center"><span class="text-brand-700 text-xs font-medium">{{ activeConv?.participant?.name?.charAt(0) || '?' }}</span></div>
+              <div><span class="text-sm font-medium text-gray-800">{{ activeConv?.type === 'group' ? activeConv.title : activeConv?.participant?.name }}</span><span v-if="activeConv?.type === 'group'" class="text-xs text-gray-400 ml-2 cursor-pointer hover:text-brand-600" @click="showMemberPanel = true">{{ activeConv?.memberCount || 0 }}人</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="p-1.5 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-gray-100" title="搜索消息" @click="showSearchPanel = true"><UIcon name="i-lucide-search" class="w-4 h-4" /></button>
+              <button class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50" title="删除会话" @click="deleteConvTarget = activeConv; showDeleteConvModal = true"><UIcon name="i-lucide-trash-2" class="w-4 h-4" /></button>
             </div>
           </div>
 
-          <button v-if="!shouldAutoScroll"
-            class="sticky bottom-2 float-right w-8 h-8 rounded-full bg-white border border-stone-200 shadow flex items-center justify-center hover:bg-stone-50"
-            @click="scrollToBottom(true)">
-            <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-stone-500" />
-          </button>
-        </div>
-
-        <!-- 输入框 -->
-        <div class="shrink-0 px-4 py-3 border-t border-stone-200 bg-white">
-          <!-- 表情面板 -->
-          <div v-if="showEmojiPicker" class="mb-2 p-2 bg-white border border-stone-200 rounded-lg shadow-sm">
-            <div class="grid grid-cols-10 gap-1">
-              <button v-for="e in emojis" :key="e" class="w-7 h-7 text-sm hover:bg-stone-100 rounded flex items-center justify-center" @click="insertEmoji(e)">{{ e }}</button>
+          <!-- 消息列表 -->
+          <div ref="messagesContainer" class="flex-1 overflow-y-auto px-4 py-3 space-y-3 relative" @scroll="onMessagesScroll">
+            <div ref="loadMoreTrigger" class="text-center py-1">
+              <span v-if="imStore.messagesLoading" class="text-xs text-gray-400">加载中...</span>
+              <span v-else-if="imStore.messagesPage < imStore.messagesTotalPages" class="text-xs text-gray-400">上滑加载更多</span>
             </div>
+            <div v-if="!imStore.messagesLoading && imStore.messages.length === 0" class="text-center py-12"><p class="text-xs text-gray-400">打个招呼吧</p></div>
+
+            <template v-for="msg in imStore.messages" :key="msg.id">
+              <!-- 未读分割线 -->
+              <UnreadDivider v-if="unreadAfterId === msg.id && !msg.isDeleted" lastReadLabel="以下为新消息" />
+              <div :class="['flex group', msg.sender?.id === authStore.user?.id ? 'justify-end' : 'justify-start']">
+                <div v-if="msg.sender?.id !== authStore.user?.id" class="mr-2 flex-shrink-0"><div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center"><span class="text-brand-700 text-[10px] font-medium">{{ msg.sender?.name?.charAt(0) || '?' }}</span></div></div>
+                <div :class="['max-w-[70%] px-3 py-2 rounded-xl text-sm', msg.sender?.id === authStore.user?.id ? 'bg-brand-100 text-gray-800 rounded-br-md' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md', msg.isDeleted ? 'italic text-gray-400' : '']">
+                  <!-- 引用回复 -->
+                  <div v-if="msg.replyTo && !msg.isDeleted" class="mb-1.5 pl-2 border-l-2 border-brand-300 text-xs text-gray-500 bg-brand-50/50 rounded py-0.5"><span class="text-brand-600">{{ msg.replyTo.sender?.name || '已注销' }}</span><span v-if="msg.replyTo.content" class="line-clamp-1">{{ msg.replyTo.content.slice(0, 50) }}</span><span v-else class="italic">消息已撤回</span></div>
+                  <template v-if="msg.type === 'file' && !msg.isDeleted"><FileMessage :file-name="parseFileJson(msg.content)?.fileName || '文件'" :file-size="parseFileJson(msg.content)?.fileSize || 0" :file-type="parseFileJson(msg.content)?.fileType || 'application/octet-stream'" :attachment-id="parseFileJson(msg.content)?.attachmentId || ''" /></template>
+                  <p v-else-if="msg.isDeleted" class="text-gray-400 text-xs">消息已撤回</p>
+                  <p v-else class="whitespace-pre-wrap break-words">{{ msg.content }}</p>
+                  <div class="flex items-center justify-end gap-1 mt-1">
+                    <span v-if="msg.readByCount && msg.readByCount > 0" class="text-[10px] text-brand-600 ml-1">{{ msg.readByNames?.join('、') || msg.readByCount + '人' }} 已读</span>
+                    <span class="text-[10px] text-gray-400">{{ formatMessageTime(msg.createdAt) }}</span>
+                    <button class="text-xs text-brand-600 font-medium hover:bg-brand-50 px-2 py-0.5 rounded transition-colors" title="引用回复" @click="replyTarget = msg">引用</button>
+                    <button class="text-xs text-brand-600 font-medium hover:bg-brand-50 px-2 py-0.5 rounded transition-colors" title="转发" @click="handleForward(msg)">转发</button>
+                    <button v-if="!msg.isDeleted && msg.sender?.id === authStore.user?.id" class="text-xs text-brand-600 font-medium hover:text-red-600 hover:bg-red-50 px-2 py-0.5 rounded transition-colors" title="撤回" @click="handleDeleteMessage(msg.id)">撤回</button>
+                  </div>
+                </div>
+                <div v-if="msg.sender?.id === authStore.user?.id" class="ml-2 flex-shrink-0"><div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center"><span class="text-teal-700 text-[10px] font-medium">{{ authStore.user?.name?.charAt(0) || '?' }}</span></div></div>
+              </div>
+            </template>
+
+            <button v-if="!shouldAutoScroll" class="sticky bottom-2 float-right w-8 h-8 rounded-full bg-white border border-gray-200 shadow flex items-center justify-center hover:bg-gray-50" @click="scrollToBottom(true)"><UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-gray-500" /></button>
           </div>
-          <form class="flex items-end gap-2" @submit.prevent="handleSend">
-            <button type="button" class="p-2 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-stone-100 transition-colors" @click="showEmojiPicker = !showEmojiPicker">
-              <UIcon name="i-lucide-smile" class="w-5 h-5" />
-            </button>
-            <button type="button" class="p-2 rounded-lg text-stone-400 hover:text-amber-600 hover:bg-stone-100 transition-colors" :disabled="uploading" @click="triggerFileUpload">
-              <UIcon :name="uploading ? 'i-lucide-loader' : 'i-lucide-paperclip'" class="w-5 h-5" :class="{ 'animate-spin': uploading }" />
-            </button>
-            <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
-            <textarea v-model="messageInput" rows="1" :placeholder="replyTarget ? '回复 ' + (replyTarget.sender.name || '') + '...' : '输入消息，回车发送...'" class="flex-1 resize-none px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" @keydown.enter.exact.prevent="handleSend" />
-            <UButton icon="i-lucide-send" color="primary" size="sm" :disabled="!messageInput.trim()" :loading="sending" @click="handleSend" />
-          </form>
-        </div>
-      </template>
+
+          <!-- 输入框 -->
+          <div class="shrink-0 px-4 py-3 border-t border-gray-200 bg-white">
+            <div v-if="showEmojiPicker" class="mb-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm"><div class="grid grid-cols-10 gap-1"><button v-for="e in CHAT_EMOJIS" :key="e" class="w-7 h-7 text-sm hover:bg-gray-100 rounded flex items-center justify-center" @click="insertEmoji(e)">{{ e }}</button></div></div>
+            <p v-if="typingLabel" class="text-xs text-brand-600 mb-1 italic">{{ typingLabel }}</p>
+            <form class="flex items-end gap-2" @submit.prevent="handleSend">
+              <button type="button" class="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-gray-100 transition-colors" @click="showEmojiPicker = !showEmojiPicker"><UIcon name="i-lucide-smile" class="w-5 h-5" /></button>
+              <button type="button" class="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-gray-100 transition-colors" :disabled="uploading" @click="triggerFileUpload"><UIcon :name="uploading ? 'i-lucide-loader' : 'i-lucide-paperclip'" class="w-5 h-5" :class="{ 'animate-spin': uploading }" /></button>
+              <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
+              <textarea v-model="messageInput" rows="1" :placeholder="replyTarget ? '回复 ' + (replyTarget.sender?.name || '') + '...' : '输入消息，回车发送...'" class="flex-1 resize-none px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" @keydown="onInputKeydown" @input="onInputChange" @compositionstart="isComposing = true" @compositionend="isComposing = false" />
+              <UButton icon="i-lucide-send" color="primary" size="sm" :disabled="!messageInput.trim()" :loading="sending" @click="handleSend" />
+            </form>
+          </div>
+        </template>
+      </div>
     </div>
 
-    <!-- 新建群聊弹窗 -->
+    <!-- 各类弹窗 -->
     <CreateGroupModal v-if="showCreateGroup" :model-value="showCreateGroup" @close="showCreateGroup = false" @created="handleGroupCreated" />
-
-    <!-- 成员面板 -->
     <GroupMemberPanel v-if="showMemberPanel && imStore.activeConversationId" :conversation-id="imStore.activeConversationId" @close="showMemberPanel = false" />
-
-    <!-- 搜索面板 -->
-    <div v-if="showSearchPanel" class="fixed inset-0 z-50 bg-[var(--color-bg-warm)] flex flex-col">
-      <MessageSearchPanel @close="showSearchPanel = false" @select="handleSearchSelect" />
-    </div>
-
-    <!-- 删除会话确认 -->
-    <UModal v-model:open="showDeleteConvModal">
-      <template #header>删除会话</template>
-      <template #body>
-        <p class="text-sm text-stone-600">确定要删除{{ deleteConvTarget?.type === 'group' ? '群聊「' + deleteConvTarget?.title + '」' : '与' + (deleteConvTarget?.participant?.name || '') + '的对话' }}吗？聊天记录还在，但你会看不到它。</p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeleteConvModal = false">取消</UButton><UButton color="error" :loading="deleteConvLoading" @click="handleDeleteConversation">确认删除</UButton></div>
-      </template>
-    </UModal>
-  </div>
+    <UModal v-model:open="showSearchPanel"><template #header>搜索消息</template><template #body><MessageSearchPanel @close="showSearchPanel = false" @select="handleSearchSelect" /></template><template #footer><UButton variant="ghost" color="neutral" @click="showSearchPanel = false">关闭</UButton></template></UModal>
+    <UModal v-model:open="showDeleteConvModal"><template #header>删除会话</template><template #body><p class="text-sm text-gray-600">确定要删除{{ deleteConvTarget?.type === 'group' ? '群聊「' + deleteConvTarget?.title + '」' : '与' + (deleteConvTarget?.participant?.name || '') + '的对话' }}吗？聊天记录还在，但你会看不到它。</p></template><template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeleteConvModal = false">取消</UButton><UButton color="error" :loading="deleteConvLoading" @click="handleDeleteConversation">确认删除</UButton></div></template></UModal>
+    <UModal v-model:open="showColleagueList"><template #header>选择同事</template><template #body><div v-if="colleaguesLoading" class="text-center py-8 text-xs text-gray-400">加载中...</div><div v-else-if="colleagues.length === 0" class="text-center py-8 text-xs text-gray-400">暂无其他同事</div><div v-else class="max-h-64 overflow-y-auto space-y-1"><button v-for="u in colleagues" :key="u.id" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-brand-50 transition-colors" @click="startDirectChat(u.id)"><div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0"><span class="text-brand-700 text-xs font-medium">{{ u.name?.charAt(0) || '?' }}</span></div><span class="text-sm text-gray-700">{{ u.name }}</span></button></div></template><template #footer><UButton variant="ghost" color="neutral" @click="showColleagueList = false">关闭</UButton></template></UModal>
+    <ForwardModal v-if="showForwardModal" @close="showForwardModal = false; forwardTarget = null" @select="doForward" />
   </div>
 </template>

@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
     }).from(opportunities).where(isNull(opportunities.deletedAt)).groupBy(opportunities.status),
   ])
 
-  const funnelTotal = funnelRows.reduce((sum, r) => sum + Number(r.count), 0)
+  const funnelTotal = funnelRows.reduce((sum: number, r: any) => sum + Number(r.count), 0)
 
   return {
     code: 0,

@@ -14,9 +14,9 @@ export default defineEventHandler(async (event) => {
   const now = new Date()
   const projectId = generateId()
   await db.insert(projects).values({
-    id: projectId, name: c.name + ' 项目', contractId,
+    id: projectId, name: c!.name + ' 项目', contractId,
     ownerId: user.userId, status: 'not_started', progress: 0,
-    startDate: c.startDate, endDate: c.endDate,
+    startDate: c!.startDate, endDate: c.endDate,
     createdAt: now, updatedAt: now,
   })
   await db.insert(projectMembers).values({ id: generateId(), projectId, userId: user.userId, role: 'owner', createdAt: now })

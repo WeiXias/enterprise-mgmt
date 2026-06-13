@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
   if (contractRows.length === 0) throw createError({ statusCode: 404, statusMessage: '合同不存在' })
 
   const contract = contractRows[0]
-  const contractText = stripHtml(contract.content || '')
+  const contractText = stripHtml(contract!.content || '')
 
   if (!contractText || contractText.length < 20) {
     throw createError({ statusCode: 400, statusMessage: '合同正文太短，没法审核' })
@@ -83,7 +83,7 @@ export default defineEventHandler(async (event) => {
       .limit(1)
     if (rows.length === 0) throw createError({ statusCode: 404, statusMessage: 'AI 员工不存在或已停用' })
     aiEmployee = rows[0]
-    if (aiEmployee.role !== 'contract_reviewer' && aiEmployee.role !== 'custom') {
+    if (aiEmployee!.role !== 'contract_reviewer' && aiEmployee.role !== 'custom') {
       throw createError({ statusCode: 400, statusMessage: '这个 AI 员工不是合同审核角色' })
     }
   } else {
@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
 
   // 获取供应商
   const providerRows = await db.select().from(aiProviders)
-    .where(and(eq(aiProviders.id, aiEmployee.providerId), eq(aiProviders.isEnabled, true)))
+    .where(and(eq(aiProviders.id, aiEmployee!.providerId), eq(aiProviders.isEnabled, true)))
     .limit(1)
   if (providerRows.length === 0) throw createError({ statusCode: 400, statusMessage: 'AI 供应商不存在或已停用' })
 
@@ -121,9 +121,9 @@ export default defineEventHandler(async (event) => {
   await db.insert(aiReviews).values({
     id: reviewId,
     contractId,
-    aiEmployeeId: aiEmployee.id,
+    aiEmployeeId: aiEmployee!.id,
     status: 'processing',
-    modelUsed: aiEmployee.model,
+    modelUsed: aiEmployee!.model,
     triggeredBy,
     createdAt: now,
     updatedAt: now,
@@ -132,14 +132,14 @@ export default defineEventHandler(async (event) => {
   // 调用 AI
   const startTime = Date.now()
   const config = useRuntimeConfig()
-  const apiKey = decryptApiKey(provider.apiKey, config.aiEncryptionKey || config.jwtSecret)
-  const aiProvider = createProvider({ type: provider.type, baseUrl: provider.baseUrl, apiKey })
+  const apiKey = decryptApiKey(provider!.apiKey, config.aiEncryptionKey || config.jwtSecret)
+  const aiProvider = createProvider({ type: provider!.type, baseUrl: provider.baseUrl, apiKey })
 
   try {
     const userMessage = `请审核以下合同：
 
-合同名称：${contract.name}
-合同金额：¥${(contract.totalAmount || 0).toLocaleString()}
+合同名称：${contract!.name}
+合同金额：¥${(contract!.totalAmount || 0).toLocaleString()}
 
 合同正文：
 ${contractText.slice(0, 12000)}
@@ -148,12 +148,12 @@ ${contractText.slice(0, 12000)}
 
     const response = await aiProvider.chat({
       messages: [
-        { role: 'system', content: aiEmployee.systemPrompt + '\n\n' + REVIEW_SYSTEM_PROMPT_ADDON },
+        { role: 'system', content: aiEmployee!.systemPrompt + '\n\n' + REVIEW_SYSTEM_PROMPT_ADDON },
         { role: 'user', content: userMessage },
       ],
-      model: aiEmployee.model,
-      temperature: aiEmployee.temperature,
-      maxTokens: aiEmployee.maxTokens,
+      model: aiEmployee!.model,
+      temperature: aiEmployee!.temperature,
+      maxTokens: aiEmployee!.maxTokens,
     })
 
     const duration = Date.now() - startTime
@@ -200,7 +200,7 @@ ${contractText.slice(0, 12000)}
       updatedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
     }).where(eq(aiReviews.id, reviewId))
 
-    await logOperation(event, { action: 'CREATE', module: 'ai_review', targetId: reviewId, detail: `AI 审核了合同「${contract.name}」` })
+    await logOperation(event, { action: 'CREATE', module: 'ai_review', targetId: reviewId, detail: `AI 审核了合同「${contract!.name}」` })
 
     return {
       code: 0,
@@ -208,7 +208,7 @@ ${contractText.slice(0, 12000)}
         id: reviewId,
         status: 'completed',
         result,
-        modelUsed: aiEmployee.model,
+        modelUsed: aiEmployee!.model,
         duration,
         usage: response.usage,
       },

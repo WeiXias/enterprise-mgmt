@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(todoSubtasks.todoId, id), isNull(todoSubtasks.deletedAt)))
     .orderBy(todoSubtasks.sortOrder)
 
-  const maxOrder = existing.length > 0 ? Math.max(...existing.map(e => e.sortOrder)) : 0
+  const maxOrder = existing.length > 0 ? Math.max(...existing.map((e: any) => e.sortOrder)) : 0
 
   const subtaskId = generateId()
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')

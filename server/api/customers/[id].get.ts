@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const c = custResult[0]
-  const owner = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.ownerUserId)).limit(1)
+  const owner = await db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c!.ownerUserId)).limit(1)
 
   const contactList = await db.select({
     id: contacts.id,
@@ -59,19 +59,19 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      id: c.id,
-      name: c.name,
-      industry: c.industry,
-      address: c.registeredAddress || c.officeAddress || null,
-      registeredAddress: c.registeredAddress,
-      officeAddress: c.officeAddress,
-      remark: c.remark,
-      status: c.status,
-      ownerUserId: c.ownerUserId,
+      id: c!.id,
+      name: c!.name,
+      industry: c!.industry,
+      address: c!.registeredAddress || c.officeAddress || null,
+      registeredAddress: c!.registeredAddress,
+      officeAddress: c!.officeAddress,
+      remark: c!.remark,
+      status: c!.status,
+      ownerUserId: c!.ownerUserId,
       owner: owner[0] || null,
-      lostReason: c.lostReason,
-      tags: tagList.filter(t => t.id !== null),
-      contacts: contactList.map(ct => ({
+      lostReason: c!.lostReason,
+      tags: tagList.filter((t: any) => t.id !== null),
+      contacts: contactList.map((ct: any) => ({
         id: ct.id,
         name: ct.name,
         position: ct.position,
@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
         isPrimary: ct.isPrimary,
         remark: ct.remark,
       })),
-      latestFollowUps: followUpList.map(fu => ({
+      latestFollowUps: followUpList.map((fu: any) => ({
         id: fu.id,
         type: fu.type,
         content: fu.content,
@@ -90,8 +90,8 @@ export default defineEventHandler(async (event) => {
       })),
       opportunities: oppList,
       contracts: contractList,
-      createdAt: c.createdAt,
-      updatedAt: c.updatedAt,
+      createdAt: c!.createdAt,
+      updatedAt: c!.updatedAt,
     }
   }
 })

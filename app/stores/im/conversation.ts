@@ -15,6 +15,7 @@ interface IMMessage {
   sender: { id: string; name: string; avatar: string | null }
   content: string | null; isDeleted: boolean; mentions: string[] | null; attachments?: any[]
   replyTo?: { content: string | null; sender: { id: string; name: string } | null } | null
+  readByCount?: number; readByNames?: string[]
   createdAt: string
 }
 
@@ -86,15 +87,55 @@ export const useIMConversationStore = defineStore('im-conversation', {
             // 加载更早的消息，prepend
             const existing = new Set(this.messages.map(m => m.id))
             this.messages = [...items.filter((m: IMMessage) => !existing.has(m.id)), ...this.messages]
-          } else { this.messages = items }
+          } else {
+            // page=1 增量合并：追加新消息 + 更新已有消息状态
+            this.mergeNewMessages(items)
+          }
           this.messagesTotal = result.data.total; this.messagesTotalPages = result.data.totalPages; this.messagesPage = p
         }
       } catch { /* ignore */ } finally { this.messagesLoading = false }
     },
 
+    // 增量合并：只追加本地没有的新消息，更新已存在消息（如撤回状态）
+    mergeNewMessages(newItems: IMMessage[]) {
+      const existingMap = new Map(this.messages.map(m => [m.id, m]))
+      for (const item of newItems) {
+        // 防止串话：消息的 conversationId 必须匹配当前活跃会话
+        if (item.conversationId !== this.activeConversationId) continue
+        const existing = existingMap.get(item.id)
+        if (existing) {
+          existing.isDeleted = item.isDeleted
+          existing.content = item.content
+          existing.readByCount = item.readByCount
+          existing.readByNames = item.readByNames
+        } else {
+          this.messages.push(item)
+        }
+      }
+    },
+
     async sendMessage(conversationId: string, content: string, replyTo?: string): Promise<boolean> {
       try {
         const result = await $fetch(`/api/im/conversations/${conversationId}/messages`, { method: 'POST', body: { content, replyTo }, headers: this._authHeaders() }) as any
+        if (result?.code === 0 && result.data) {
+          // 乐观插入：直接把服务端返回的新消息加到本地列表末尾
+          const msg: IMMessage = {
+            id: result.data.id,
+            conversationId,
+            type: 'text',
+            sender: { id: result.data.senderId, name: '', avatar: null },
+            content: result.data.content,
+            isDeleted: false,
+            mentions: result.data.mentions || null,
+            createdAt: result.data.createdAt,
+          }
+          // 避免轮询返回的重复
+          if (!this.messages.find(m => m.id === msg.id)) {
+            this.messages.push(msg)
+          }
+          this.messagesTotal++
+          return true
+        }
         return result?.code === 0
       } catch { return false }
     },

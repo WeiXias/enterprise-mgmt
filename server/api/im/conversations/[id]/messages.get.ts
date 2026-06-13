@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
     .offset((page - 1) * pageSize)
 
   // 批量查引用消息
-  const replyIds = rows.map(m => m.replyTo).filter(Boolean) as string[]
+  const replyIds = rows.map((m: any) => m.replyTo).filter(Boolean) as string[]
   const replyMap = new Map<string, { content: string | null; sender: { id: string; name: string } | null }>()
   if (replyIds.length > 0) {
     const replyMsgs = await db.select({
@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      items: rows.map(m => ({
+      items: rows.map((m: any) => ({
         id: m.id,
         conversationId: m.conversationId,
         type: (m.type as string) || 'text',

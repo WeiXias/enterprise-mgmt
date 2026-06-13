@@ -14,5 +14,5 @@ export default defineEventHandler(async (event) => {
   const counts = db.select({ roleId: users.roleId, cnt: count() }).from(users).groupBy(users.roleId).all()
   counts.forEach((r: { roleId: string; cnt: string }) => { if (r.roleId) memberCounts[r.roleId] = Number(r.cnt) })
 
-  return { code: 0, data: list.map(r => ({ ...r, memberCount: memberCounts[r.id] || 0 })) }
+  return { code: 0, data: list.map((r: any) => ({ ...r, memberCount: memberCounts[r.id] || 0 })) }
 })

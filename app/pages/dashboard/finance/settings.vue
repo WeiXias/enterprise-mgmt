@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '财务设置', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '财务设置', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -33,21 +33,21 @@ onMounted(() => fetchSettings())
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-lg font-medium text-stone-800">财务设置</h1>
-      <p class="text-sm text-stone-400 mt-0.5">配置财务相关参数</p>
+      <h1 class="text-lg font-medium text-gray-800">财务设置</h1>
+      <p class="text-sm text-gray-400 mt-0.5">配置财务相关参数</p>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
     <div v-else class="space-y-4">
       <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-3">当前配置</h3>
+        <h3 class="text-sm font-medium text-gray-700 mb-3">当前配置</h3>
         <div class="space-y-3">
-          <div v-for="(value, key) in settings" :key="key" class="flex items-center gap-3 p-2 rounded-lg bg-stone-50">
-            <span class="text-xs text-stone-500 w-32 flex-shrink-0">{{ key }}</span>
-            <span class="text-sm text-stone-700 flex-1">{{ typeof value === 'object' ? JSON.stringify(value) : String(value) }}</span>
+          <div v-for="(value, key) in settings" :key="key" class="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
+            <span class="text-xs text-gray-500 w-32 flex-shrink-0">{{ key }}</span>
+            <span class="text-sm text-gray-700 flex-1">{{ typeof value === 'object' ? JSON.stringify(value) : String(value) }}</span>
           </div>
         </div>
-        <div v-if="!Object.keys(settings).length" class="text-xs text-stone-400 py-4 text-center">暂无配置项</div>
+        <div v-if="!Object.keys(settings).length" class="text-xs text-gray-400 py-4 text-center">暂无配置项</div>
       </div>
     </div>
   </div>

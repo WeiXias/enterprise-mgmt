@@ -20,18 +20,18 @@ export default defineEventHandler(async (event) => {
   if (!files || files.length === 0) throw createError({ statusCode: 422, statusMessage: '请选择文件' })
 
   const file = files[0]
-  if (!file.data || file.data.length === 0) throw createError({ statusCode: 422, statusMessage: '文件为空' })
+  if (!file!.data || file.data.length === 0) throw createError({ statusCode: 422, statusMessage: '文件为空' })
   const maxSize = 20 * 1024 * 1024
-  if (file.data.length > maxSize) throw createError({ statusCode: 422, statusMessage: '文件不能超过20MB' })
+  if (file!.data.length > maxSize) throw createError({ statusCode: 422, statusMessage: '文件不能超过20MB' })
 
   const uploadDir = await getUploadDir()
   const fs = await import('fs')
   const path = await import('path')
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
 
-  const fileName = `${Date.now()}-${file.filename || 'unnamed'}`
+  const fileName = `${Date.now()}-${file!.filename || 'unnamed'}`
   const filePath = path.join(uploadDir, fileName)
-  fs.writeFileSync(filePath, file.data)
+  fs.writeFileSync(filePath, file!.data)
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const msgId = generateId()
@@ -40,14 +40,14 @@ export default defineEventHandler(async (event) => {
   // 创建文件消息
   await db.insert(imMessages).values({
     id: msgId, conversationId: convId, senderId: user.userId, type: 'file',
-    content: JSON.stringify({ fileName: file.filename || 'unnamed', fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }),
+    content: JSON.stringify({ fileName: file!.filename || 'unnamed', fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }),
     createdAt: now, updatedAt: now,
   })
 
   // 创建附件记录
   await db.insert(imAttachments).values({
-    id: attId, messageId: msgId, fileName: file.filename || 'unnamed',
-    filePath: `/uploads/${fileName}`, fileSize: file.data.length, fileType: file.type || 'application/octet-stream',
+    id: attId, messageId: msgId, fileName: file!.filename || 'unnamed',
+    filePath: `/uploads/${fileName}`, fileSize: file!.data.length, fileType: file.type || 'application/octet-stream',
     uploadedBy: user.userId, createdAt: now,
   })
 
@@ -57,8 +57,8 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      message: { id: msgId, type: 'file', content: JSON.stringify({ fileName: file.filename || 'unnamed', fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }), createdAt: now },
-      attachment: { id: attId, fileName: file.filename, fileSize: file.data.length, fileType: file.type || 'application/octet-stream' },
+      message: { id: msgId, type: 'file', content: JSON.stringify({ fileName: file!.filename || 'unnamed', fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }), createdAt: now },
+      attachment: { id: attId, fileName: file!.filename, fileSize: file.data.length, fileType: file.type || 'application/octet-stream' },
     },
     message: '文件已发送',
   }

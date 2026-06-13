@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     contractId: projects.contractId,
   }).from(projects).where(and(...whereP))
 
-  const items = await Promise.all(projectList.map(async p => {
+  const items = await Promise.all(projectList.map(async (p: any) => {
     // Income: from financeTransactions linked to contract of this project
     let income = 0
     if (p.contractId) {

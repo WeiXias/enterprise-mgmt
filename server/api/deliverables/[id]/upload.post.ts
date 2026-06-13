@@ -18,13 +18,13 @@ export default defineEventHandler(async (event) => {
   if (!files || files.length === 0) throw createError({ statusCode: 422, statusMessage: '还没选文件呢' })
 
   const file = files[0]
-  if (!file.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
+  if (!file!.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
 
   const uploadDir = await getUploadDir()
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-  const fileName = `${Date.now()}-${file.filename || 'unnamed'}`
+  const fileName = `${Date.now()}-${file!.filename || 'unnamed'}`
   const filePath = path.join(uploadDir, fileName)
-  fs.writeFileSync(filePath, file.data)
+  fs.writeFileSync(filePath, file!.data)
 
   await db.update(deliverables).set({
     filePath: `/uploads/${fileName}`,

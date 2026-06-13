@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     code: 0,
     data: {
       project: project || { startDate: null, endDate: null },
-      tasks: taskList.map(t => ({
+      tasks: taskList.map((t: any) => ({
         ...t,
         progress: t.status === 'completed' ? 100 : t.status === 'in_progress' ? Math.max(t.progress || 0, 50) : (t.progress || 0),
       })),

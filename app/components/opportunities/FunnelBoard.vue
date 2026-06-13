@@ -9,8 +9,8 @@ function formatMoney(v: number) { if (!v) return '¥0'; return '¥' + v.toLocale
 <template>
   <div class="warm-card">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-medium text-stone-700">销售漏斗</h3>
-      <span class="text-xs text-stone-400">共 {{ total }} 个商机 | 赢单率 {{ Math.round(winRate * 100) }}%</span>
+      <h3 class="text-sm font-medium text-gray-700">销售漏斗</h3>
+      <span class="text-xs text-gray-400">共 {{ total }} 个商机 | 赢单率 {{ Math.round(winRate * 100) }}%</span>
     </div>
     <FunnelChart :stages="stages" :total="total" :loading="loading" @stage-click="(s: FunnelStage) => $emit('stage-click', s)" />
   </div>

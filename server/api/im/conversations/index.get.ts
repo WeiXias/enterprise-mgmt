@@ -69,8 +69,8 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(imConversations.updatedAt))
 
   // 收集所有会话 ID 做批量查询
-  const directIds = directCons.map(c => c.id)
-  const groupIds = groupCons.map(c => c.id)
+  const directIds = directCons.map((c: any) => c.id)
+  const groupIds = groupCons.map((c: any) => c.id)
   const allConvIds = [...directIds, ...groupIds]
 
   // 批量查群聊最后消息
@@ -124,14 +124,14 @@ export default defineEventHandler(async (event) => {
         cnt: sql<number>`COUNT(*)`.as('cnt'),
       })
         .from(imMembers)
-        .where(sql`${imMembers.conversationId} IN (${sql.join(groupIds.map(id => sql`${id}`), sql`, `)})`)
+        .where(sql`${imMembers.conversationId} IN (${sql.join(groupIds.map((id: any) => sql`${id}`), sql`, `)})`)
         .groupBy(imMembers.conversationId)
     : []
   const memberCntMap = new Map<string, number>()
   for (const m of memberCounts) memberCntMap.set(m.conversationId, m.cnt)
 
   // 组装结果
-  const directItems = directCons.map(c => ({
+  const directItems = directCons.map((c: any) => ({
     id: c.id,
     type: 'direct' as const,
     title: null as string | null,
@@ -141,7 +141,7 @@ export default defineEventHandler(async (event) => {
     unreadCount: unreadMap.get(c.id) ?? 0,
   }))
 
-  const groupItems = groupCons.map(c => ({
+  const groupItems = groupCons.map((c: any) => ({
     id: c.id,
     type: 'group' as const,
     title: c.title,

@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
     code: 0,
     data: {
       ...latest,
-      result: latest.result ? JSON.parse(latest.result) : null,
+      result: latest!.result ? JSON.parse(latest.result) : null,
     },
   }
 })

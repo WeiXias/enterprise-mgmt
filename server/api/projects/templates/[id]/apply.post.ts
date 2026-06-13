@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   const template = templateRows[0]
   let phases: TemplatePhase[] = []
   try {
-    phases = template.phases ? JSON.parse(template.phases) : []
+    phases = template!.phases ? JSON.parse(template.phases) : []
   } catch {
     throw createError({ statusCode: 500, statusMessage: '模板阶段数据解析失败' })
   }
@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
       action: 'CREATE',
       module: 'project',
       targetId: projectId,
-      detail: `通过模板「${template.name}」创建了项目「${parsed.data.name}」`,
+      detail: `通过模板「${template!.name}」创建了项目「${parsed.data.name}」`,
     })
 
     return { code: 0, data: { id: projectId }, message: '搞定了！项目已从模板创建' }

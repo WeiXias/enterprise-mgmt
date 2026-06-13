@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   ])
 
   // Simple: sum payments per contract using drizzle aggregate
-  const items = list.map(c => {
+  const items = list.map((c: any) => {
     const totalAmt = Number(c.totalAmount)
     return {
       id: c.id, code: c.code, name: c.name,

@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const q = existing[0]
 
   // 已发送的报价不允许删除（仅管理员可删）
-  if (q.status !== 'draft' && user.role !== 'admin') {
+  if (q!.status !== 'draft' && user.role !== 'admin') {
     throw createError({ statusCode: 403, statusMessage: '已发送的报价仅管理员可删除' })
   }
 

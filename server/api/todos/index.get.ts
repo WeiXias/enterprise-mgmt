@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   const total = Number(totalResult[0]?.count || 0)
 
   // 批量获取子任务
-  const todoIds = list.map(t => t.id)
+  const todoIds = list.map((t: any) => t.id)
   let allSubtasks: any[] = []
   let allTagRelations: any[] = []
   let allTags: any[] = []
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      items: list.map(t => ({
+      items: list.map((t: any) => ({
         ...t,
         subtasks: subtaskMap[t.id] || [],
         tags: todoTagMap[t.id] || [],

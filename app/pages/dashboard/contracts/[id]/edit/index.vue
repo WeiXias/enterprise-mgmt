@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // 显式导入组件防止懒加载导致 SSR hydration mismatch
 import ContractForm from '~/components/contracts/ContractForm.vue'
-import ContractEditor from '~/components/contracts/ContractEditor.vue'
+import ContractEditor from '~/components/contracts/ContractEditor.client.vue'
 import TemplateSelector from '~/components/contracts/TemplateSelector.vue'
 
-definePageMeta({ layout: 'dashboard', title: '编辑合同', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '编辑合同', middleware: ['auth'], watermark: true })
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +17,7 @@ const customerOptions = ref<any[]>([])
 
 const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', remark: '' })
 const content = ref('')
+const documentModel = ref<any>(null)  // content.get.ts 返回的 Document 模型
 const contractStatus = ref('')
 
 // 模板选择
@@ -43,8 +44,9 @@ async function fetchData() {
       }
       contractStatus.value = c.status
     }
-    if (contentRes?.code === 0) {
-      content.value = contentRes.data.content || ''
+    // content.get.ts 返回 { code: 0, data: DocumentModel }
+    if (contentRes?.code === 0 && contentRes.data?.package) {
+      documentModel.value = contentRes.data
     }
     if (custRes?.code === 0) customerOptions.value = custRes.data.items || []
   } catch { router.push('/dashboard/contracts') }
@@ -71,14 +73,20 @@ async function applyTemplateToEdit() {
       body: { contractId }
     }) as any
     if (applyRes?.code === 0) {
-      content.value = applyRes.data.content
+      // 模板生成的 HTML 存入后端，同时把 HTML 纯文本提取后加载到 DocxEditor
+      const htmlContent = applyRes.data.content
       await $api(`/api/contracts/${contractId}/content`, {
         method: 'PUT',
-        body: { content: content.value }
+        body: { content: htmlContent }
       })
+      // content.get.ts 返回 Document 模型，重新获取以刷新编辑器
+      const contentRes = await $api(`/api/contracts/${contractId}/content`) as any
+      if (contentRes?.code === 0 && contentRes.data?.package) {
+        documentModel.value = contentRes.data
+      }
       selectedTemplate.value = null
       showTemplateModal.value = false
-      toast.add({ title: '模板已应用', color: 'success' })
+      toast.add({ title: '模板已应用，正文已加载到编辑器', color: 'success' })
     }
   } catch (err: any) {
     toast.add({ title: err?.data?.message || '应用模板失败', color: 'error' })
@@ -123,12 +131,12 @@ onMounted(() => { fetchData(); fetchTemplates() })
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div class="flex-1">
-        <h1 class="text-lg font-medium text-stone-800">编辑合同</h1>
+        <h1 class="text-lg font-medium text-gray-800">编辑合同</h1>
       </div>
       <UButton icon="i-lucide-file-down" variant="ghost" color="neutral" size="sm" @click="handleExportPdf">导出 PDF</UButton>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
     <template v-else>
       <!-- 元数据表单 -->
       <div class="warm-card">
@@ -138,7 +146,7 @@ onMounted(() => { fetchData(); fetchTemplates() })
       <!-- 合同正文编辑区 -->
       <div class="warm-card mt-4">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-medium text-stone-700">合同正文</h3>
+          <h3 class="text-sm font-medium text-gray-700">合同正文</h3>
           <div class="flex items-center gap-2">
             <UButton
               v-if="contractStatus === 'draft' && !selectedTemplate"
@@ -150,15 +158,15 @@ onMounted(() => { fetchData(); fetchTemplates() })
             >
               套用模板
             </UButton>
-            <span v-if="contractStatus !== 'draft'" class="text-xs text-amber-600">（合同已审批，正文不可修改）</span>
+            <span v-if="contractStatus !== 'draft'" class="text-xs text-brand-600">（合同已审批，正文不可修改）</span>
           </div>
         </div>
 
         <!-- 已选模板提示 -->
-        <div v-if="selectedTemplate" class="mb-3 flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-          <UIcon name="i-lucide-file-check" class="w-4 h-4 text-amber-600 flex-shrink-0" />
+        <div v-if="selectedTemplate" class="mb-3 flex items-center gap-3 p-3 bg-brand-50 rounded-lg border border-brand-200">
+          <UIcon name="i-lucide-file-check" class="w-4 h-4 text-brand-600 flex-shrink-0" />
           <div class="flex-1 min-w-0">
-            <span class="text-sm text-amber-800 font-medium">{{ selectedTemplate.name }}</span>
+            <span class="text-sm text-brand-800 font-medium">{{ selectedTemplate.name }}</span>
           </div>
           <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" @click="selectedTemplate = null" />
           <UButton color="primary" size="xs" :loading="saving" @click="applyTemplateToEdit">应用模板</UButton>
@@ -166,6 +174,7 @@ onMounted(() => { fetchData(); fetchTemplates() })
 
         <ContractEditor
           v-model="content"
+          :document-model="documentModel"
           placeholder="开始撰写合同正文..."
           :disabled="contractStatus !== 'draft'"
           :key="contractId"

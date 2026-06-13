@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { tags } from '#schema/customers'
-import { eq, isNull } from 'drizzle-orm'
+import { eq, isNull, and } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
 
 export default defineEventHandler(async (event) => {

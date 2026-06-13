@@ -78,8 +78,8 @@ const industryOptions = ['信息技术', '软件开发', '人工智能', '网络
 
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
-  potential: { label: '潜在客户', color: 'bg-stone-100 text-stone-600', dot: 'bg-stone-400' },
-  intentional: { label: '意向客户', color: 'bg-amber-50 text-amber-700', dot: 'bg-amber-400' },
+  potential: { label: '潜在客户', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
+  intentional: { label: '意向客户', color: 'bg-brand-50 text-brand-700', dot: 'bg-brand-400' },
   closed: { label: '已成交', color: 'bg-teal-50 text-teal-700', dot: 'bg-teal-400' },
   lost: { label: '已流失', color: 'bg-red-50 text-red-600', dot: 'bg-red-400' },
 }
@@ -220,15 +220,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-  <div v-else-if="!customer" class="text-center py-12 text-stone-400">客户不存在</div>
+  <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+  <div v-else-if="!customer" class="text-center py-12 text-gray-400">客户不存在</div>
   <div v-else>
     <!-- 顶部面包屑 + 操作 -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2 text-sm">
-        <NuxtLink to="/dashboard/customers" class="text-stone-400 hover:text-amber-600 transition-colors">客户</NuxtLink>
-        <span class="text-stone-300">/</span>
-        <span class="text-stone-700">{{ customer.name }}</span>
+        <NuxtLink to="/dashboard/customers" class="text-gray-400 hover:text-brand-600 transition-colors">客户</NuxtLink>
+        <span class="text-gray-300">/</span>
+        <span class="text-gray-700">{{ customer.name }}</span>
       </div>
       <div class="flex gap-2">
         <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="sm" @click="openEditModal">编辑</UButton>
@@ -239,18 +239,18 @@ onMounted(() => {
     <!-- 客户信息卡片 -->
     <div class="warm-card mb-6">
       <div class="flex items-start gap-4">
-        <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-          <span class="text-amber-700 text-lg font-medium">{{ customer.name?.charAt(0) }}</span>
+        <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+          <span class="text-brand-700 text-lg font-medium">{{ customer.name?.charAt(0) }}</span>
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-1">
-            <h2 class="text-base font-medium text-stone-800">{{ customer.name }}</h2>
+            <h2 class="text-base font-medium text-gray-800">{{ customer.name }}</h2>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[customer.status]?.color || '']">
               {{ statusConfig[customer.status]?.label || customer.status }}
             </span>
           </div>
           <div class="flex items-center gap-2 mb-2">
-            <span v-if="customer.owner?.name" class="text-xs text-stone-400">
+            <span v-if="customer.owner?.name" class="text-xs text-gray-400">
               <UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ customer.owner.name }}
             </span>
             <UButton
@@ -263,7 +263,7 @@ onMounted(() => {
               @click="showTransferModal = true"
             >转交</UButton>
           </div>
-          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-400">
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
             <span v-if="customer.industry">
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline mr-0.5" />{{ customer.industry }}
             </span>
@@ -283,12 +283,12 @@ onMounted(() => {
               <UIcon name="i-lucide-calendar" class="w-3 h-3 inline mr-0.5" />创建于 {{ customer.createdAt }}
             </span>
           </div>
-          <p v-if="customer.remark" class="text-sm text-stone-500 mt-2">{{ customer.remark }}</p>
+          <p v-if="customer.remark" class="text-sm text-gray-500 mt-2">{{ customer.remark }}</p>
         </div>
       </div>
       <!-- 标签 -->
-      <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-stone-100">
-        <span v-if="!customer.tags?.length" class="text-xs text-stone-400">还没有标签</span>
+      <div class="flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
+        <span v-if="!customer.tags?.length" class="text-xs text-gray-400">还没有标签</span>
         <span
           v-for="tag in customer.tags"
           :key="tag.id"
@@ -305,26 +305,26 @@ onMounted(() => {
         <!-- 联系人 -->
         <div class="warm-card">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-stone-700">联系人</h3>
+            <h3 class="text-sm font-medium text-gray-700">联系人</h3>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="showContactModal = true">添加</UButton>
           </div>
-          <div v-if="!customer.contacts?.length" class="text-xs text-stone-400 py-4 text-center">暂无联系人</div>
+          <div v-if="!customer.contacts?.length" class="text-xs text-gray-400 py-4 text-center">暂无联系人</div>
           <div v-else class="space-y-2">
             <div
               v-for="contact in customer.contacts"
               :key="contact.id"
-              class="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-50 transition-colors"
+              class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
-                <span class="text-amber-700 text-xs">{{ contact.name?.charAt(0) }}</span>
+              <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
+                <span class="text-brand-700 text-xs">{{ contact.name?.charAt(0) }}</span>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-1">
-                  <span class="text-sm text-stone-700">{{ contact.name }}</span>
-                  <span v-if="contact.isPrimary" class="text-[9px] px-1 py-0.5 rounded bg-amber-50 text-amber-600">主要</span>
-                  <span v-if="contact.position" class="text-xs text-stone-400">{{ contact.position }}</span>
+                  <span class="text-sm text-gray-700">{{ contact.name }}</span>
+                  <span v-if="contact.isPrimary" class="text-[9px] px-1 py-0.5 rounded bg-brand-50 text-brand-600">主要</span>
+                  <span v-if="contact.position" class="text-xs text-gray-400">{{ contact.position }}</span>
                 </div>
-                <div class="flex gap-3 text-xs text-stone-400">
+                <div class="flex gap-3 text-xs text-gray-400">
                   <span v-if="contact.phone">{{ contact.phone }}</span>
                   <span v-if="contact.email">{{ contact.email }}</span>
                 </div>
@@ -336,18 +336,18 @@ onMounted(() => {
         <!-- 关联商机 -->
         <div class="warm-card">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-stone-700">关联商机</h3>
+            <h3 class="text-sm font-medium text-gray-700">关联商机</h3>
           </div>
-          <div v-if="!customer.opportunities?.length" class="text-xs text-stone-400 py-4 text-center">暂无关联商机</div>
+          <div v-if="!customer.opportunities?.length" class="text-xs text-gray-400 py-4 text-center">暂无关联商机</div>
           <div v-else class="space-y-2">
             <NuxtLink
               v-for="opp in customer.opportunities"
               :key="opp.id"
               :to="`/dashboard/opportunities/${opp.id}`"
-              class="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50 transition-colors"
+              class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <span class="text-sm text-stone-700">{{ opp.name }}</span>
-              <span class="text-xs text-stone-400">{{ opp.amount ? `¥${opp.amount}` : '-' }}</span>
+              <span class="text-sm text-gray-700">{{ opp.name }}</span>
+              <span class="text-xs text-gray-400">{{ opp.amount ? `¥${opp.amount}` : '-' }}</span>
             </NuxtLink>
           </div>
         </div>
@@ -355,18 +355,18 @@ onMounted(() => {
         <!-- 关联合同 -->
         <div class="warm-card">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-stone-700">关联合同</h3>
+            <h3 class="text-sm font-medium text-gray-700">关联合同</h3>
           </div>
-          <div v-if="!customer.contracts?.length" class="text-xs text-stone-400 py-4 text-center">暂无关联合同</div>
+          <div v-if="!customer.contracts?.length" class="text-xs text-gray-400 py-4 text-center">暂无关联合同</div>
           <div v-else class="space-y-2">
             <NuxtLink
               v-for="ct in customer.contracts"
               :key="ct.id"
               :to="`/dashboard/contracts/${ct.id}`"
-              class="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50 transition-colors"
+              class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <span class="text-sm text-stone-700">{{ ct.name }}</span>
-              <span class="text-xs text-stone-400">{{ ct.totalAmount ? `¥${ct.totalAmount}` : '-' }}</span>
+              <span class="text-sm text-gray-700">{{ ct.name }}</span>
+              <span class="text-xs text-gray-400">{{ ct.totalAmount ? `¥${ct.totalAmount}` : '-' }}</span>
             </NuxtLink>
           </div>
         </div>
@@ -386,20 +386,20 @@ onMounted(() => {
       <template #body>
         <form class="space-y-4" @submit.prevent="handleEdit">
           <div>
-            <label class="block text-sm text-stone-600 mb-1">客户名称 <span class="text-red-400">*</span></label>
-            <input v-model="editForm.name" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">客户名称 <span class="text-red-400">*</span></label>
+            <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">行业</label>
-              <select v-model="editForm.industry" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
+              <label class="block text-sm text-gray-600 mb-1">行业</label>
+              <select v-model="editForm.industry" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
                 <option value="">选择行业</option>
                 <option v-for="ind in industryOptions" :key="ind" :value="ind">{{ ind }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">状态</label>
-              <select v-model="editForm.status" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
+              <label class="block text-sm text-gray-600 mb-1">状态</label>
+              <select v-model="editForm.status" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
                 <option value="potential">潜在客户</option>
                 <option value="intentional">意向客户</option>
                 <option value="closed">已成交</option>
@@ -408,16 +408,16 @@ onMounted(() => {
             </div>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">注册地址</label>
-            <input v-model="editForm.registeredAddress" type="text" placeholder="工商注册地址" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">注册地址</label>
+            <input v-model="editForm.registeredAddress" type="text" placeholder="工商注册地址" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">办公地址</label>
-            <input v-model="editForm.officeAddress" type="text" placeholder="实际办公地址" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">办公地址</label>
+            <input v-model="editForm.officeAddress" type="text" placeholder="实际办公地址" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">备注</label>
-            <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
+            <label class="block text-sm text-gray-600 mb-1">备注</label>
+            <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
           </div>
         </form>
       </template>
@@ -436,26 +436,26 @@ onMounted(() => {
         <form class="space-y-3" @submit.prevent="handleAddContact">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">姓名 <span class="text-red-400">*</span></label>
-              <input v-model="contactForm.name" type="text" placeholder="联系人姓名" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">姓名 <span class="text-red-400">*</span></label>
+              <input v-model="contactForm.name" type="text" placeholder="联系人姓名" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">职位</label>
-              <input v-model="contactForm.position" type="text" placeholder="职位" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">职位</label>
+              <input v-model="contactForm.position" type="text" placeholder="职位" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">电话</label>
-              <input v-model="contactForm.phone" type="text" placeholder="手机号" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">电话</label>
+              <input v-model="contactForm.phone" type="text" placeholder="手机号" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">邮箱</label>
-              <input v-model="contactForm.email" type="email" placeholder="邮箱" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">邮箱</label>
+              <input v-model="contactForm.email" type="email" placeholder="邮箱" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
             </div>
           </div>
-          <label class="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
-            <input v-model="contactForm.isPrimary" type="checkbox" class="rounded border-stone-300 text-amber-500 focus:ring-amber-400" />
+          <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input v-model="contactForm.isPrimary" type="checkbox" class="rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
             设为主要联系人
           </label>
         </form>
@@ -490,21 +490,21 @@ onMounted(() => {
           <label
             v-for="tag in allTags"
             :key="tag.id"
-            class="flex items-center gap-3 p-2 rounded-lg hover:bg-stone-50 cursor-pointer"
+            class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
           >
             <input
               type="checkbox"
               :checked="selectedTagIds.includes(tag.id)"
-              class="rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+              class="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
               @change="selectedTagIds.includes(tag.id) ? selectedTagIds = selectedTagIds.filter((id) => id !== tag.id) : selectedTagIds.push(tag.id)"
             />
             <span
               class="w-3 h-3 rounded-full"
               :style="{ backgroundColor: tag.color || '#D97706' }"
             />
-            <span class="text-sm text-stone-700">{{ tag.name }}</span>
+            <span class="text-sm text-gray-700">{{ tag.name }}</span>
           </label>
-          <p v-if="allTags.length === 0" class="text-xs text-stone-400 py-2 text-center">还没有标签，先去标签管理创建</p>
+          <p v-if="allTags.length === 0" class="text-xs text-gray-400 py-2 text-center">还没有标签，先去标签管理创建</p>
         </div>
       </template>
       <template #footer>
@@ -520,41 +520,41 @@ onMounted(() => {
       <template #body>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm text-stone-600 mb-2">新归属人 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-gray-600 mb-2">新归属人 <span class="text-red-400">*</span></label>
             <div class="relative">
-              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
               <input
                 v-model="userSearchKeyword"
                 type="text"
                 placeholder="搜索同事姓名..."
-                class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 bg-white"
+                class="w-full pl-8 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 bg-white"
                 @input="onUserSearch"
                 @focus="loadUsers"
               />
             </div>
-            <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-stone-200 rounded-lg divide-y divide-stone-100">
+            <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
               <button
                 v-for="u in userOptions"
                 :key="u.id"
                 :class="[
-                  'w-full text-left px-3 py-2.5 text-sm hover:bg-amber-50 transition-colors flex items-center gap-2',
-                  transferToUserId === u.id ? 'bg-amber-50' : ''
+                  'w-full text-left px-3 py-2.5 text-sm hover:bg-brand-50 transition-colors flex items-center gap-2',
+                  transferToUserId === u.id ? 'bg-brand-50' : ''
                 ]"
                 @click="transferToUserId = u.id"
               >
-                <span class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <span class="text-amber-700 text-[10px]">{{ u.name?.charAt(0) }}</span>
+                <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+                  <span class="text-brand-700 text-[10px]">{{ u.name?.charAt(0) }}</span>
                 </span>
-                <span class="text-stone-700">{{ u.name }}</span>
-                <span class="text-xs text-stone-400 ml-auto">{{ u.username }}</span>
-                <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-amber-500 ml-1" />
+                <span class="text-gray-700">{{ u.name }}</span>
+                <span class="text-xs text-gray-400 ml-auto">{{ u.username }}</span>
+                <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-brand-500 ml-1" />
               </button>
             </div>
-            <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-stone-400">加载中...</div>
+            <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-gray-400">加载中...</div>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">转交原因</label>
-            <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
+            <label class="block text-sm text-gray-600 mb-1">转交原因</label>
+            <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
           </div>
         </div>
       </template>

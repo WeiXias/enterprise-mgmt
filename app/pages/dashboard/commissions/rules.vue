@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '提成规则', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '提成规则', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -12,9 +12,7 @@ const saving = ref(false)
 const editTarget = ref<any>(null)
 const form = ref({ name: '', baseType: 'contract_amount', rate: 0.05, productId: '', minAmount: 0, maxAmount: 0, isActive: 'yes' })
 
-const baseTypeLabels: Record<string, string> = {
-  contract_amount: '按合同金额', payment_amount: '按回款金额',
-}
+const { getLabel } = useEnum()
 
 function formatPercent(v: any) { return (Number(v) * 100).toFixed(1) + '%' }
 
@@ -82,8 +80,8 @@ onMounted(() => fetchRules())
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">提成规则</h1>
-        <p class="text-sm text-stone-400 mt-0.5">配置提成计算规则</p>
+        <h1 class="text-lg font-medium text-gray-800">提成规则</h1>
+        <p class="text-sm text-gray-400 mt-0.5">配置提成计算规则</p>
       </div>
       <div class="flex gap-2">
         <NuxtLink to="/dashboard/commissions"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm">返回提成</UButton></NuxtLink>
@@ -91,19 +89,19 @@ onMounted(() => fetchRules())
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="rules.length === 0" class="text-center py-12 text-stone-400">还没有规则，先加一条？</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-else-if="rules.length === 0" class="text-center py-12 text-gray-400">还没有规则，先加一条？</div>
     <div v-else class="space-y-2">
       <div v-for="r in rules" :key="r.id" class="warm-card flex items-center gap-4">
-        <div :class="['w-2 h-2 rounded-full flex-shrink-0', r.isActive === 'yes' ? 'bg-teal-400' : 'bg-stone-300']" />
+        <div :class="['w-2 h-2 rounded-full flex-shrink-0', r.isActive === 'yes' ? 'bg-teal-400' : 'bg-gray-300']" />
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-700">{{ r.name }}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">{{ baseTypeLabels[r.baseType] || r.baseType }}</span>
-            <span class="text-xs text-stone-500">{{ formatPercent(r.rate) }}</span>
-            <span v-if="r.isActive === 'no'" class="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-100 text-stone-500">已停用</span>
+            <span class="text-sm font-medium text-gray-700">{{ r.name }}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-700">{{ getLabel('CommissionRuleBaseType', r.baseType) || r.baseType }}</span>
+            <span class="text-xs text-gray-500">{{ formatPercent(r.rate) }}</span>
+            <span v-if="r.isActive === 'no'" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">已停用</span>
           </div>
-          <div class="text-xs text-stone-400">
+          <div class="text-xs text-gray-400">
             阶梯：{{ formatMoney(r.minAmount) }} - {{ r.maxAmount ? formatMoney(r.maxAmount) : '不设上限' }}
           </div>
         </div>
@@ -120,18 +118,18 @@ onMounted(() => fetchRules())
       <template #header>{{ editTarget ? '编辑规则' : '添加规则' }}</template>
       <template #body>
         <form class="space-y-4" @submit.prevent="handleSave">
-          <div><label class="block text-sm text-stone-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="如：标准提成" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="如：标准提成" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">提成基数</label><select v-model="form.baseType" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"><option value="contract_amount">合同金额</option><option value="payment_amount">回款金额</option></select></div>
-            <div><label class="block text-sm text-stone-600 mb-1">关联产品</label><ProductSelect v-model="form.productId" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">提成基数</label><select v-model="form.baseType" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="contract_amount">合同金额</option><option value="payment_amount">回款金额</option></select></div>
+            <div><label class="block text-sm text-gray-600 mb-1">关联产品</label><ProductSelect v-model="form.productId" /></div>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">提成比例</label><input v-model.number="form.rate" type="number" step="0.01" min="0" max="1" placeholder="0.05 = 5%" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">状态</label><select v-model="form.isActive" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"><option value="yes">生效中</option><option value="no">已停用</option></select></div>
+            <div><label class="block text-sm text-gray-600 mb-1">提成比例</label><input v-model.number="form.rate" type="number" step="0.01" min="0" max="1" placeholder="0.05 = 5%" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">状态</label><select v-model="form.isActive" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="yes">生效中</option><option value="no">已停用</option></select></div>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">阶梯下限</label><input v-model.number="form.minAmount" type="number" step="1" placeholder="0" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">阶梯上限</label><input v-model.number="form.maxAmount" type="number" step="1" placeholder="不设上限" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">阶梯下限</label><input v-model.number="form.minAmount" type="number" step="1" placeholder="0" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">阶梯上限</label><input v-model.number="form.maxAmount" type="number" step="1" placeholder="不设上限" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
           </div>
         </form>
       </template>

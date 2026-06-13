@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import ContractEditor from '~/components/contracts/ContractEditor.vue'
+import ContractEditor from '~/components/contracts/ContractEditor.client.vue'
 
-definePageMeta({ layout: 'dashboard', title: '合同模板', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '合同模板', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -25,6 +25,10 @@ const form = ref({
 // 模板正文内容（HTML）
 const editorContent = ref('')
 
+// 产品清单
+const allProducts = ref<any[]>([])
+const productItems = ref<{ productId: string; quantity: number; unitPrice: number }[]>([])
+
 // AI 编写
 const showAIDialog = ref(false)
 const aiPrompt = ref('')
@@ -43,11 +47,20 @@ async function fetchTemplates() {
   finally { loading.value = false }
 }
 
+async function fetchProducts() {
+  try {
+    const res = await $api('/api/products', { params: { pageSize: 500 } }) as any
+    if (res?.code === 0) allProducts.value = res.data?.items || res.data || []
+  } catch { /* ignore */ }
+}
+
 function openCreate() {
   editMode.value = 'create'
   editId.value = ''
   form.value = { name: '', description: '', category: 'service', sortOrder: 0 }
   editorContent.value = ''
+  productItems.value = []
+  if (allProducts.value.length === 0) fetchProducts()
   showModal.value = true
 }
 
@@ -56,14 +69,29 @@ function openEdit(t: any) {
   editId.value = t.id
   form.value = { name: t.name, description: t.description || '', category: t.category, sortOrder: t.sortOrder || 0 }
   editorContent.value = t.content || ''
+  try { productItems.value = JSON.parse(t.productItems || '[]') } catch { productItems.value = [] }
+  if (allProducts.value.length === 0) fetchProducts()
   showModal.value = true
 }
 
-function prefillForm(data: { content: string; suggestedName: string; suggestedDescription: string; placeholders: { key: string; label: string }[] }) {
-  form.value.name = data.suggestedName || form.value.name
-  form.value.description = data.suggestedDescription || form.value.description
-  editorContent.value = data.content
-  showModal.value = true
+function addProductRow() {
+  productItems.value.push({ productId: '', quantity: 1, unitPrice: 0 })
+}
+
+function removeProductRow(index: number) {
+  productItems.value.splice(index, 1)
+}
+
+function getProductName(productId: string): string {
+  return allProducts.value.find(p => p.id === productId)?.name || '未选择'
+}
+
+function getProductSubtotal(item: { quantity: number; unitPrice: number }): number {
+  return item.quantity * item.unitPrice
+}
+
+function getProductTotal(): number {
+  return productItems.value.reduce((sum, p) => sum + getProductSubtotal(p), 0)
 }
 
 async function handleSave() {
@@ -77,6 +105,7 @@ async function handleSave() {
       ...form.value,
       content: editorContent.value,
       placeholders: JSON.stringify(extractPlaceholders(editorContent.value)),
+      productItems: JSON.stringify(productItems.value),
     }
     let res: any
     if (editMode.value === 'create') {
@@ -123,7 +152,6 @@ async function handleAIGenerate() {
     if (res?.code === 0) {
       showAIDialog.value = false
       aiPrompt.value = ''
-      // 如果编辑弹窗没打开（从列表页直接触发），则打开新建弹窗
       if (!showModal.value) openCreate()
       editorContent.value = res.data.content
       form.value.name = res.data.suggestedName || form.value.name
@@ -158,7 +186,6 @@ async function handleFileChange(e: Event) {
     const res = await $api('/api/contracts/templates/import-docx', {
       method: 'POST',
       body: formData,
-      headers: {}, // 让浏览器自动设置 Content-Type (multipart/form-data)
     }) as any
     if (res?.code === 0) {
       openCreate()
@@ -170,12 +197,10 @@ async function handleFileChange(e: Event) {
     toast.add({ title: err?.data?.message || '解析失败，换个文件试试？', color: 'error' })
   } finally {
     importLoading.value = false
-    // 清空 input，允许同一文件再次选择
     if (input) input.value = ''
   }
 }
 
-// 从 HTML 中提取占位符
 function extractPlaceholders(html: string): { key: string; label: string }[] {
   const set = new Set<string>()
   const re = /\{\{(\w+)\}\}/g
@@ -186,7 +211,6 @@ function extractPlaceholders(html: string): { key: string; label: string }[] {
   return Array.from(set).map(k => ({ key: k, label: k }))
 }
 
-// 编辑器中当前检测到的占位符列表
 const editorPlaceholders = computed(() => extractPlaceholders(editorContent.value))
 
 const categoryConfig: Record<string, string> = {
@@ -203,8 +227,8 @@ onMounted(fetchTemplates)
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">合同模板</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理合同正文模板，创建合同时可快速套用</p>
+        <h1 class="text-lg font-medium text-gray-800">合同模板</h1>
+        <p class="text-sm text-gray-400 mt-0.5">管理合同正文模板，创建合同时可快速套用</p>
       </div>
       <div class="flex items-center gap-2">
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/contracts')">返回合同</UButton>
@@ -213,41 +237,37 @@ onMounted(fetchTemplates)
       </div>
     </div>
 
-    <!-- 隐藏的文件选择器 -->
-    <input
-      ref="fileInputRef"
-      type="file"
-      accept=".docx"
-      class="hidden"
-      @change="handleFileChange"
-    />
+    <input ref="fileInputRef" type="file" accept=".docx" class="hidden" @change="handleFileChange" />
 
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="templates.length === 0" class="text-center py-12 text-stone-400">还没有模板，创建一个？</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-else-if="templates.length === 0" class="text-center py-12 text-gray-400">还没有模板，创建一个？</div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div
-        v-for="t in templates" :key="t.id"
-        class="warm-card group"
-      >
+      <div v-for="t in templates" :key="t.id" class="warm-card group">
         <div class="flex items-start justify-between mb-3">
           <div>
-            <h3 class="text-sm font-medium text-stone-800">{{ t.name }}</h3>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full border bg-stone-50 text-stone-500 border-stone-200 mt-1 inline-block">
+            <h3 class="text-sm font-medium text-gray-800">{{ t.name }}</h3>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full border bg-gray-50 text-gray-500 border-gray-200 mt-1 inline-block">
               {{ categoryConfig[t.category] || t.category }}
             </span>
           </div>
         </div>
-        <p v-if="t.description" class="text-xs text-stone-400 mb-3">{{ t.description }}</p>
+        <p v-if="t.description" class="text-xs text-gray-400 mb-3">{{ t.description }}</p>
         <div class="flex items-center gap-1 flex-wrap mb-3">
           <span
             v-for="ph in (() => { try { return JSON.parse(t.placeholders || '[]') } catch { return [] } })()"
             :key="ph.key"
-            class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded"
+            class="text-[10px] bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded"
           >
             {{ ph.label }}
           </span>
+          <span
+            v-if="(() => { try { return JSON.parse(t.productItems || '[]') } catch { return [] } })().length > 0"
+            class="text-[10px] bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded"
+          >
+            {{ (() => { try { return JSON.parse(t.productItems || '[]') } catch { return [] } })().length }} 个产品
+          </span>
         </div>
-        <div class="flex items-center gap-1 pt-2 border-t border-stone-100">
+        <div class="flex items-center gap-1 pt-2 border-t border-gray-100">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(t)">编辑</UButton>
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(t)">删除</UButton>
         </div>
@@ -259,31 +279,70 @@ onMounted(fetchTemplates)
       <template #header>
         <div class="flex items-center justify-between w-full">
           <span>{{ editMode === 'create' ? '新建模板' : '编辑模板' }}</span>
-          <UButton icon="i-lucide-sparkles" variant="outline" color="amber" size="xs" @click="showAIDialog = true">AI 编写</UButton>
+          <UButton icon="i-lucide-sparkles" variant="outline" color="warning" size="xs" @click="showAIDialog = true">AI 编写</UButton>
         </div>
       </template>
       <template #body>
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">模板名称 <span class="text-red-400">*</span></label>
-              <input v-model="form.name" type="text" placeholder="如：技术服务合同V2" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">模板名称 <span class="text-red-400">*</span></label>
+              <input v-model="form.name" type="text" placeholder="如：技术服务合同V2" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">分类</label>
-              <select v-model="form.category" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
+              <label class="block text-sm text-gray-600 mb-1">分类</label>
+              <select v-model="form.category" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
                 <option v-for="(label, key) in categoryConfig" :key="key" :value="key">{{ label }}</option>
               </select>
             </div>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">描述</label>
-            <input v-model="form.description" type="text" placeholder="模板用途说明..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">描述</label>
+            <input v-model="form.description" type="text" placeholder="模板用途说明..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
           </div>
+
+          <!-- 产品清单 -->
           <div>
-            <label class="block text-sm text-stone-600 mb-2">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-sm text-gray-600">
+                产品清单
+                <span class="text-gray-400 font-normal ml-1">（选填，创建合同时自动带入）</span>
+              </label>
+              <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addProductRow">添加产品</UButton>
+            </div>
+            <div v-if="productItems.length === 0" class="text-xs text-gray-400 py-2 px-3 border border-dashed border-gray-200 rounded-lg">
+              还没有产品，点击"添加产品"开始配置
+            </div>
+            <div v-else class="space-y-2">
+              <div
+                v-for="(item, i) in productItems" :key="i"
+                class="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2"
+              >
+                <select v-model="item.productId" class="flex-1 px-2 py-1.5 text-xs rounded border border-gray-200 bg-white focus:outline-none focus:border-brand-400">
+                  <option value="">选择产品...</option>
+                  <option v-for="p in allProducts" :key="p.id" :value="p.id">{{ p.name }} ({{ p.code }})</option>
+                </select>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-400">数量</span>
+                  <input v-model.number="item.quantity" type="number" min="1" class="w-16 px-2 py-1.5 text-xs rounded border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-center" />
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-400">单价</span>
+                  <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" class="w-20 px-2 py-1.5 text-xs rounded border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-right" />
+                </div>
+                <span class="text-xs text-brand-700 w-16 text-right">¥{{ getProductSubtotal(item).toLocaleString() }}</span>
+                <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeProductRow(i)" />
+              </div>
+              <div class="text-xs text-gray-500 text-right">
+                产品合计：<span class="text-brand-700 font-medium">¥{{ getProductTotal().toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-2">
               正文内容
-              <span class="text-stone-400 font-normal ml-1">（用 <code v-pre>{{key}}</code> 表示占位符）</span>
+              <span class="text-gray-400 font-normal ml-1">（用 <code v-pre>{{key}}</code> 表示占位符）</span>
             </label>
             <ContractEditor
               v-model="editorContent"
@@ -291,15 +350,18 @@ onMounted(fetchTemplates)
             />
           </div>
           <div v-if="editorPlaceholders.length > 0">
-            <span class="text-xs text-stone-400">
+            <span class="text-xs text-gray-400">
               检测到 {{ editorPlaceholders.length }} 个占位符：
             </span>
             <span
               v-for="ph in editorPlaceholders" :key="ph.key"
-              class="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded ml-1"
+              class="text-[10px] bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded ml-1"
             >
               {{ ph.key }}
             </span>
+          </div>
+          <div class="text-xs text-gray-400 bg-brand-50 rounded-lg p-2">
+            提示：正文中可用 <code v-pre>{{productList}}</code> 插入产品名称列表，<code v-pre>{{productTable}}</code> 插入产品明细表格，<code v-pre>{{productTotal}}</code> 插入产品总价
           </div>
         </div>
       </template>
@@ -316,15 +378,15 @@ onMounted(fetchTemplates)
       <template #header>AI 帮你写合同模板</template>
       <template #body>
         <div>
-          <label class="block text-sm text-stone-600 mb-2">描述一下你想要什么样的合同</label>
+          <label class="block text-sm text-gray-600 mb-2">描述一下你想要什么样的合同</label>
           <textarea
             v-model="aiPrompt"
             rows="4"
             placeholder="比如：我需要一份软件开发外包合同，包含知识产权归属、保密条款、验收标准和付款节点..."
-            class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none"
+            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none"
             maxlength="1000"
           ></textarea>
-          <p class="text-xs text-stone-400 mt-1">越详细效果越好，最长 1000 字</p>
+          <p class="text-xs text-gray-400 mt-1">越详细效果越好，最长 1000 字</p>
         </div>
       </template>
       <template #footer>

@@ -14,9 +14,9 @@ export default defineEventHandler(async (event) => {
   if (!files || files.length === 0) throw createError({ statusCode: 422, statusMessage: '还没选文件呢' })
 
   const file = files[0]
-  if (!file.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
+  if (!file!.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
 
-  const ext = path.extname(file.filename || 'logo.png').toLowerCase()
+  const ext = path.extname(file!.filename || 'logo.png').toLowerCase()
   if (!['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) {
     throw createError({ statusCode: 422, statusMessage: '只支持图片格式 (png/jpg/gif/webp/svg)' })
   }
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
 
   const fileName = `logo${ext}`
   const filePath = path.join(uploadDir, fileName)
-  fs.writeFileSync(filePath, file.data)
+  fs.writeFileSync(filePath, file!.data)
 
   // 更新或插入系统配置
   const [existing] = await db.select().from(systemConfig).where(eq(systemConfig.key, 'company_logo')).limit(1)

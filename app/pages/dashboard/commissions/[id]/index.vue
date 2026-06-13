@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '提成详情', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '提成详情', middleware: ['auth'], watermark: true })
 
 const route = useRoute()
 const toast = useToast()
@@ -24,7 +24,7 @@ const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  pending: { label: '待审批', color: 'bg-stone-100 text-stone-600' },
+  pending: { label: '待审批', color: 'bg-gray-100 text-gray-600' },
   approved: { label: '已通过', color: 'bg-blue-50 text-blue-600' },
   rejected: { label: '已驳回', color: 'bg-red-50 text-red-600' },
   paid: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
@@ -97,18 +97,18 @@ onMounted(() => fetchDetail())
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-  <div v-else-if="!item" class="text-center py-12 text-stone-400">找不到这条提成记录</div>
+  <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+  <div v-else-if="!item" class="text-center py-12 text-gray-400">找不到这条提成记录</div>
   <div v-else>
     <!-- 头部 -->
     <div class="mb-6 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <NuxtLink to="/dashboard/commissions" class="text-stone-400 hover:text-stone-600">
+        <NuxtLink to="/dashboard/commissions" class="text-gray-400 hover:text-gray-600">
           <UIcon name="i-lucide-arrow-left" class="w-5 h-5" />
         </NuxtLink>
         <div>
-          <h1 class="text-lg font-medium text-stone-800">{{ item.user?.name }} - {{ item.contract?.name }}</h1>
-          <p class="text-sm text-stone-400 mt-0.5">{{ item.periodMonth }}</p>
+          <h1 class="text-lg font-medium text-gray-800">{{ item.user?.name }} - {{ item.contract?.name }}</h1>
+          <p class="text-sm text-gray-400 mt-0.5">{{ item.periodMonth }}</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -127,41 +127,41 @@ onMounted(() => fetchDetail())
       <div class="lg:col-span-2 space-y-4">
         <!-- 提成信息卡片 -->
         <div class="warm-card">
-          <h3 class="text-sm font-medium text-stone-700 mb-4">提成信息</h3>
+          <h3 class="text-sm font-medium text-gray-700 mb-4">提成信息</h3>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">状态</p>
+              <p class="text-xs text-gray-400 mb-0.5">状态</p>
               <span :class="['text-xs px-2 py-0.5 rounded-full', statusConfig[item.status]?.color || '']">
                 {{ statusConfig[item.status]?.label || item.status }}
               </span>
             </div>
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">结算月份</p>
-              <p class="text-sm text-stone-700">{{ item.periodMonth }}</p>
+              <p class="text-xs text-gray-400 mb-0.5">结算月份</p>
+              <p class="text-sm text-gray-700">{{ item.periodMonth }}</p>
             </div>
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">提成基数</p>
-              <p class="text-sm font-medium text-stone-700">{{ formatMoney(item.baseAmount) }}</p>
+              <p class="text-xs text-gray-400 mb-0.5">提成基数</p>
+              <p class="text-sm font-medium text-gray-700">{{ formatMoney(item.baseAmount) }}</p>
             </div>
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">提成比例</p>
-              <p class="text-sm font-medium text-stone-700">{{ (Number(item.rate) * 100).toFixed(1) }}%</p>
+              <p class="text-xs text-gray-400 mb-0.5">提成比例</p>
+              <p class="text-sm font-medium text-gray-700">{{ (Number(item.rate) * 100).toFixed(1) }}%</p>
             </div>
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">原始金额</p>
-              <p class="text-sm font-medium text-stone-700">{{ formatMoney(item.amount) }}</p>
+              <p class="text-xs text-gray-400 mb-0.5">原始金额</p>
+              <p class="text-sm font-medium text-gray-700">{{ formatMoney(item.amount) }}</p>
             </div>
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">实际金额</p>
+              <p class="text-xs text-gray-400 mb-0.5">实际金额</p>
               <p class="text-sm font-medium text-teal-600">{{ formatMoney(item.adjustAmount || item.amount) }}</p>
             </div>
             <div v-if="item.adjustReason">
-              <p class="text-xs text-stone-400 mb-0.5">调整原因</p>
-              <p class="text-sm text-amber-600">{{ item.adjustReason }}</p>
+              <p class="text-xs text-gray-400 mb-0.5">调整原因</p>
+              <p class="text-sm text-brand-600">{{ item.adjustReason }}</p>
             </div>
             <div>
-              <p class="text-xs text-stone-400 mb-0.5">匹配规则</p>
-              <p class="text-sm text-stone-700">{{ item.rule?.name || '-' }}</p>
+              <p class="text-xs text-gray-400 mb-0.5">匹配规则</p>
+              <p class="text-sm text-gray-700">{{ item.rule?.name || '-' }}</p>
             </div>
           </div>
         </div>
@@ -169,24 +169,24 @@ onMounted(() => fetchDetail())
         <!-- 合同信息 -->
         <div class="warm-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-stone-700">关联合同</h3>
-            <NuxtLink v-if="item.contractId" :to="`/dashboard/contracts/${item.contractId}`" class="text-xs text-amber-600 hover:underline">查看合同 →</NuxtLink>
+            <h3 class="text-sm font-medium text-gray-700">关联合同</h3>
+            <NuxtLink v-if="item.contractId" :to="`/dashboard/contracts/${item.contractId}`" class="text-xs text-brand-600 hover:underline">查看合同 →</NuxtLink>
           </div>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-              <UIcon name="i-lucide-file-text" class="w-5 h-5 text-amber-500" />
+            <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center">
+              <UIcon name="i-lucide-file-text" class="w-5 h-5 text-brand-500" />
             </div>
             <div>
-              <p class="text-sm font-medium text-stone-700">{{ item.contract?.name }}</p>
-              <p class="text-xs text-stone-400">{{ item.contract?.code }}</p>
+              <p class="text-sm font-medium text-gray-700">{{ item.contract?.name }}</p>
+              <p class="text-xs text-gray-400">{{ item.contract?.code }}</p>
             </div>
           </div>
         </div>
 
         <!-- 审批信息 -->
         <div v-if="item.approvedBy" class="warm-card">
-          <h3 class="text-sm font-medium text-stone-700 mb-3">审批信息</h3>
-          <div class="flex items-center gap-2 text-sm text-stone-600">
+          <h3 class="text-sm font-medium text-gray-700 mb-3">审批信息</h3>
+          <div class="flex items-center gap-2 text-sm text-gray-600">
             <UIcon name="i-lucide-check-circle" class="w-4 h-4 text-teal-500" />
             <span>{{ item.approvedBy?.name }} 于 {{ item.approvedAt?.slice(0, 10) }} 审批</span>
           </div>
@@ -194,10 +194,10 @@ onMounted(() => fetchDetail())
 
         <!-- 发放记录 -->
         <div v-if="item.payoutItems?.length" class="warm-card">
-          <h3 class="text-sm font-medium text-stone-700 mb-3">发放记录</h3>
+          <h3 class="text-sm font-medium text-gray-700 mb-3">发放记录</h3>
           <div class="space-y-1.5">
             <div v-for="p in item.payoutItems" :key="p.payoutId" class="flex items-center justify-between p-2 rounded-lg bg-teal-50 text-xs">
-              <span class="text-stone-600">发放单：{{ p.payoutId?.slice(0, 8) }}</span>
+              <span class="text-gray-600">发放单：{{ p.payoutId?.slice(0, 8) }}</span>
               <span class="text-teal-600 font-medium">{{ formatMoney(p.amount) }}</span>
             </div>
           </div>
@@ -205,28 +205,28 @@ onMounted(() => fetchDetail())
 
         <!-- 备注 -->
         <div v-if="item.remark" class="warm-card">
-          <h3 class="text-sm font-medium text-stone-700 mb-2">备注</h3>
-          <p class="text-sm text-stone-600">{{ item.remark }}</p>
+          <h3 class="text-sm font-medium text-gray-700 mb-2">备注</h3>
+          <p class="text-sm text-gray-600">{{ item.remark }}</p>
         </div>
       </div>
 
       <!-- 侧边栏 -->
       <div class="space-y-4">
         <div class="warm-card">
-          <h3 class="text-sm font-medium text-stone-700 mb-3">人员信息</h3>
+          <h3 class="text-sm font-medium text-gray-700 mb-3">人员信息</h3>
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-              <span class="text-amber-700 text-sm font-medium">{{ item.user?.name?.charAt(0) }}</span>
+            <div class="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center">
+              <span class="text-brand-700 text-sm font-medium">{{ item.user?.name?.charAt(0) }}</span>
             </div>
             <div>
-              <p class="text-sm font-medium text-stone-700">{{ item.user?.name }}</p>
+              <p class="text-sm font-medium text-gray-700">{{ item.user?.name }}</p>
             </div>
           </div>
         </div>
 
         <div class="warm-card">
-          <h3 class="text-sm font-medium text-stone-700 mb-3">时间</h3>
-          <div class="space-y-2 text-xs text-stone-500">
+          <h3 class="text-sm font-medium text-gray-700 mb-3">时间</h3>
+          <div class="space-y-2 text-xs text-gray-500">
             <div class="flex justify-between"><span>创建时间</span><span>{{ item.createdAt?.slice(0, 10) }}</span></div>
             <div v-if="item.approvedAt" class="flex justify-between"><span>审批时间</span><span>{{ item.approvedAt?.slice(0, 10) }}</span></div>
           </div>
@@ -239,8 +239,8 @@ onMounted(() => fetchDetail())
       <template #header>驳回报销</template>
       <template #body>
         <div>
-          <label class="block text-sm text-stone-600 mb-1">驳回原因</label>
-          <textarea v-model="rejectReason" rows="2" placeholder="写明原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" />
+          <label class="block text-sm text-gray-600 mb-1">驳回原因</label>
+          <textarea v-model="rejectReason" rows="2" placeholder="写明原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" />
         </div>
       </template>
       <template #footer>
@@ -257,12 +257,12 @@ onMounted(() => fetchDetail())
       <template #body>
         <form class="space-y-3" @submit.prevent="handleAdjust">
           <div>
-            <label class="block text-sm text-stone-600 mb-1">调整后金额 <span class="text-red-400">*</span></label>
-            <input v-model.number="adjustForm.adjustAmount" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">调整后金额 <span class="text-red-400">*</span></label>
+            <input v-model.number="adjustForm.adjustAmount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">调整原因</label>
-            <input v-model="adjustForm.adjustReason" type="text" placeholder="说明调整原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">调整原因</label>
+            <input v-model="adjustForm.adjustReason" type="text" placeholder="说明调整原因..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
         </form>
       </template>

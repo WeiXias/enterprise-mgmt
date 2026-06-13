@@ -253,7 +253,7 @@ onMounted(() => {
     <CommonPageHeader title="产品" description="产品和价格都在这里管">
       <template #actions>
         <div class="flex items-center gap-2">
-          <UButton icon="i-lucide-tag" variant="ghost" color="neutral" size="sm" @click="showCategoryModal ? null : (showCategoryModal = false); fetchCategories(); $nextTick(() => { editingCategoryId = null; categoryForm = { name: '', sort: '0' }; showCategoryModal = true })">
+          <UButton icon="i-lucide-tag" variant="ghost" color="neutral" size="sm" @click="openAddCategory()">
             管理分类
           </UButton>
           <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCategories()">
@@ -266,37 +266,37 @@ onMounted(() => {
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-content-secondary)]" />
         <input
           v-model="keyword"
           type="text"
           placeholder="搜产品名、编码..."
-          class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors"
+          class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 transition-colors"
           @input="onSearchInput"
         />
       </div>
       <select
         v-model="categoryFilter"
-        class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
+        class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
       >
         <option value="">全部分类</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
       </select>
       <select
         v-model="statusFilter"
-        class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white"
+        class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
       >
         <option value="">全部状态</option>
         <option value="on_sale">在售</option>
         <option value="off_shelf">下架</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 个产品</span>
+      <span class="text-xs text-[var(--color-content-secondary)]">共 {{ total }} 个产品</span>
     </div>
 
     <!-- 产品列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="products.length === 0" class="text-center py-12 text-stone-400">
-      <UIcon name="i-lucide-package" class="w-10 h-10 mx-auto mb-2 text-stone-300" />
+    <div v-if="loading" class="text-center py-12 text-[var(--color-content-secondary)]">加载中...</div>
+    <div v-else-if="products.length === 0" class="text-center py-12 text-[var(--color-content-secondary)]">
+      <UIcon name="i-lucide-package" class="w-10 h-10 mx-auto mb-2 text-[var(--color-line)]" />
       <p class="text-sm">还没有产品，加一个？</p>
       <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCategories()">添加产品</UButton>
     </div>
@@ -308,17 +308,17 @@ onMounted(() => {
       >
         <!-- 状态色条 -->
         <div
-          :class="['w-1 h-10 rounded-full flex-shrink-0', product.status === 'on_sale' ? 'bg-teal-400' : 'bg-stone-300']"
+          :class="['w-1 h-10 rounded-full flex-shrink-0', product.status === 'on_sale' ? 'bg-teal-400' : 'bg-[var(--color-line)]']"
         />
 
         <!-- 主体信息（点击跳详情） -->
         <div class="flex-1 min-w-0 cursor-pointer" @click="$router.push(`/dashboard/products/${product.id}`)">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-800 truncate">{{ product.name }}</span>
-            <span class="text-xs text-stone-400">{{ product.code }}</span>
+            <span class="text-sm font-medium text-[var(--color-content-primary)] truncate">{{ product.name }}</span>
+            <span class="text-xs text-[var(--color-content-secondary)]">{{ product.code }}</span>
             <StatusBadge :value="product.status" enum-type="productStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-stone-400">
+          <div class="flex items-center gap-3 text-xs text-[var(--color-content-secondary)]">
             <span v-if="product.category?.name">
               <UIcon name="i-lucide-tag" class="w-3 h-3 inline-block mr-0.5" />
               {{ product.category.name }}
@@ -357,106 +357,108 @@ onMounted(() => {
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchProducts" @next="fetchProducts" />
 
     <!-- 新增产品弹窗 -->
-    <UModal v-model:open="showCreateModal">
-      <template #header>添加产品</template>
-      <template #body>
-        <form class="space-y-4" @submit.prevent="handleCreate">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">产品名称 <span class="text-red-400">*</span></label>
-              <input v-model="createForm.name" type="text" placeholder="产品名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">产品编码 <span class="text-stone-400 text-xs">(自动生成)</span></label>
-              <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">产品分类</label>
-            <div class="flex gap-2">
-              <select v-model="createForm.categoryId" class="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-                <option value="">选择分类</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
-              <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="sm" @click="editingCategoryId = null; categoryForm = { name: '', sort: '0' }; showCategoryModal = true">添加分类</UButton>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">标准价格</label>
-              <input v-model.number="createForm.standardPrice" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">成本价格</label>
-              <input v-model.number="createForm.costPrice" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">描述</label>
-            <textarea v-model="createForm.description" rows="3" placeholder="简单描述一下这个产品..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
-          </div>
-        </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">取消</UButton>
-          <UButton color="primary" :loading="createLoading" @click="handleCreate">添加</UButton>
+    <CommonFormModal v-model="showCreateModal" title="添加产品" subtitle="新增一个产品到目录里" size="standard" :loading="createLoading" @confirm="handleCreate">
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
         </div>
-      </template>
-    </UModal>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品名称 <span class="text-[var(--color-danger-600)]">*</span></label>
+            <input v-model="createForm.name" type="text" placeholder="产品名称" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品编码 <span class="text-xs text-[var(--color-content-secondary)]">(自动生成)</span></label>
+            <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品分类</label>
+        <div class="flex gap-2">
+          <select v-model="createForm.categoryId" class="flex-1 px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+            <option value="">选择分类</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+          </select>
+          <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="sm" @click="editingCategoryId = null; categoryForm = { name: '', sort: '0' }; showCategoryModal = true">添加分类</UButton>
+        </div>
+      </div>
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">价格信息</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">标准价格</label>
+            <input v-model.number="createForm.standardPrice" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">成本价格</label>
+            <input v-model.number="createForm.costPrice" type="number" min="0" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">描述</label>
+        <textarea v-model="createForm.description" rows="3" placeholder="简单描述一下这个产品..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+      </div>
+    </CommonFormModal>
 
     <!-- 编辑产品弹窗 -->
-    <UModal v-model:open="showEditModal">
-      <template #header>编辑产品</template>
-      <template #body>
-        <form class="space-y-4" @submit.prevent="handleEdit">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">产品名称 <span class="text-red-400">*</span></label>
-              <input v-model="editForm.name" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">产品编码</label>
-              <input v-model="editForm.code" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">产品分类</label>
-            <select v-model="editForm.categoryId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-              <option value="">选择分类</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">标准价格</label>
-              <input v-model.number="editForm.standardPrice" type="number" min="0" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-            <div>
-              <label class="block text-sm text-stone-600 mb-1">成本价格</label>
-              <input v-model.number="editForm.costPrice" type="number" min="0" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">状态</label>
-            <select v-model="editForm.status" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 bg-white">
-              <option value="on_sale">在售</option>
-              <option value="off_shelf">下架</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-stone-600 mb-1">描述</label>
-            <textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 resize-none" />
-          </div>
-        </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton>
-          <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
+    <CommonFormModal v-model="showEditModal" title="编辑产品" subtitle="修改产品信息和价格" size="standard" :loading="editLoading" @confirm="handleEdit">
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
         </div>
-      </template>
-    </UModal>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品名称 <span class="text-[var(--color-danger-600)]">*</span></label>
+            <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品编码</label>
+            <input v-model="editForm.code" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">产品分类</label>
+        <select v-model="editForm.categoryId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+          <option value="">选择分类</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
+      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
+          <span class="text-sm font-medium text-[var(--color-brand-700)]">价格与状态</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">标准价格</label>
+            <input v-model.number="editForm.standardPrice" type="number" min="0" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">成本价格</label>
+            <input v-model.number="editForm.costPrice" type="number" min="0" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          </div>
+        </div>
+        <div class="mt-3">
+          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">状态</label>
+          <select v-model="editForm.status" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+            <option value="on_sale">在售</option>
+            <option value="off_shelf">下架</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">描述</label>
+        <textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+      </div>
+    </CommonFormModal>
 
     <!-- 删除确认弹窗 -->
     <CommonConfirmDialog
@@ -472,44 +474,35 @@ onMounted(() => {
     />
 
     <!-- 分类管理弹窗 -->
-    <UModal v-model:open="showCategoryModal">
-      <template #header>{{ editingCategoryId ? '编辑分类' : '管理分类' }}</template>
-      <template #body>
-        <div class="space-y-4">
-          <!-- 添加/编辑分类表单 -->
-          <div class="flex gap-2">
-            <input
-              v-model="categoryForm.name"
-              type="text"
-              placeholder="分类名称"
-              class="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-              @keydown.enter="handleSaveCategory"
-            />
-            <UButton color="primary" :loading="categoryLoading" @click="handleSaveCategory">
-              {{ editingCategoryId ? '保存' : '添加' }}
-            </UButton>
-            <UButton v-if="editingCategoryId" variant="ghost" color="neutral" @click="editingCategoryId = null; categoryForm = { name: '', sort: '0' }">取消</UButton>
-          </div>
+    <CommonFormModal v-model="showCategoryModal" :title="editingCategoryId ? '编辑分类' : '管理分类'" size="compact" :loading="categoryLoading" @confirm="handleSaveCategory">
+      <div class="space-y-3">
+        <div class="flex gap-2">
+          <input
+            v-model="categoryForm.name"
+            type="text"
+            placeholder="分类名称"
+            class="flex-1 px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+            @keydown.enter="handleSaveCategory"
+          />
+        </div>
 
-          <!-- 分类列表 -->
-          <div v-if="categories.length === 0" class="text-xs text-stone-400 text-center py-4">
-            还没有分类，先加一个？
-          </div>
-          <div v-else class="space-y-1">
-            <div
-              v-for="cat in categories"
-              :key="cat.id"
-              class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-stone-50 group"
-            >
-              <span class="text-sm text-stone-700">{{ cat.name }}</span>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditCategory(cat)">编辑</UButton>
-                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDeleteCategory(cat)">删除</UButton>
-              </div>
+        <div v-if="categories.length === 0" class="text-xs text-[var(--color-content-secondary)] text-center py-4">
+          还没有分类，先加一个？
+        </div>
+        <div v-else class="space-y-1">
+          <div
+            v-for="cat in categories"
+            :key="cat.id"
+            class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--color-line-light)]/40 group"
+          >
+            <span class="text-sm text-[var(--color-content-primary)]">{{ cat.name }}</span>
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditCategory(cat)">编辑</UButton>
+              <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDeleteCategory(cat)">删除</UButton>
             </div>
           </div>
         </div>
-      </template>
-    </UModal>
+      </div>
+    </CommonFormModal>
   </div>
 </template>

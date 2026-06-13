@@ -9,8 +9,8 @@ export default defineEventHandler(async (event) => {
   const existing = await db.select().from(codeRules)
     .where(and(eq(codeRules.module, module), isNull(codeRules.deletedAt))).limit(1)
   const rule = existing[0]
-  if (!rule) return { code: 0, data: { preview: `${module.toUpperCase()}-001` } }
-  const prefix = rule.prefix || module.toUpperCase()
+  if (!rule) return { code: 0, data: { preview: `${module!.toUpperCase()}-001` } }
+  const prefix = rule.prefix || module!.toUpperCase()
   const digits = rule.digits || 3
   const separator = rule.separator || '-'
   const next = (Date.now().toString().slice(-3)).padStart(digits, '0')

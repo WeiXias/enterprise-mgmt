@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const p = result[0]
 
   // 销售成员只能看自己的项目，或是被分配到的项目
-  if (user.role === 'sales_member' && p.ownerUserId !== user.userId) {
+  if (user.role === 'sales_member' && p!.ownerUserId !== user.userId) {
     const memberCheck = await db.select({ id: projectMembers.id })
       .from(projectMembers).where(and(eq(projectMembers.projectId, id), eq(projectMembers.userId, user.userId))).limit(1)
     if (memberCheck.length === 0) {
@@ -24,9 +24,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const [ownerResult, contractResult, memberList, taskList, deliverableList] = await Promise.all([
-    db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, p.ownerUserId)).limit(1),
-    p.contractId
-      ? db.select({ id: contracts.id, code: contracts.code, name: contracts.name }).from(contracts).where(eq(contracts.id, p.contractId)).limit(1)
+    db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, p!.ownerUserId)).limit(1),
+    p!.contractId
+      ? db.select({ id: contracts.id, code: contracts.code, name: contracts.name }).from(contracts).where(eq(contracts.id, p!.contractId)).limit(1)
       : Promise.resolve([]),
     db.select({ userId: projectMembers.userId, role: projectMembers.role, name: users.name })
       .from(projectMembers).leftJoin(users, eq(projectMembers.userId, users.id)).where(eq(projectMembers.projectId, id)),
@@ -37,20 +37,20 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      id: p.id,
-      name: p.name,
+      id: p!.id,
+      name: p!.name,
       contract: contractResult[0] || null,
       owner: ownerResult[0] || null,
-      budget: p.budget,
-      remark: p.remark,
-      status: p.status,
-      startDate: p.startDate,
-      endDate: p.endDate,
+      budget: p!.budget,
+      remark: p!.remark,
+      status: p!.status,
+      startDate: p!.startDate,
+      endDate: p!.endDate,
       members: memberList,
       tasks: taskList,
       deliverables: deliverableList,
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
+      createdAt: p!.createdAt,
+      updatedAt: p!.updatedAt,
     }
   }
 })

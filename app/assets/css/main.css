@@ -1,67 +1,244 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* ========================================
+   设计令牌体系 — Amber 暖色版
+   ========================================
+
+   语义层说明：
+   - 用 --color-token 注册 color，组件里直接用 text/token bg/token border/token
+
+   色值规则：
+   - brand     : Amber 暖橙品牌色
+   - accent    : 暖金强调色
+   - gray      : 暖灰中性色
+   - content   : 文字层级
+   - surface   : 表面/背景
+   - line      : 边框/分割线
+
+   功能色规则：
+   - success   : 成功/正向 (温润绿)
+   - danger    : 危险/删除 (暖红)
+   - warning   : 警告/注意
+   - info      : 信息/提示
+
+   旧名称 (blue-*, stone-*) 全部保留做过渡兼容，
+   计划在全部页面迁移到 Amber Token 后移除。
+*/
+
 @theme static {
   --font-sans: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
 
-  --color-amber-50: #FFFBEB;
-  --color-amber-100: #FEF3C7;
-  --color-amber-200: #FDE68A;
-  --color-amber-300: #FCD34D;
-  --color-amber-400: #FBBF24;
-  --color-amber-500: #F59E0B;
-  --color-amber-600: #D97706;
-  --color-amber-700: #B45309;
-  --color-amber-800: #92400E;
-  --color-amber-900: #78350F;
-  --color-amber-950: #451A03;
+  /* ── 品牌色 (Amber 暖橙) ── */
+  --color-brand-50: #FFF9F0;
+  --color-brand-100: #FEF0D7;
+  --color-brand-200: #FDE2AB;
+  --color-brand-300: #FCD07D;
+  --color-brand-400: #FABC30;
+  --color-brand-500: #EF9F27;
+  --color-brand-600: #D4891A;
+  --color-brand-700: #B07010;
+  --color-brand-800: #8C580A;
+  --color-brand-900: #6B4305;
+  --color-brand-950: #3D2402;
 
-  --color-teal-50: #F0FDFA;
-  --color-teal-100: #CCFBF1;
-  --color-teal-200: #99F6E4;
-  --color-teal-300: #5EEAD4;
-  --color-teal-400: #2DD4BF;
-  --color-teal-500: #14B8A6;
-  --color-teal-600: #0D9488;
-  --color-teal-700: #0F766E;
-  --color-teal-800: #115E59;
-  --color-teal-900: #134E4A;
-  --color-teal-950: #042F2E;
+  /* ── 强调色 (暖金) ── */
+  --color-accent-50: #FFF9EB;
+  --color-accent-100: #FEF0C7;
+  --color-accent-200: #FDE290;
+  --color-accent-300: #FCCE52;
+  --color-accent-400: #FBBF24;
+  --color-accent-500: #F59E0B;
+  --color-accent-600: #D97706;
+  --color-accent-700: #B45309;
+  --color-accent-800: #92400E;
+  --color-accent-900: #78350F;
+
+  /* ── 暖灰 ── */
+  --color-gray-50: #FAF9F6;
+  --color-gray-100: #F5F3EE;
+  --color-gray-200: #EBE8E0;
+  --color-gray-300: #D6D2C7;
+  --color-gray-400: #A8A396;
+  --color-gray-500: #787268;
+  --color-gray-600: #575348;
+  --color-gray-700: #444036;
+  --color-gray-800: #292622;
+  --color-gray-900: #1C1A16;
+  --color-gray-950: #0C0B07;
+
+  /* ── 文字层级 ── */
+  --color-content-primary: #2C2C2A;
+  --color-content-secondary: #5F5E5A;
+  --color-content-muted: #99968D;
+  --color-content-inverse: #FFFFFF;
+  --color-content-link: #B07010;
+
+  /* ── 表面/背景 ── */
+  --color-surface-page: #F1EFE8;
+  --color-surface-card: #FFFDF7;
+  --color-surface-hover: #F5F3EE;
+  --color-surface-brand: #FFF9F0;
+
+  /* ── 边框/分割线 ── */
+  --color-line: #E8E4DA;
+  --color-line-light: #F0EDE5;
+  --color-line-focus: #B07010;
+
+  /* ── 功能色 ── */
+  --color-success-50: #F2F8F4;
+  --color-success-100: #D9EFE3;
+  --color-success-500: #5B9A6B;
+  --color-success-600: #4A8263;
+  --color-success-700: #3D6B53;
+
+  --color-danger-50: #FEF4F2;
+  --color-danger-100: #FDE4E0;
+  --color-danger-500: #E06656;
+  --color-danger-600: #DC5A4A;
+  --color-danger-700: #C24A3D;
+
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+  --color-warning-700: #B45309;
+
+  --color-info-50: #FFF9F0;
+  --color-info-100: #FEF0D7;
+  --color-info-500: #EF9F27;
+  --color-info-600: #D4891A;
+  --color-info-700: #B07010;
+
+  /* ── 阴影 ── */
+  --color-shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --color-shadow-card-hover: 0 4px 12px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+  --color-shadow-elevated: 0 12px 40px -3px rgb(0 0 0 / 0.08), 0 4px 8px -4px rgb(0 0 0 / 0.04);
+
+  /* ════════════════════════════════════════
+     旧名称兼容层 (逐步迁移后可移除)
+     ════════════════════════════════════════ */
+
+  /* blue -> brand 别名 (过渡期保留) */
+  --color-blue-50: var(--color-brand-50);
+  --color-blue-100: var(--color-brand-100);
+  --color-blue-200: var(--color-brand-200);
+  --color-blue-300: var(--color-brand-300);
+  --color-blue-400: var(--color-brand-400);
+  --color-blue-500: var(--color-brand-500);
+  --color-blue-600: var(--color-brand-600);
+  --color-blue-700: var(--color-brand-700);
+  --color-blue-800: var(--color-brand-800);
+  --color-blue-900: var(--color-brand-900);
+  --color-blue-950: var(--color-brand-950);
+
+  /* stone -> gray 桥接 */
+  --color-stone-50: var(--color-gray-50);
+  --color-stone-100: var(--color-gray-100);
+  --color-stone-200: var(--color-gray-200);
+  --color-stone-300: var(--color-gray-300);
+  --color-stone-400: var(--color-gray-400);
+  --color-stone-500: var(--color-gray-500);
+  --color-stone-600: var(--color-gray-600);
+  --color-stone-700: var(--color-gray-700);
+  --color-stone-800: var(--color-gray-800);
+  --color-stone-900: var(--color-gray-900);
+  --color-stone-950: var(--color-gray-950);
+
+  /* amber 保留兼容 */
+  --color-amber-50: var(--color-brand-50);
+  --color-amber-100: var(--color-brand-100);
+  --color-amber-200: var(--color-brand-200);
+  --color-amber-300: var(--color-brand-300);
+  --color-amber-400: var(--color-brand-400);
+  --color-amber-500: var(--color-brand-500);
+  --color-amber-600: var(--color-brand-600);
+  --color-amber-700: var(--color-brand-700);
+  --color-amber-800: var(--color-brand-800);
+  --color-amber-900: var(--color-brand-900);
+  --color-amber-950: var(--color-brand-950);
+
+  --color-teal-50: #F2F8F4;
+  --color-teal-100: #D9EFE3;
+  --color-teal-200: #B3DFC7;
+  --color-teal-300: #84CFA3;
+  --color-teal-400: #5BBA7F;
+  --color-teal-500: #40A065;
+  --color-teal-600: #358655;
+  --color-teal-700: #2D6F48;
+  --color-teal-800: #25593A;
+  --color-teal-900: #1E4930;
+  --color-teal-950: #0F281A;
 
   --color-coral-50: #FFF5F2;
   --color-coral-100: #FFE4DB;
   --color-coral-200: #FFCBB7;
   --color-coral-300: #FFA98A;
   --color-coral-400: #FF7F54;
-  --color-coral-500: #F46036;
-  --color-coral-600: #D8431C;
-  --color-coral-700: #B53415;
-  --color-coral-800: #932D16;
-  --color-coral-900: #772917;
-  --color-coral-950: #401209;
+  --color-coral-500: #E06656;
+  --color-coral-600: #DC5A4A;
+  --color-coral-700: #C24A3D;
+  --color-coral-800: #9E3E34;
+  --color-coral-900: #7A322B;
+  --color-coral-950: #3D1714;
 }
 
+/* ════════════════════════════════════════
+   CSS 变量 / 运行时主题层
+   ════════════════════════════════════════ */
+
 :root {
-  --color-bg-warm: #FAF9F6;
-  --color-bg-card: #FFFFFF;
-  --color-text-primary: #2C2C2A;
-  --color-text-secondary: #5F5E5A;
-  --color-text-muted: #888780;
-  --color-border-warm: #E5E4DF;
-  --color-success: #0D9488;
-  --color-danger: #DC2626;
-  --color-warning: #D97706;
-  --color-info: #2563EB;
+  --color-bg-page: var(--color-surface-page);
+  --color-bg-card: var(--color-surface-card);
+  --color-text-primary: var(--color-content-primary);
+  --color-text-secondary: var(--color-content-secondary);
+  --color-text-muted: var(--color-content-muted);
+  --color-border: var(--color-line);
+  --color-border-light: var(--color-line-light);
+  --color-success: #4A8263;
+  --color-danger: #DC5A4A;
+  --color-warning: #F59E0B;
+  --color-info: #B07010;
 }
 
 body {
-  background-color: var(--color-bg-warm);
-  color: var(--color-text-primary);
+  background-color: var(--color-surface-page);
+  color: var(--color-content-primary);
 }
 
+/* ── 输入框焦点环 ── */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-color: var(--color-brand-400);
+  outline-offset: 1px;
+}
+
+/* ── 全局表单控件高度一致 ── */
+/* 解决 <select> 和 <input> 高度不一致的浏览器兼容问题 */
+/* 配合项目中所有表单控件统一使用 h-9 (36px) */
+input[type=\"text\"],
+input[type=\"number\"],
+input[type=\"email\"],
+input[type=\"date\"],
+input[type=\"password\"],
+select {
+  min-height: 36px;
+}
+
+/* ── 语义卡片 ── */
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+}
+
+/* ── 旧类名兼容（保留到全部迁移后移除） ── */
 .warm-card {
-  background: var(--color-bg-card);
-  border: 0.5px solid var(--color-border-warm);
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-line-light);
   border-radius: 12px;
   padding: 1.25rem;
 }
@@ -77,26 +254,92 @@ body {
 }
 
 .warm-badge-success {
-  background: #F0FDFA;
-  color: #0F766E;
+  background: var(--color-success-50);
+  color: #3D6B53;
 }
 
 .warm-badge-warning {
-  background: #FFFBEB;
+  background: var(--color-warning-50);
   color: #92400E;
 }
 
 .warm-badge-danger {
-  background: #FEF2F2;
-  color: #991B1B;
+  background: var(--color-danger-50);
+  color: #C24A3D;
 }
 
 .warm-badge-info {
-  background: #EFF6FF;
-  color: #1E40AF;
+  background: var(--color-info-50);
+  color: #B07010;
 }
 
 .warm-badge-neutral {
-  background: #F5F5F4;
-  color: #57534E;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+/* ── 骨架屏工具类 ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-line) 25%, var(--color-line-light) 50%, var(--color-line) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ════════════════════════════════════════
+   主题切换
+   ════════════════════════════════════════ */
+
+/* 默认 Amber 暖色 */
+:root,
+.theme-amber {
+  --color-surface-page: #F1EFE8;
+  --color-surface-card: #FFFDF7;
+  --color-content-primary: #2C2C2A;
+  --color-content-secondary: #5F5E5A;
+  --color-content-muted: #99968D;
+  --color-line: #E8E4DA;
+  --color-line-light: #F0EDE5;
+  --color-brand-50: #FFF9F0;
+  --color-brand-100: #FEF0D7;
+  --color-brand-500: #EF9F27;
+  --color-brand-600: #D4891A;
+  --color-brand-700: #B07010;
+}
+
+/* 蓝色备用主题 */
+.theme-blue {
+  --color-surface-page: #F9FAFB;
+  --color-surface-card: #FFFFFF;
+  --color-content-primary: #111827;
+  --color-content-secondary: #6B7280;
+  --color-content-muted: #9CA3AF;
+  --color-line: #E5E7EB;
+  --color-line-light: #F3F4F6;
+  --color-brand-50: #EFF6FF;
+  --color-brand-100: #DBEAFE;
+  --color-brand-500: #3B82F6;
+  --color-brand-600: #2563EB;
+  --color-brand-700: #1D4ED8;
+}
+
+/* 暖色备用主题 */
+.theme-warm {
+  --color-surface-page: #FAF9F6;
+  --color-surface-card: #FFFFFF;
+  --color-content-primary: #2C2C2A;
+  --color-content-secondary: #5F5E5A;
+  --color-content-muted: #888780;
+  --color-line: #E5E4DF;
+  --color-line-light: #F0EFEB;
+  --color-brand-50: #FFFBEB;
+  --color-brand-100: #FEF3C7;
+  --color-brand-500: #F59E0B;
+  --color-brand-600: #D97706;
+  --color-brand-700: #B45309;
 }

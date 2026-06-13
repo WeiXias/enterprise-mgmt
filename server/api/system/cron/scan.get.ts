@@ -13,7 +13,7 @@ export default defineEventHandler(async () => {
   const [existingNotifs] = await Promise.all([
     db.select({ key: notifications.type, rid: notifications.relatedId, rt: notifications.relatedType }).from(notifications),
   ])
-  const existKeys = new Set(existingNotifs.map(n => `${n.key}:${n.rid}:${n.rt}`))
+  const existKeys = new Set(existingNotifs.map((n: any) => `${n.key}:${n.rid}:${n.rt}`))
 
   function add(userId: string, type: string, title: string, content: string, relatedId: string, relatedType: string) {
     const key = `${type}:${relatedId}:${relatedType}`

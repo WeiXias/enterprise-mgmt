@@ -81,14 +81,14 @@ export default defineEventHandler(async (event) => {
 
   // 获取供应商
   const providerRows = await db.select().from(aiProviders)
-    .where(and(eq(aiProviders.id, aiEmployee.providerId), eq(aiProviders.isEnabled, true)))
+    .where(and(eq(aiProviders.id, aiEmployee!.providerId), eq(aiProviders.isEnabled, true)))
     .limit(1)
   if (providerRows.length === 0) throw createError({ statusCode: 400, statusMessage: 'AI 供应商不存在或已停用' })
 
   const provider = providerRows[0]
   const config = useRuntimeConfig()
-  const apiKey = decryptApiKey(provider.apiKey, config.aiEncryptionKey || config.jwtSecret)
-  const aiProvider = createProvider({ type: provider.type, baseUrl: provider.baseUrl, apiKey })
+  const apiKey = decryptApiKey(provider!.apiKey, config.aiEncryptionKey || config.jwtSecret)
+  const aiProvider = createProvider({ type: provider!.type, baseUrl: provider.baseUrl, apiKey })
 
   const categoryLabel: Record<string, string> = {
     sales: '销售合同', procurement: '采购合同', service: '技术服务', other: '其他',
@@ -106,12 +106,12 @@ ${categoryHint}
 
   const response = await aiProvider.chat({
     messages: [
-      { role: 'system', content: aiEmployee.systemPrompt + '\n\n' + GENERATE_SYSTEM_PROMPT_ADDON },
+      { role: 'system', content: aiEmployee!.systemPrompt + '\n\n' + GENERATE_SYSTEM_PROMPT_ADDON },
       { role: 'user', content: userMessage },
     ],
-    model: aiEmployee.model,
-    temperature: aiEmployee.temperature,
-    maxTokens: aiEmployee.maxTokens,
+    model: aiEmployee!.model,
+    temperature: aiEmployee!.temperature,
+    maxTokens: aiEmployee!.maxTokens,
   })
 
   // 解析 AI 响应
@@ -132,7 +132,7 @@ ${categoryHint}
     result = {
       content: response.content
         .replace(/<[^>]+>/g, '')
-        .split('\n').filter(l => l.trim()).map(l => `<p>${l}</p>`).join('\n'),
+        .split('\n').filter((l: any) => l.trim()).map((l: any) => `<p>${l}</p>`).join('\n'),
       suggestedName: parsed.data.prompt.slice(0, 50),
       suggestedDescription: '',
     }

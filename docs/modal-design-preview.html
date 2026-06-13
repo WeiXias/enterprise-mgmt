@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弹窗 UI 设计稿 — 企业一体化管理系统</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&display=swap');
+
+  * { font-family: 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+
+  :root {
+    /* ── Amber 暖色主色调 ── */
+    --amber-50:  #FFF9F0;
+    --amber-100: #FEF0D7;
+    --amber-200: #FDE2AB;
+    --amber-300: #FCD07D;
+    --amber-400: #FABC30;
+    --amber-500: #EF9F27;
+    --amber-600: #D4891A;
+    --amber-700: #B07010;
+    --amber-800: #8C580A;
+    --amber-900: #6B4305;
+
+    --warm-bg:    #F1EFE8;
+    --warm-card:  #FFFDF7;
+    --warm-line:  #E8E4DA;
+    --warm-line-light: #F0EDE5;
+    --text-main:  #2C2C2A;
+    --text-sub:   #5F5E5A;
+    --text-muted: #99968D;
+    --danger:     #DC5A4A;
+    --danger-bg:  #FEF4F2;
+    --success:    #5B9A6B;
+    --success-bg: #F2F8F4;
+    --shadow-sm:  0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:  0 4px 16px rgba(0,0,0,.08);
+    --shadow-lg:  0 12px 40px rgba(0,0,0,.12);
+  }
+
+  body {
+    background: var(--warm-bg);
+    min-height: 100vh;
+    color: var(--text-main);
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ── 演示页面布局 ── */
+  .demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .demo-card {
+    background: var(--warm-card);
+    border: 1px solid var(--warm-line);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .demo-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--amber-300);
+  }
+  .demo-card h3 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-main);
+    margin-bottom: .25rem;
+  }
+  .demo-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── 遮罩层 ── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(44,44,42,.35);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.active { opacity: 1; pointer-events: auto; }
+
+  /* ── 弹窗容器 ── */
+  .modal {
+    background: var(--warm-card);
+    border: 1px solid var(--warm-line);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(8px);
+    transition: transform .2s;
+    overflow: hidden;
+  }
+  .overlay.active .modal { transform: translateY(0); }
+
+  /* ── 弹窗头部 ── */
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--warm-line-light);
+    flex-shrink: 0;
+  }
+  .modal-header h2 {
+    font-size: 16px; font-weight: 500; color: var(--text-main);
+  }
+  .modal-header .subtitle {
+    font-size: 13px; color: var(--text-muted); margin-left: .75rem;
+  }
+  .modal-close {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; border: none; background: transparent; color: var(--text-muted);
+    cursor: pointer; font-size: 18px; transition: all .15s;
+  }
+  .modal-close:hover { background: var(--warm-line-light); color: var(--text-main); }
+
+  /* ── 弹窗主体 ── */
+  .modal-body {
+    padding: 1.5rem; overflow-y: auto; flex: 1;
+  }
+
+  /* ── 弹窗底部 ── */
+  .modal-footer {
+    display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
+    padding: 1rem 1.5rem; border-top: 1px solid var(--warm-line-light); flex-shrink: 0;
+  }
+
+  /* ── 表单元素 ── */
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-label {
+    display: block; font-size: 13px; font-weight: 500; color: var(--text-sub);
+    margin-bottom: .375rem;
+  }
+  .form-label .required { color: var(--danger); margin-left: 2px; }
+  .form-label .hint { font-weight: 400; color: var(--text-muted); margin-left: .5rem; }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: .5rem .75rem; font-size: 14px; line-height: 1.6;
+    border: 1px solid var(--warm-line); border-radius: 8px;
+    background: var(--warm-card); color: var(--text-main);
+    transition: border-color .15s, box-shadow .15s;
+    outline: none; box-sizing: border-box;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--amber-400);
+    box-shadow: 0 0 0 3px rgba(239,159,39,.12);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2399968D' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .5rem center; padding-right: 2rem; }
+  .form-textarea { resize: vertical; min-height: 72px; }
+
+  /* ── 宽松表单 ── */
+  .form-input-lg { padding: .625rem .875rem; font-size: 14px; }
+  .form-textarea-lg { padding: .625rem .875rem; font-size: 14px; min-height: 100px; }
+  .spacious-fieldset {
+    background: var(--warm-card);
+    border: 1px solid var(--warm-line);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .spacious-fieldset legend {
+    font-size: 14px; font-weight: 500; color: var(--text-main);
+    padding: 0 .5rem; margin-bottom: .25rem;
+  }
+  .spacious-fieldset .legend-hint {
+    font-size: 12px; font-weight: 400; color: var(--text-muted);
+  }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+  @media (max-width: 640px) { .form-grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── 字段分组卡片 ── */
+  .field-group {
+    background: rgba(241,239,232,.5);
+    border: 1px solid var(--warm-line-light);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .field-group-title {
+    font-size: 13px; font-weight: 500; color: var(--amber-700);
+    margin-bottom: .75rem; display: flex; align-items: center; gap: .375rem;
+  }
+  .field-group-title::before {
+    content: ''; width: 3px; height: 14px; background: var(--amber-400);
+    border-radius: 2px; display: inline-block;
+  }
+
+  /* ── 网格 ── */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+
+  /* ── 按钮 ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: .375rem; padding: .5rem 1rem; font-size: 14px; font-weight: 500;
+    border-radius: 8px; border: 1px solid transparent; cursor: pointer;
+    transition: all .15s; line-height: 1.6; white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--amber-500); color: #fff; border-color: var(--amber-500);
+  }
+  .btn-primary:hover { background: var(--amber-600); border-color: var(--amber-600); }
+  .btn-primary:active { background: var(--amber-700); }
+  .btn-ghost {
+    background: transparent; color: var(--text-sub); border-color: var(--warm-line);
+  }
+  .btn-ghost:hover { background: var(--warm-line-light); color: var(--text-main); }
+  .btn-danger {
+    background: var(--danger); color: #fff; border-color: var(--danger);
+  }
+  .btn-danger:hover { opacity: .9; }
+  .btn-danger-ghost {
+    background: transparent; color: var(--danger); border-color: transparent;
+  }
+  .btn-danger-ghost:hover { background: var(--danger-bg); }
+  .btn-sm { padding: .375rem .75rem; font-size: 13px; border-radius: 6px; }
+  .btn-loading { opacity: .7; pointer-events: none; }
+
+  /* ── 图标占位 (Heroicons 风格) ── */
+  .icon { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon svg { width: 100%; height: 100%; stroke-width: 1.5; }
+
+  /* ── 确认弹窗图标 ── */
+  .confirm-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+  }
+  .confirm-icon.danger { background: var(--danger-bg); color: var(--danger); }
+  .confirm-icon.warning { background: var(--amber-100); color: var(--amber-600); }
+
+  /* ── 详情弹窗 ── */
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; }
+  @media (max-width: 640px) { .detail-grid { grid-template-columns: 1fr; } }
+  .detail-item {}
+  .detail-item .detail-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+  .detail-item .detail-value { font-size: 14px; color: var(--text-main); }
+
+  /* ── 状态标签 ── */
+  .badge {
+    display: inline-flex; align-items: center; padding: 2px 8px;
+    border-radius: 6px; font-size: 12px; font-weight: 400;
+  }
+  .badge-amber { background: var(--amber-50); color: var(--amber-700); }
+
+  /* ── 选择弹窗用户列表 ── */
+  .user-list-item {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .625rem .75rem; border-radius: 10px;
+    cursor: pointer; transition: background .1s;
+  }
+  .user-list-item:hover { background: var(--warm-line-light); }
+  .user-list-item.selected { background: var(--amber-50); }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--amber-100); color: var(--amber-700);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 500; flex-shrink: 0;
+  }
+
+  /* ── 全屏弹窗 ── */
+  .fullscreen-modal {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--warm-bg);
+    display: flex; flex-direction: column;
+  }
+  .fullscreen-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.5rem; background: var(--warm-card);
+    border-bottom: 1px solid var(--warm-line); flex-shrink: 0;
+  }
+  .fullscreen-body { flex: 1; display: flex; overflow: hidden; }
+  .fullscreen-main { flex: 1; padding: 2rem; overflow-y: auto; display: flex; align-items: flex-start; justify-content: center; }
+  .a4-paper {
+    background: #fff;
+    width: 100%;
+    max-width: 720px;
+    aspect-ratio: 1 / 1.414;
+    box-shadow: 0 2px 20px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.04);
+    padding: 3.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    line-height: 2;
+    color: #333;
+    position: relative;
+    overflow: hidden;
+  }
+  .a4-paper::after {
+    content: '';
+    position: absolute;
+    bottom: 2.5rem; left: 3rem; right: 3rem;
+    height: 1px;
+    background: #e5e5e5;
+  }
+  .a4-page-num {
+    position: absolute;
+    bottom: 1rem; left: 0; right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #aaa;
+  }
+  .fullscreen-sidebar {
+    width: 320px; background: var(--warm-card); border-left: 1px solid var(--warm-line);
+    padding: 1.5rem; overflow-y: auto; flex-shrink: 0;
+  }
+
+  /* ── 搜索输入 ── */
+  .search-input-wrap {
+    position: relative; margin-bottom: 1rem;
+  }
+  .search-input-wrap .search-icon {
+    position: absolute; left: .75rem; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted);
+  }
+  .search-input-wrap input {
+    width: 100%; padding: .5rem .75rem .5rem 2.25rem;
+    font-size: 13px; border: 1px solid var(--warm-line); border-radius: 8px;
+    background: var(--warm-bg); outline: none; box-sizing: border-box;
+  }
+  .search-input-wrap input:focus {
+    border-color: var(--amber-400); box-shadow: 0 0 0 3px rgba(239,159,39,.1);
+  }
+
+  /* ── 转交原因 ── */
+  .reason-input {
+    width: 100%; padding: .5rem .75rem; font-size: 13px;
+    border: 1px solid var(--warm-line); border-radius: 8px;
+    background: var(--warm-bg); outline: none; box-sizing: border-box;
+    margin-top: .75rem;
+  }
+  .reason-input:focus { border-color: var(--amber-400); box-shadow: 0 0 0 3px rgba(239,159,39,.1); }
+</style>
+</head>
+<body>
+
+<!-- ════════════════ 演示选择面板 ════════════════ -->
+<div style="max-width: 1000px; margin: 0 auto; padding: 3rem 2rem;">
+  <div style="text-align: center; margin-bottom: 2.5rem;">
+    <h1 style="font-size: 24px; font-weight: 500; color: var(--text-main);">弹窗 UI 设计升级</h1>
+    <p style="font-size: 14px; color: var(--text-muted); margin-top: .25rem;">
+      Amber 暖色系 · 口语化文案 · 分层信息架构
+    </p>
+  </div>
+
+  <div class="demo-grid">
+    <!-- 标准表单 -->
+    <div class="demo-card" onclick="openModal('modal-form-standard')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x1F4DD;</div>
+      <h3>表单弹窗（标准）</h3>
+      <p>编辑实体信息，含分组字段、联系人子表</p>
+    </div>
+
+    <!-- 紧凑表单 -->
+    <div class="demo-card" onclick="openModal('modal-form-compact')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x26A1;</div>
+      <h3>表单弹窗（紧凑）</h3>
+      <p>快速创建，字段精简，一键搞定</p>
+    </div>
+
+    <!-- 宽松表单 -->
+    <div class="demo-card" onclick="openModal('modal-form-spacious')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x1F3D7;&#xFE0F;</div>
+      <h3>表单弹窗（宽松）</h3>
+      <p>复杂实体创建，多分组大表单</p>
+    </div>
+
+    <!-- 确认弹窗 -->
+    <div class="demo-card" onclick="openModal('modal-confirm-danger')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x26A0;&#xFE0F;</div>
+      <h3>确认弹窗（危险操作）</h3>
+      <p>删除等不可逆操作的二次确认</p>
+    </div>
+
+    <!-- 普通确认 -->
+    <div class="demo-card" onclick="openModal('modal-confirm-normal')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x2705;</div>
+      <h3>确认弹窗（普通操作）</h3>
+      <p>审批、状态变更等普通确认</p>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div class="demo-card" onclick="openModal('modal-detail')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x1F50D;</div>
+      <h3>详情弹窗</h3>
+      <p>宽屏展示实体完整信息</p>
+    </div>
+
+    <!-- 全屏弹窗 -->
+    <div class="demo-card" onclick="openModal('modal-fullscreen')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x1F4C4;</div>
+      <h3>全屏弹窗</h3>
+      <p>合同签署等复杂操作的沉浸体验</p>
+    </div>
+
+    <!-- 选择弹窗 -->
+    <div class="demo-card" onclick="openModal('modal-select')">
+      <div style="font-size: 24px; margin-bottom: .5rem;">&#x1F465;</div>
+      <h3>选择弹窗</h3>
+      <p>人员搜索、转移分配</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 1. 标准表单弹窗 ════════════════ -->
+<div class="overlay" id="modal-form-standard">
+  <div class="modal" style="width: 640px;">
+    <div class="modal-header">
+      <div style="display: flex; align-items: baseline;">
+        <h2>添加客户</h2>
+        <span class="subtitle">填写基本信息就能开始跟踪</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-form-standard')">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="event.preventDefault()">
+        <!-- 基本信息组 -->
+        <div class="field-group">
+          <div class="field-group-title">基本信息</div>
+          <div class="form-group" style="margin-bottom: .75rem;">
+            <label class="form-label">客户名称 <span class="required">*</span></label>
+            <input class="form-input" type="text" placeholder="公司或个人全称" autofocus />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">行业</label>
+              <select class="form-select">
+                <option value="">选一个行业</option>
+                <option>信息技术</option><option>制造业</option><option>金融</option>
+                <option>教育</option><option>医疗</option><option>其他</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">注册地址</label>
+              <input class="form-input" type="text" placeholder="工商注册地址" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">办公地址</label>
+              <input class="form-input" type="text" placeholder="实际办公地址" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">备注 <span class="hint">选填</span></label>
+              <input class="form-input" type="text" placeholder="随手记点什么" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 联系人组 -->
+        <div class="field-group">
+          <div class="field-group-title">主要联系人</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">姓名</label>
+              <input class="form-input" type="text" placeholder="联系人姓名" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">职位</label>
+              <input class="form-input" type="text" placeholder="如：采购经理" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">手机</label>
+              <input class="form-input" type="text" placeholder="手机号" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">邮箱</label>
+              <input class="form-input" type="email" placeholder="联系邮箱" />
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-form-standard')">算了</button>
+      <button class="btn btn-primary">添加客户</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 2. 紧凑表单弹窗 ════════════════ -->
+<div class="overlay" id="modal-form-compact">
+  <div class="modal" style="width: 480px;">
+    <div class="modal-header">
+      <h2>快速加个产品</h2>
+      <button class="modal-close" onclick="closeModal('modal-form-compact')">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="event.preventDefault()">
+        <div class="form-group">
+          <label class="form-label">产品名称 <span class="required">*</span></label>
+          <input class="form-input" type="text" placeholder="产品名称" autofocus />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">单价（元）</label>
+            <input class="form-input" type="number" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">单位</label>
+            <select class="form-select">
+              <option>个</option><option>套</option><option>次</option><option>人天</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">一句话描述 <span class="hint">选填</span></label>
+          <input class="form-input" type="text" placeholder="简单说下这个产品是做什么的" />
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-form-compact')">算了</button>
+      <button class="btn btn-primary">确定添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 2b. 宽松表单弹窗 ════════════════ -->
+<div class="overlay" id="modal-form-spacious">
+  <div class="modal" style="width: 880px;">
+    <div class="modal-header">
+      <div style="display: flex; align-items: baseline;">
+        <h2>新建合同</h2>
+        <span class="subtitle">填写合同基本信息、金额和交付安排</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-form-spacious')">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+      <form onsubmit="event.preventDefault()">
+        <!-- 基本信息 -->
+        <div class="spacious-fieldset">
+          <div style="display: flex; align-items: baseline; gap: .5rem; margin-bottom: 1rem;">
+            <legend style="font-size:14px;font-weight:500;color:var(--text-main);">基本信息</legend>
+            <span style="font-size:12px;color:var(--text-muted);">合同名称、关联客户和类型</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">合同名称 <span class="required">*</span></label>
+              <input class="form-input form-input-lg" type="text" placeholder="给合同起个名字" autofocus />
+            </div>
+            <div class="form-group">
+              <label class="form-label">关联客户 <span class="required">*</span></label>
+              <select class="form-select form-input-lg">
+                <option value="">搜索并选择客户...</option>
+                <option>深圳创新科技有限公司</option>
+                <option>北京云创信息技术有限公司</option>
+                <option>上海智联科技有限公司</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">合同类型</label>
+              <select class="form-select form-input-lg">
+                <option>销售合同</option><option>服务合同</option><option>框架协议</option><option>补充协议</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">签约日期</label>
+              <input class="form-input form-input-lg" type="date" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 金额信息 -->
+        <div class="spacious-fieldset">
+          <div style="display: flex; align-items: baseline; gap: .5rem; margin-bottom: 1rem;">
+            <legend style="font-size:14px;font-weight:500;color:var(--text-main);">金额信息</legend>
+            <span style="font-size:12px;color:var(--text-muted);">合同金额、回款计划和开票信息</span>
+          </div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">合同金额（元） <span class="required">*</span></label>
+              <input class="form-input form-input-lg" type="number" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">税率</label>
+              <select class="form-select form-input-lg">
+                <option>6%</option><option>9%</option><option>13%</option><option>免税</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">币种</label>
+              <select class="form-select form-input-lg">
+                <option>人民币 (CNY)</option><option>美元 (USD)</option><option>欧元 (EUR)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:.25rem;">
+            <div class="form-group">
+              <label class="form-label">首付款比例 <span class="hint">选填</span></label>
+              <input class="form-input form-input-lg" type="number" placeholder="如 30%" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">质保金比例 <span class="hint">选填</span></label>
+              <input class="form-input form-input-lg" type="number" placeholder="如 5%" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 交付安排 -->
+        <div class="spacious-fieldset">
+          <div style="display: flex; align-items: baseline; gap: .5rem; margin-bottom: 1rem;">
+            <legend style="font-size:14px;font-weight:500;color:var(--text-main);">交付安排</legend>
+            <span style="font-size:12px;color:var(--text-muted);">起止时间和项目负责人</span>
+          </div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">开始日期</label>
+              <input class="form-input form-input-lg" type="date" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">预计结束</label>
+              <input class="form-input form-input-lg" type="date" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">负责人</label>
+              <select class="form-select form-input-lg">
+                <option value="">选一位负责人...</option>
+                <option>张经理</option><option>李明</option><option>王销售</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:.25rem;margin-bottom:0;">
+            <label class="form-label">交付说明 <span class="hint">选填</span></label>
+            <textarea class="form-textarea form-textarea-lg" rows="3" placeholder="描述交付内容、验收标准等..."></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" style="padding: 1rem 1.5rem;">
+      <button class="btn btn-ghost" style="margin-right: auto;">保存草稿</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-form-spacious')">算了</button>
+      <button class="btn btn-primary">创建合同</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 3. 确认弹窗 — 危险操作 ════════════════ -->
+<div class="overlay" id="modal-confirm-danger">
+  <div class="modal" style="width: 480px;">
+    <div class="modal-body" style="text-align: center; padding: 2rem 2rem 1.5rem;">
+      <div class="confirm-icon danger">
+        <svg class="icon" style="width:24px;height:24px" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      </div>
+      <h3 style="font-size:16px;font-weight:500;color:var(--text-main);margin-bottom:.5rem;">确定要删除吗？</h3>
+      <p style="font-size:13px;color:var(--text-sub);line-height:1.6;">
+        删除<span style="color:var(--text-main);font-weight:500;">「深圳创新科技有限公司」</span>后<br/>
+        相关的联系人、跟进记录也会一起清理<br/>
+        删了就找不回来了哦
+      </p>
+    </div>
+    <div class="modal-footer" style="border-top: none; justify-content: center; padding-top: 0; padding-bottom: 1.5rem;">
+      <button class="btn btn-ghost" onclick="closeModal('modal-confirm-danger')">再想想</button>
+      <button class="btn btn-danger">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 4. 确认弹窗 — 普通操作 ════════════════ -->
+<div class="overlay" id="modal-confirm-normal">
+  <div class="modal" style="width: 480px;">
+    <div class="modal-body" style="text-align: center; padding: 2rem 2rem 1.5rem;">
+      <div class="confirm-icon warning">
+        <svg class="icon" style="width:24px;height:24px" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+      </div>
+      <h3 style="font-size:16px;font-weight:500;color:var(--text-main);margin-bottom:.5rem;">确认通过这个合同？</h3>
+      <p style="font-size:13px;color:var(--text-sub);line-height:1.6;">
+        通过后合同进入执行阶段<br/>
+        金额和条款就不能再改了
+      </p>
+    </div>
+    <div class="modal-footer" style="border-top: none; justify-content: center; padding-top: 0; padding-bottom: 1.5rem;">
+      <button class="btn btn-ghost" onclick="closeModal('modal-confirm-normal')">等下再说</button>
+      <button class="btn btn-primary">确认通过</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 5. 详情弹窗 ════════════════ -->
+<div class="overlay" id="modal-detail">
+  <div class="modal" style="width: 760px;">
+    <div class="modal-header">
+      <div style="display: flex; align-items: center; gap: .5rem;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--amber-50); color: var(--amber-600); display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 16px;">创</div>
+        <div>
+          <h2>深圳创新科技有限公司</h2>
+          <div style="display: flex; gap: .5rem; margin-top: 2px;">
+            <span class="badge badge-amber">意向客户</span>
+            <span style="font-size:12px;color:var(--text-muted);">客户 · 信息技术</span>
+          </div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-detail')">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- 标签栏 -->
+      <div style="display: flex; gap: .375rem; margin-bottom: 1.25rem;">
+        <button style="padding: .375rem .75rem; font-size: 13px; border-radius: 6px; border: none; background: var(--amber-100); color: var(--amber-700); font-weight: 500; cursor: pointer;">概览</button>
+        <button style="padding: .375rem .75rem; font-size: 13px; border-radius: 6px; border: none; background: transparent; color: var(--text-sub); cursor: pointer;">跟进记录</button>
+        <button style="padding: .375rem .75rem; font-size: 13px; border-radius: 6px; border: none; background: transparent; color: var(--text-sub); cursor: pointer;">合同</button>
+        <button style="padding: .375rem .75rem; font-size: 13px; border-radius: 6px; border: none; background: transparent; color: var(--text-sub); cursor: pointer;">附件</button>
+      </div>
+
+      <!-- 概览信息 -->
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-label">客户名称</div>
+          <div class="detail-value">深圳创新科技有限公司</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">行业</div>
+          <div class="detail-value">信息技术</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">注册地址</div>
+          <div class="detail-value">深圳市南山区科技园南路 88 号</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">办公地址</div>
+          <div class="detail-value">深圳市南山区科技园南路 88 号 A 栋 12F</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">负责人</div>
+          <div class="detail-value">张经理</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">创建时间</div>
+          <div class="detail-value">2026-03-15</div>
+        </div>
+        <div class="detail-item" style="grid-column: 1 / -1;">
+          <div class="detail-label">备注</div>
+          <div class="detail-value">对方年初启动了数字化升级项目，预算充足，需要持续跟进。</div>
+        </div>
+      </div>
+
+      <!-- 联系人子表 -->
+      <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--warm-line-light);">
+        <div style="font-size: 13px; font-weight: 500; color: var(--text-main); margin-bottom: .75rem;">联系人</div>
+        <div style="display: flex; flex-direction: column; gap: .5rem;">
+          <div style="display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border-radius: 8px; border: 1px solid var(--warm-line-light);">
+            <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">李</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">李明</div>
+              <div style="font-size:12px;color:var(--text-muted);">技术总监 · 138****6789</div>
+            </div>
+            <span class="badge badge-amber">主联系人</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border-radius: 8px; border: 1px solid var(--warm-line-light);">
+            <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">王</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;">王芳</div>
+              <div style="font-size:12px;color:var(--text-muted);">采购经理 · wang@example.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" style="margin-right: auto;">转交负责人</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-detail')">关闭</button>
+      <button class="btn btn-primary">编辑信息</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 6. 全屏弹窗 ════════════════ -->
+<div class="fullscreen-modal" id="modal-fullscreen" style="display:none;">
+  <div class="fullscreen-toolbar">
+    <div style="display: flex; align-items: center; gap: .75rem;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-fullscreen')">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m12 19-7-7 7-7m-7 7h14"/></svg>
+        返回合同详情
+      </button>
+      <span style="font-size: 14px; font-weight: 500;">合同签署 — C2026-00158</span>
+      <span class="badge badge-amber">待我签署</span>
+    </div>
+    <div style="display: flex; gap: .5rem;">
+      <button class="btn btn-ghost btn-sm">预览</button>
+      <button class="btn btn-primary btn-sm">确认签署</button>
+    </div>
+  </div>
+  <div class="fullscreen-body">
+    <!-- 左侧：PDF 预览区 -->
+    <div class="fullscreen-main">
+      <div class="a4-paper">
+        <div style="text-align: center; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e5e5;">
+          <h3 style="font-size: 20px; font-weight: 500; letter-spacing: 2px;">技术服务合同</h3>
+          <p style="font-size: 12px; color: #999; margin-top: .5rem;">合同编号：C2026-00158</p>
+        </div>
+
+        <div style="margin-top: 1.5rem; font-size: 13px; line-height: 2.2;">
+          <p><span style="font-weight: 500;">甲方（委托方）：</span>深圳创新科技有限公司</p>
+          <p><span style="font-weight: 500;">乙方（服务方）：</span>云智科技有限公司</p>
+          <p style="margin-top: 1rem;">甲乙双方在平等、自愿的基础上，经协商一致，达成如下协议：</p>
+
+          <p style="font-weight: 500; margin-top: 1.25rem;">第一条 服务内容与范围</p>
+          <p>1.1 乙方根据本合同约定，向甲方提供企业级 SaaS 平台技术开发与运维服务。</p>
+          <p>1.2 服务范围包括：平台架构设计、核心功能开发、系统集成对接、日常运维保障及技术支持。</p>
+
+          <p style="font-weight: 500; margin-top: 1rem;">第二条 服务期限</p>
+          <p>2.1 服务期限自 2026 年 4 月 1 日起至 2027 年 3 月 31 日止，共计 12 个月。</p>
+          <p>2.2 乙方应于合同生效后 45 个工作日内完成第一阶段功能交付，交付标准详见附件一。</p>
+
+          <p style="font-weight: 500; margin-top: 1rem;">第三条 费用与结算</p>
+          <p>3.1 合同总金额为人民币 1,200,000 元（壹佰贰拾万元整），含税。</p>
+          <p>3.2 分四期支付：签约后 7 个工作日内支付 30%、第一阶段完成支付 30%、终验通过支付 35%、质保期满支付 5%。</p>
+          <p>3.3 甲方应于收到乙方开具的增值税专用发票后 15 个工作日内完成支付。</p>
+
+          <p style="font-weight: 500; margin-top: 1rem;">第四条 保密条款</p>
+          <p>4.1 双方对于因履行本合同而知悉的对方商业秘密及其他未公开信息负有保密义务，未经对方书面同意，不得向第三方披露。</p>
+        </div>
+
+        <div class="a4-page-num">— 1 / 8 —</div>
+      </div>
+    </div>
+
+    <!-- 右侧：签署面板 -->
+    <div class="fullscreen-sidebar">
+      <h3 style="font-size: 15px; font-weight: 500; margin-bottom: 1rem;">签署信息</h3>
+
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: .375rem;">签署方</div>
+        <div style="display: flex; flex-direction: column; gap: .5rem;">
+          <div style="display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border-radius: 8px; border: 1px solid var(--warm-line);">
+            <div class="user-avatar" style="width:28px;height:28px;font-size:11px;background:var(--success-bg);color:var(--success);">甲</div>
+            <div style="font-size: 13px;">深圳创新科技有限公司</div>
+            <span class="badge" style="background:var(--success-bg);color:var(--success);margin-left:auto;">已签</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border-radius: 8px; border: 1px solid var(--amber-300); background: var(--amber-50);">
+            <div class="user-avatar" style="width:28px;height:28px;font-size:11px;">乙</div>
+            <div style="font-size: 13px;">云智科技有限公司</div>
+            <span class="badge badge-amber" style="margin-left:auto;">待签署</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: .375rem;">签名方式</div>
+        <div style="display: flex; gap: .5rem;">
+          <button style="flex:1;padding:.5rem;font-size:13px;border-radius:8px;border:1px solid var(--amber-400);background:var(--amber-50);color:var(--amber-700);font-weight:500;cursor:pointer;">手写签名</button>
+          <button style="flex:1;padding:.5rem;font-size:13px;border-radius:8px;border:1px solid var(--warm-line);background:transparent;color:var(--text-sub);cursor:pointer;">上传章</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: .375rem;">手写区</div>
+        <div style="border: 2px dashed var(--warm-line); border-radius: 8px; height: 120px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 13px; background: rgba(241,239,232,.5);">
+          在此区域签名
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ 7. 选择弹窗 ════════════════ -->
+<div class="overlay" id="modal-select">
+  <div class="modal" style="width: 560px;">
+    <div class="modal-header">
+      <div style="display: flex; align-items: baseline;">
+        <h2>转交客户</h2>
+        <span class="subtitle">选一位同事接手</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-select')">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- 已选提示 -->
+      <div style="padding: .5rem .75rem; background: var(--amber-50); border-radius: 8px; font-size: 13px; color: var(--amber-700); margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+        将转交 <strong>2 个客户</strong> 给选中的同事
+      </div>
+
+      <!-- 搜索 -->
+      <div class="search-input-wrap">
+        <span class="search-icon" style="display:flex;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input type="text" placeholder="搜索同事姓名..." />
+      </div>
+
+      <!-- 用户列表 -->
+      <div style="max-height: 240px; overflow-y: auto;">
+        <div class="user-list-item selected" onclick="this.classList.toggle('selected')">
+          <div class="user-avatar">张</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;">张经理</div>
+            <div style="font-size:12px;color:var(--text-muted);">销售负责人</div>
+          </div>
+          <div style="width:20px;height:20px;border-radius:50%;background:var(--amber-500);display:flex;align-items:center;justify-content:center;color:#fff;">
+            <svg class="icon" style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+        </div>
+        <div class="user-list-item" onclick="this.classList.toggle('selected')">
+          <div class="user-avatar" style="background:#FDE2AB;color:#8C580A;">李</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;">李明</div>
+            <div style="font-size:12px;color:var(--text-muted);">销售经理</div>
+          </div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--warm-line);"></div>
+        </div>
+        <div class="user-list-item" onclick="this.classList.toggle('selected')">
+          <div class="user-avatar" style="background:#FDE2AB;color:#8C580A;">王</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;">王销售</div>
+            <div style="font-size:12px;color:var(--text-muted);">销售专员</div>
+          </div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--warm-line);"></div>
+        </div>
+        <div class="user-list-item" onclick="this.classList.toggle('selected')">
+          <div class="user-avatar" style="background:#FDE2AB;color:#8C580A;">赵</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;">赵主管</div>
+            <div style="font-size:12px;color:var(--text-muted);">销售主管</div>
+          </div>
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--warm-line);"></div>
+        </div>
+      </div>
+
+      <!-- 转交原因 -->
+      <input class="reason-input" type="text" placeholder="转交原因（选填，接手同事可以看到）" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-select')">算了</button>
+      <button class="btn btn-primary">确认转交</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+    if (id === 'modal-fullscreen') document.getElementById(id).style.display = 'flex';
+    // 自动聚焦第一个输入框
+    setTimeout(() => {
+      const input = document.getElementById(id).querySelector('input');
+      if (input) input.focus();
+    }, 150);
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+    if (id === 'modal-fullscreen') document.getElementById(id).style.display = 'none';
+  }
+  // 点击遮罩关闭
+  document.querySelectorAll('.overlay').forEach(o => {
+    o.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('active');
+    });
+  });
+  // ESC 关闭
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.overlay.active').forEach(o => o.classList.remove('active'));
+      const fs = document.getElementById('modal-fullscreen');
+      if (fs.style.display === 'flex') fs.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>

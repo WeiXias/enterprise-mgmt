@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '分包合同', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '分包合同', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -24,7 +24,7 @@ const deleteTarget = ref<any>(null)
 const deleteLoading = ref(false)
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: '草稿', color: 'bg-stone-100 text-stone-600' },
+  draft: { label: '草稿', color: 'bg-gray-100 text-gray-600' },
   approved: { label: '已审批', color: 'bg-blue-50 text-blue-600' },
   in_progress: { label: '进行中', color: 'bg-teal-50 text-teal-700' },
   completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
@@ -102,8 +102,8 @@ onMounted(() => { fetchItems(); fetchParties() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">分包合同</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理分包合作方的合同</p>
+        <h1 class="text-lg font-medium text-gray-800">分包合同</h1>
+        <p class="text-sm text-gray-400 mt-0.5">管理分包合作方的合同</p>
       </div>
       <div class="flex items-center gap-2">
         <NuxtLink to="/dashboard/contracts/subcontract-parties">
@@ -115,7 +115,7 @@ onMounted(() => { fetchItems(); fetchParties() })
 
     <!-- 筛选 -->
     <div class="flex items-center gap-3 mb-4">
-      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="page = 1; fetchItems()">
+      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white" @change="page = 1; fetchItems()">
         <option value="">全部状态</option>
         <option value="draft">草稿</option>
         <option value="approved">已审批</option>
@@ -123,21 +123,21 @@ onMounted(() => { fetchItems(); fetchParties() })
         <option value="completed">已完成</option>
         <option value="terminated">已终止</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 条</span>
+      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-stone-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-stone-400">还没有分包合同，新建一个？</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-gray-400">还没有分包合同，新建一个？</div>
     <div v-else class="space-y-2">
       <NuxtLink v-for="item in items" :key="item.id" :to="`/dashboard/contracts/subcontracts/${item.id}`" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-700">{{ item.name }}</span>
-            <span class="text-xs text-stone-400">{{ item.code }}</span>
+            <span class="text-sm font-medium text-gray-700">{{ item.name }}</span>
+            <span class="text-xs text-gray-400">{{ item.code }}</span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[item.status]?.color || '']">{{ statusConfig[item.status]?.label || item.status }}</span>
           </div>
-          <div class="flex items-center gap-4 text-xs text-stone-400">
+          <div class="flex items-center gap-4 text-xs text-gray-400">
             <span v-if="item.subcontractPartyName">分包方：{{ item.subcontractPartyName }}</span>
             <span>{{ formatMoney(item.totalAmount) }}</span>
             <span v-if="item.taxRate">税率 {{ Number(item.taxRate) * 100 }}%</span>
@@ -152,7 +152,7 @@ onMounted(() => { fetchItems(); fetchParties() })
     </div>
 
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-stone-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1">
         <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上一页</UButton>
         <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下一页</UButton>
@@ -165,26 +165,26 @@ onMounted(() => { fetchItems(); fetchParties() })
       <template #body>
         <form class="space-y-3" @submit.prevent="handleSave">
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="分包合同名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">编码</label><input v-model="form.code" type="text" placeholder="自动生成" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="分包合同名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">编码</label><input v-model="form.code" type="text" placeholder="自动生成" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">分包方</label>
-            <select v-model="form.subcontractPartyId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
+            <label class="block text-sm text-gray-600 mb-1">分包方</label>
+            <select v-model="form.subcontractPartyId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
               <option value="">选择分包方</option>
               <option v-for="p in partyOptions" :key="p.id" :value="p.id">{{ p.name }}</option>
             </select>
           </div>
           <div class="grid grid-cols-3 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">金额</label><input v-model.number="form.totalAmount" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">税率</label><input v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.06 = 6%" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">状态</label><select v-model="form.status" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="draft">草稿</option><option value="in_progress">进行中</option><option value="completed">已完成</option></select></div>
+            <div><label class="block text-sm text-gray-600 mb-1">金额</label><input v-model.number="form.totalAmount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">税率</label><input v-model.number="form.taxRate" type="number" step="0.01" placeholder="0.06 = 6%" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">状态</label><select v-model="form.status" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="draft">草稿</option><option value="in_progress">进行中</option><option value="completed">已完成</option></select></div>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">开始日期</label><input v-model="form.startDate" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">结束日期</label><input v-model="form.endDate" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">开始日期</label><input v-model="form.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
+            <div><label class="block text-sm text-gray-600 mb-1">结束日期</label><input v-model="form.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
           </div>
-          <div><label class="block text-sm text-stone-600 mb-1">备注</label><textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
+          <div><label class="block text-sm text-gray-600 mb-1">备注</label><textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
         </form>
       </template>
       <template #footer>

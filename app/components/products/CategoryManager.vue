@@ -98,22 +98,22 @@ onMounted(() => fetchCategories())
 <template>
   <div>
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-medium text-stone-700">产品分类</h3>
+      <h3 class="text-sm font-medium text-gray-700">产品分类</h3>
       <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="openCreate">添加分类</UButton>
     </div>
 
-    <div v-if="loading" class="text-xs text-stone-400 py-2">加载中...</div>
-    <div v-else-if="categories.length === 0" class="text-xs text-stone-400 py-2">还没有分类</div>
+    <div v-if="loading" class="text-xs text-gray-400 py-2">加载中...</div>
+    <div v-else-if="categories.length === 0" class="text-xs text-gray-400 py-2">还没有分类</div>
     <div v-else class="space-y-0.5">
       <div
         v-for="cat in categories"
         :key="cat.id"
-        class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-stone-50 transition-colors group"
+        class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group"
       >
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-folder" class="w-4 h-4 text-stone-400" />
-          <span class="text-sm text-stone-700">{{ cat.name }}</span>
-          <span class="text-[10px] text-stone-400">{{ cat.productCount || 0 }} 个产品</span>
+          <UIcon name="i-lucide-folder" class="w-4 h-4 text-gray-400" />
+          <span class="text-sm text-gray-700">{{ cat.name }}</span>
+          <span class="text-[10px] text-gray-400">{{ cat.productCount || 0 }} 个产品</span>
         </div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(cat)" />
@@ -128,12 +128,12 @@ onMounted(() => fetchCategories())
       <template #body>
         <div class="space-y-3">
           <div>
-            <label class="block text-sm text-stone-600 mb-1">名称</label>
-            <input v-model="form.name" type="text" placeholder="分类名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">名称</label>
+            <input v-model="form.name" type="text" placeholder="分类名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">排序</label>
-            <input v-model.number="form.sort" type="number" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+            <label class="block text-sm text-gray-600 mb-1">排序</label>
+            <input v-model.number="form.sort" type="number" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
           </div>
         </div>
       </template>
@@ -149,7 +149,7 @@ onMounted(() => fetchCategories())
     <UModal v-model:open="showDeleteModal">
       <template #header>确认删除</template>
       <template #body>
-        <p class="text-sm text-stone-600">确定要删除分类「{{ deleteTarget?.name }}」吗？</p>
+        <p class="text-sm text-gray-600">确定要删除分类「{{ deleteTarget?.name }}」吗？</p>
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">

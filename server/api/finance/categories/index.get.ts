@@ -4,8 +4,8 @@ import { financeCategories } from '#schema'
 
 export default defineEventHandler(async () => {
   const rows = await db.select().from(financeCategories).orderBy(financeCategories.sort)
-  const income = rows.filter(r => r.type === 'income')
-  const expense = rows.filter(r => r.type === 'expense')
+  const income = rows.filter((r: any) => r.type === 'income')
+  const expense = rows.filter((r: any) => r.type === 'expense')
 
   // Seed defaults if empty
   if (rows.length === 0) {
