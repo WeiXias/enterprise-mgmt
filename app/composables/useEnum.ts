@@ -8,7 +8,9 @@ async function fetchEnums(): Promise<EnumData> {
   if (enumCache) return enumCache
   if (pendingPromise) return pendingPromise
 
-  pendingPromise = $fetch('/api/enums').then((res: any) => {
+  pendingPromise = $fetch('/api/enums', {
+    headers: useAuthHeaders(),
+  }).then((res: any) => {
     if (res?.code !== 0) throw new Error(res?.message || '获取枚举失败')
     enumCache = res.data as EnumData
     return enumCache!
@@ -26,7 +28,9 @@ async function fetchDict(type: string): Promise<{ label: string; value: string }
   if (dictCaches[type]) return dictCaches[type]!
 
   try {
-    const res = await $fetch(`/api/dict/${type}`) as any
+    const res = await $fetch(`/api/dict/${type}`, {
+      headers: useAuthHeaders(),
+    }) as any
     if (res?.code === 0) {
       dictCaches[type] = (res.data || []).map((item: any) => ({
         value: item.value,
