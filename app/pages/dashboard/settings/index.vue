@@ -74,8 +74,8 @@ async function loadEnumData() {
 async function selectDictType(key: string) {
   selectedDictType.value = key
   const cat = currentDictTypeCategory.value
-  if (cat === '业务字典') {
-    // 从 DB 加载
+  if (cat !== '状态枚举') {
+    // 从 DB 加载（业务字典 + 财务）
     try {
       const res = await $api(`/api/dict/${key}`) as any
       if (res?.code === 0) {
@@ -159,7 +159,8 @@ async function saveCurrentDict() {
   dictSaveLoading.value = true
   try {
     const cat = currentDictTypeCategory.value
-    if (cat === '业务字典') {
+    if (cat !== '状态枚举') {
+      // 业务字典 + 财务
       const items = currentDictItems.value.map((item, idx) => ({
         id: item.id,
         value: item.value,
@@ -1377,14 +1378,14 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
                 >
                   {{ item.label }}
                 </span>
-                <UIcon v-if="currentDictTypeCategory === '业务字典'"
+                <UIcon v-if="currentDictTypeCategory !== '状态枚举'"
                   name="i-lucide-x"
                   class="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 cursor-pointer shrink-0 hover:text-red-400"
                   @click="removeDictItem(idx)"
                 />
               </div>
               <!-- 添加按钮（仅业务字典） -->
-              <button v-if="currentDictTypeCategory === '业务字典'"
+              <button v-if="currentDictTypeCategory !== '状态枚举'"
                 class="px-2.5 py-1 rounded-lg text-xs border border-dashed border-stone-300 text-stone-400 hover:border-amber-400 hover:text-amber-600 transition-colors flex items-center gap-1"
                 @click="addDictItem()"
               >
