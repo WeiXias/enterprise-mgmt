@@ -8,6 +8,8 @@ const { $api } = useNuxtApp()
 const oppId = route.params.id as string
 
 const opp = ref<any>(null)
+const nowRef = ref(new Date().toLocaleString("zh-CN"))
+onMounted(() => { nowRef.value = new Date().toLocaleString("zh-CN") })
 const loading = ref(true)
 
 // 编辑弹窗
@@ -838,7 +840,7 @@ onMounted(() => {
       </template>
       <template #footer>
         <div class="flex justify-between items-center w-full">
-          <span class="text-xs text-[var(--color-content-muted)]">生成时间：{{ new Date().toLocaleString('zh-CN') }}</span>
+          <span class="text-xs text-[var(--color-content-muted)]">生成时间：{{ nowRef }}</span>
           <div class="flex gap-2">
             <UButton v-if="previewQuote?.pdfUrl" variant="outline" color="neutral" size="sm" icon="i-lucide-download" @click="openPdf(previewQuote.pdfUrl)">下载 PDF</UButton>
             <UButton variant="outline" color="neutral" size="sm" icon="i-lucide-printer" @click="handlePrint">打印</UButton>
