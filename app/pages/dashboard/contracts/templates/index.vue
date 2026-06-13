@@ -26,7 +26,6 @@ const form = ref({
 const editorContent = ref('')
 
 // 产品清单
-const allProducts = ref<any[]>([])
 const productItems = ref<{ productId: string; quantity: number; unitPrice: number }[]>([])
 
 // AI 编写
@@ -47,20 +46,12 @@ async function fetchTemplates() {
   finally { loading.value = false }
 }
 
-async function fetchProducts() {
-  try {
-    const res = await $api('/api/products', { params: { pageSize: 500 } }) as any
-    if (res?.code === 0) allProducts.value = res.data?.items || res.data || []
-  } catch { /* ignore */ }
-}
-
 function openCreate() {
   editMode.value = 'create'
   editId.value = ''
   form.value = { name: '', description: '', category: 'service', sortOrder: 0 }
   editorContent.value = ''
   productItems.value = []
-  if (allProducts.value.length === 0) fetchProducts()
   showModal.value = true
 }
 
@@ -70,7 +61,6 @@ function openEdit(t: any) {
   form.value = { name: t.name, description: t.description || '', category: t.category, sortOrder: t.sortOrder || 0 }
   editorContent.value = t.content || ''
   try { productItems.value = JSON.parse(t.productItems || '[]') } catch { productItems.value = [] }
-  if (allProducts.value.length === 0) fetchProducts()
   showModal.value = true
 }
 
@@ -80,10 +70,6 @@ function addProductRow() {
 
 function removeProductRow(index: number) {
   productItems.value.splice(index, 1)
-}
-
-function getProductName(productId: string): string {
-  return allProducts.value.find(p => p.id === productId)?.name || '未选择'
 }
 
 function getProductSubtotal(item: { quantity: number; unitPrice: number }): number {
@@ -318,10 +304,7 @@ onMounted(fetchTemplates)
                 v-for="(item, i) in productItems" :key="i"
                 class="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2"
               >
-                <select v-model="item.productId" class="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400">
-                  <option value="">选择产品...</option>
-                  <option v-for="p in allProducts" :key="p.id" :value="p.id">{{ p.name }} ({{ p.code }})</option>
-                </select>
+                <ProductSelect v-model="item.productId" class="flex-1" />
                 <div class="flex items-center gap-1">
                   <span class="text-xs text-gray-400">数量</span>
                   <input v-model.number="item.quantity" type="number" min="1" class="w-16 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-center" />
