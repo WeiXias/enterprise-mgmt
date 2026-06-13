@@ -30,7 +30,8 @@ const emit = defineEmits<{
   submit: []
 }>()
 
-const SOURCE_OPTIONS = ['主动联系', '客户介绍', '展会', '网络推广', '电话营销', '其他']
+const { getOptions } = useEnum()
+const SOURCE_OPTIONS = computed(() => getOptions('opportunity_source').map((o: any) => o.label))
 </script>
 
 <template>

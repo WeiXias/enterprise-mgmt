@@ -5,53 +5,203 @@ const toast = useToast()
 const { $api } = useNuxtApp()
 const { getOptions, getLabel } = useEnum()
 
-// ---- 数据字典 ----
-const dictData = ref<Record<string, { label: string; value: string }[]>>({})
-const dictLoading = ref(false)
-async function loadDictData() {
-  dictLoading.value = true
+// ---- 字典管理（新版）----
+const dictSearch = ref('')
+const dictCategory = ref('')
+const selectedDictType = ref('')
+const currentDictItems = ref<{ id?: string; value: string; label: string; sort: number; isActive: boolean; _original?: string }[]>([])
+const hasDictChanges = ref(false)
+const dictSaveLoading = ref(false)
+const originalDictItems = ref<typeof currentDictItems.value>([])
+
+// 行内编辑
+const editingDictItemIdx = ref<number | null>(null)
+const editingDictItemValue = ref('')
+const editingDictItemLabel = ref('')
+
+// 字典类型分类（合并 DB 类型 + 代码枚举）
+const dictCategories = computed(() => {
+  const bizTypes = dictTypesList.value.map((t: any) => ({ key: t.key, label: t.label, category: t.category }))
+  const enumTypes = Object.keys(enumDictData.value).map(k => ({
+    key: k,
+    label: k,
+    category: '状态枚举',
+  }))
+  return [
+    { name: '业务字典', types: bizTypes.filter((t: any) => t.category === '业务字典') },
+    { name: '状态枚举', types: enumTypes },
+  ]
+})
+
+const currentDictTypeCategory = computed(() => {
+  const dt = dictTypesList.value.find((t: any) => t.key === selectedDictType.value)
+  return dt?.category || '状态枚举'
+})
+const selectedDictLabel = computed(() => {
+  const dt = dictTypesList.value.find((t: any) => t.key === selectedDictType.value)
+  return dt?.label || Object.keys(enumDictData.value).find(k => k === selectedDictType.value) || selectedDictType.value
+})
+
+const filteredDictTypes = computed(() => {
+  const all = dictCategories.value.flatMap(c => c.types)
+  const q = dictSearch.value.toLowerCase()
+  const cat = dictCategory.value
+  let filtered = all
+  if (cat) filtered = filtered.filter(t => t.category === cat)
+  if (q) filtered = filtered.filter(t => t.label.toLowerCase().includes(q) || t.key.toLowerCase().includes(q))
+  return filtered
+})
+
+// DB 字典数据
+const dictTypesList = ref<any[]>([])
+const enumDictData = ref<Record<string, { label: string; value: string }[]>>({})
+
+async function loadDictTypes() {
+  try {
+    const res = await $api('/api/dict/types') as any
+    if (res?.code === 0) dictTypesList.value = res.data
+  } catch { }
+}
+async function loadEnumData() {
   try {
     const res = await $api('/api/enums') as any
-    if (res?.code === 0) dictData.value = res.data
+    if (res?.code === 0) enumDictData.value = res.data
   } catch { }
-  finally { dictLoading.value = false }
 }
-loadDictData()
 
-// 数据字典行内编辑
-const editingDictKey = ref('')
-const editingDictLabel = ref('')
-function startDictEdit(enumType: string, value: string, currentLabel: string) {
-  editingDictKey.value = `${enumType}|${value}`
-  editingDictLabel.value = currentLabel
+// 选择字典类型
+async function selectDictType(key: string) {
+  selectedDictType.value = key
+  const cat = currentDictTypeCategory.value
+  if (cat === '业务字典') {
+    // 从 DB 加载
+    try {
+      const res = await $api(`/api/dict/${key}`) as any
+      if (res?.code === 0) {
+        currentDictItems.value = (res.data as any[]).map((item: any) => ({
+          ...item,
+          _original: JSON.stringify(item),
+        }))
+        originalDictItems.value = JSON.parse(JSON.stringify(currentDictItems.value))
+      }
+    } catch { }
+  } else {
+    // 从 enum API 加载
+    const options = enumDictData.value[key] || []
+    currentDictItems.value = options.map((opt, i) => ({
+      id: undefined,
+      value: opt.value,
+      label: opt.label,
+      sort: i,
+      isActive: true,
+      _original: JSON.stringify(opt),
+    }))
+    originalDictItems.value = JSON.parse(JSON.stringify(currentDictItems.value))
+  }
+  hasDictChanges.value = false
+}
+
+function toggleDictItem(item: any) {
+  if (currentDictTypeCategory.value === '状态枚举') {
+    item.isActive = !item.isActive
+  }
+  hasDictChanges.value = true
+}
+
+function addDictItem() {
+  editingDictItemIdx.value = -1  // -1 表示新增
+  editingDictItemValue.value = ''
+  editingDictItemLabel.value = ''
   nextTick(() => {
-    const input = document.querySelector('[data-dict-editing]') as HTMLInputElement
+    const input = document.querySelector('[data-dict-new-value]') as HTMLInputElement
     input?.focus()
-    input?.select()
   })
 }
-function cancelDictEdit() {
-  editingDictKey.value = ''
-  editingDictLabel.value = ''
+
+function removeDictItem(idx: number) {
+  currentDictItems.value.splice(idx, 1)
+  hasDictChanges.value = true
 }
-async function saveDictOverride(enumType: string, value: string) {
-  if (!editingDictLabel.value.trim()) { cancelDictEdit(); return }
-  try {
-    await $api('/api/system/config/dict_override', {
-      method: 'PUT',
-      body: { enumType, value, label: editingDictLabel.value.trim() },
+
+function saveDictItem() {
+  const val = editingDictItemValue.value.trim()
+  const lbl = editingDictItemLabel.value.trim()
+  if (!val || !lbl) { cancelDictItemEdit(); return }
+  if (editingDictItemIdx.value === -1) {
+    // 新增
+    currentDictItems.value.push({
+      value: val, label: lbl, sort: currentDictItems.value.length, isActive: true,
     })
-    // 更新本地数据
-    const options = dictData.value[enumType]
-    if (options) {
-      const opt = options.find((o: any) => o.value === value)
-      if (opt) opt.label = editingDictLabel.value.trim()
+  } else {
+    // 编辑
+    const item = currentDictItems.value[editingDictItemIdx.value]
+    if (item) {
+      item.value = val
+      item.label = lbl
     }
-    cancelDictEdit()
+  }
+  hasDictChanges.value = true
+  cancelDictItemEdit()
+}
+
+function cancelDictItemEdit() {
+  editingDictItemIdx.value = null
+  editingDictItemValue.value = ''
+  editingDictItemLabel.value = ''
+}
+
+async function saveCurrentDict() {
+  if (!selectedDictType.value) return
+  dictSaveLoading.value = true
+  try {
+    const cat = currentDictTypeCategory.value
+    if (cat === '业务字典') {
+      const items = currentDictItems.value.map((item, idx) => ({
+        id: item.id,
+        value: item.value,
+        label: item.label,
+        sort: idx,
+        isActive: item.isActive,
+      }))
+      const originalIds = new Set(originalDictItems.value.map((i: any) => i.id).filter(Boolean))
+      const currentIds = new Set(items.map(i => i.id).filter(Boolean))
+      const removedIds = [...originalIds].filter(id => !currentIds.has(id))
+      await $api(`/api/dict/${selectedDictType.value}`, { method: 'PUT', body: { items, removedIds } })
+      toast.add({ title: '字典已保存', color: 'success' })
+    } else {
+      // 状态枚举：只保存 label 覆写
+      const overrides: Record<string, string> = {}
+      for (const item of currentDictItems.value) {
+        const orig = originalDictItems.value.find((o: any) => o.value === item.value)
+        if (orig && orig.label !== item.label) {
+          overrides[item.value] = item.label
+        }
+      }
+      for (const [value, label] of Object.entries(overrides)) {
+        await $api('/api/system/config/dict_override', {
+          method: 'PUT',
+          body: { enumType: selectedDictType.value, value, label },
+        })
+      }
+      toast.add({ title: '标签已保存', color: 'success' })
+    }
+    // 刷新
+    await selectDictType(selectedDictType.value)
+    await loadEnumData()
   } catch (err: any) {
     toast.add({ title: err?.data?.message || '保存失败', color: 'error' })
+  } finally {
+    dictSaveLoading.value = false
   }
 }
+
+async function loadDictItems() {
+  if (selectedDictType.value) await selectDictType(selectedDictType.value)
+}
+
+// 初始化
+loadDictTypes()
+loadEnumData()
 
 const activeTab = ref('basic')
 const config = ref<Record<string, string>>({})
@@ -1171,39 +1321,87 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </div>
     </div>
 
-    <!-- ==================== 数据字典 ==================== -->
+    <!-- ==================== 字典管理 ==================== -->
     <div v-show="activeTab === 'datadict'">
-      <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-1">数据字典</h3>
-        <p class="text-xs text-stone-400 mb-4">点击标签编辑，回车保存。</p>
+      <!-- 搜索 + 分类筛选 -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="relative flex-1 max-w-xs">
+          <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+          <input v-model="dictSearch" type="text" placeholder="搜索字典或选项..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+        </div>
+        <select v-model="dictCategory" class="h-9 px-3 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:border-amber-400">
+          <option value="">全部分类</option>
+          <option value="业务字典">业务字典</option>
+          <option value="状态枚举">状态枚举</option>
+        </select>
+        <span class="text-xs text-stone-400">共 {{ filteredDictTypes.length }} 组</span>
+      </div>
 
-        <div v-if="dictLoading" class="text-xs text-stone-400 py-8 text-center">加载中...</div>
+      <div class="flex gap-4">
+        <!-- 左侧：字典类型列表 -->
+        <nav class="w-48 shrink-0 border-r border-stone-100 pr-2 max-h-[60vh] overflow-y-auto">
+          <template v-for="cat in dictCategories" :key="cat.name">
+            <p class="text-[10px] font-medium text-stone-400 uppercase tracking-wide px-2 py-1.5">{{ cat.name }}</p>
+            <button
+              v-for="dt in cat.types"
+              :key="dt.key"
+              class="w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors mb-0.5"
+              :class="selectedDictType === dt.key ? 'bg-amber-50 text-amber-700 font-medium' : 'text-stone-500 hover:bg-stone-50'"
+              @click="selectDictType(dt.key)"
+            >
+              {{ dt.label }}
+            </button>
+          </template>
+        </nav>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="(options, name) in dictData" :key="name" class="rounded-lg border border-stone-200 bg-stone-50/50 p-3">
-            <h4 class="text-xs font-medium text-stone-600 mb-2">{{ name }}</h4>
-            <div class="space-y-1">
-              <div v-for="opt in options" :key="opt.value" class="flex items-center gap-2 text-xs group">
-                <code class="text-[11px] px-1.5 py-0.5 rounded bg-stone-200 text-stone-600 font-mono shrink-0">{{ opt.value }}</code>
-                <!-- 行内编辑 -->
-                <template v-if="editingDictKey === name + '|' + opt.value">
-                  <input
-                    v-model="editingDictLabel"
-                    data-dict-editing
-                    type="text"
-                    class="flex-1 px-1.5 py-0.5 text-xs rounded border border-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    @keydown.enter="saveDictOverride(name, opt.value)"
-                    @keydown.escape="cancelDictEdit()"
-                    @blur="saveDictOverride(name, opt.value)"
-                  />
-                </template>
-                <template v-else>
-                  <span class="text-stone-500 cursor-pointer hover:text-amber-700" @click="startDictEdit(name, opt.value, opt.label)">{{ opt.label }}</span>
-                  <UIcon name="i-lucide-pen-line" class="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 cursor-pointer shrink-0" @click="startDictEdit(name, opt.value, opt.label)" />
-                </template>
-              </div>
+        <!-- 右侧：字典内容编辑 -->
+        <div class="flex-1 min-w-0">
+          <div v-if="!selectedDictType" class="text-stone-400 text-xs py-12 text-center">从左边选一个字典开始管理</div>
+
+          <template v-else>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-medium text-stone-700">{{ selectedDictLabel }}</h3>
+              <span class="text-xs text-stone-400">{{ currentDictItems.length }} 项</span>
             </div>
-          </div>
+
+            <div class="flex flex-wrap gap-2 mb-4">
+              <div v-for="(item, idx) in currentDictItems" :key="item.id || idx" class="flex items-center gap-1.5 group">
+                <span
+                  :class="['px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer select-none border',
+                    item.isActive === false ? 'bg-stone-100 text-stone-400 border-stone-200 line-through' : 'bg-brand-50 text-brand-700 border-brand-100 hover:shadow-sm']"
+                  @click="toggleDictItem(item)"
+                >
+                  {{ item.label }}
+                </span>
+                <UIcon v-if="currentDictTypeCategory === '业务字典'"
+                  name="i-lucide-x"
+                  class="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 cursor-pointer shrink-0 hover:text-red-400"
+                  @click="removeDictItem(idx)"
+                />
+              </div>
+              <!-- 添加按钮（仅业务字典） -->
+              <button v-if="currentDictTypeCategory === '业务字典'"
+                class="px-2.5 py-1 rounded-lg text-xs border border-dashed border-stone-300 text-stone-400 hover:border-amber-400 hover:text-amber-600 transition-colors flex items-center gap-1"
+                @click="addDictItem()"
+              >
+                <UIcon name="i-lucide-plus" class="w-3 h-3" /> 添加
+              </button>
+            </div>
+
+            <!-- 行内添加/编辑表单 -->
+            <div v-if="editingDictItemIdx !== null" class="flex items-center gap-2 mb-4">
+              <input v-model="editingDictItemValue" type="text" placeholder="英文标识" class="w-32 px-2.5 h-8 text-xs rounded border border-stone-200 focus:outline-none focus:border-amber-400 font-mono" />
+              <input v-model="editingDictItemLabel" type="text" placeholder="中文标签" class="flex-1 px-2.5 h-8 text-xs rounded border border-stone-200 focus:outline-none focus:border-amber-400" @keydown.enter="saveDictItem()" @keydown.escape="cancelDictItemEdit()" />
+              <UButton size="xs" color="primary" @click="saveDictItem()">确定</UButton>
+              <UButton size="xs" variant="ghost" color="neutral" @click="cancelDictItemEdit()">取消</UButton>
+            </div>
+
+            <div class="flex items-center gap-2 pt-3 border-t border-stone-100">
+              <UButton size="xs" color="primary" :loading="dictSaveLoading" @click="saveCurrentDict()">保存变更</UButton>
+              <UButton size="xs" variant="ghost" color="neutral" @click="loadDictItems()">放弃</UButton>
+              <span class="text-[10px] text-stone-400 ml-auto">{{ hasDictChanges ? '有未保存的变更' : '' }}</span>
+            </div>
+          </template>
         </div>
       </div>
     </div>

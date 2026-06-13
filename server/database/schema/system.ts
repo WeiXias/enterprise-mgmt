@@ -28,3 +28,15 @@ export const backups = sqliteTable('backups', {
   createdBy: text('created_by'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
 })
+
+// 数据字典条目表 — 统一管理业务分类数据
+export const dictEntries = sqliteTable('dict_entries', {
+  id: text('id').primaryKey(),
+  dict_type: text('dict_type').notNull(),
+  value: text('value').notNull(),
+  label: text('label').notNull(),
+  sort: text('sort').notNull().default('0'),
+  is_active: text('is_active').notNull().default('1'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
+})
