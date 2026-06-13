@@ -102,7 +102,7 @@ onMounted(() => { fetchReports() })
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800">{{ r.name }}</span>
-            <span class="text-xs text-gray-400">{{ getLabel('ReportSource',r.sourceType] || r.sourceType }}</span>
+            <span class="text-xs text-gray-400">{{ getLabel('ReportSource', r.sourceType) || r.sourceType }}</span>
           </div>
           <div class="text-xs text-gray-400">{{ r.description }}</div>
         </div>
@@ -126,7 +126,7 @@ onMounted(() => { fetchReports() })
             <label class="block text-sm text-gray-600 mb-1">数据源</label>
             <select v-model="builderForm.sourceType" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
               <option value="">选择数据源</option>
-              <option v-for="(ds, key) in datasources" :key="key" :value="key">{{ getLabel('ReportSource',key] || key }}</option>
+              <option v-for="(ds, key) in datasources" :key="key" :value="key">{{ getLabel('ReportSource', key) || key }}</option>
             </select>
           </div>
           <div v-if="builderForm.sourceType && datasources[builderForm.sourceType]" class="space-y-1">
