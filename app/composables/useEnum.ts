@@ -30,11 +30,10 @@ async function fetchDict(type: string): Promise<{ label: string; value: string }
       headers: useAuthHeaders(),
     }) as any
     if (res?.code === 0) {
-      dictCaches[type] = (res.data || []).map((item: any) => ({
+      return (res.data || []).map((item: any) => ({
         value: item.value,
         label: item.label,
       }))
-      return dictCaches[type]!
     }
   } catch { /* 未登录或不存在的字典类型 */ }
 
