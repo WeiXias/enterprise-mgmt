@@ -650,7 +650,7 @@ async function handleLogoChange(e: Event) {
       headers: { Authorization: `Bearer ${authStore.accessToken}` },
     }) as any
     if (res?.code === 0) {
-      config.value.company_logo = '/api/files/logo?token=' + authStore.accessToken + '&t=' + Date.now()
+      config.value.company_logo = '/api/files/logo?token=' + authStore.accessToken + '&t=' + Math.floor(Date.now() / 60000)
       toast.add({ title: 'Logo 已上传，预览已更新', color: 'success' })
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '上传失败', color: 'error' }) }
