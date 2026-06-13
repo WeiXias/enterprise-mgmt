@@ -35,8 +35,14 @@ const emit = defineEmits<{
 const { fetchDictOptions } = useEnum()
 const industryOptions = ref<string[]>([])
 onMounted(async () => {
-  const opts = await fetchDictOptions('industry')
-  industryOptions.value = opts.map(o => o.label)
+  try {
+    const res = await $fetch('/api/dict/industry', {
+      headers: useAuthHeaders(),
+    }) as any
+    if (res?.code === 0) {
+      industryOptions.value = (res.data || []).map((o: any) => o.label)
+    }
+  } catch {}
 })
 
 const statusOptions = [

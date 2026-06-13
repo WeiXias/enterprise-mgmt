@@ -30,11 +30,16 @@ const emit = defineEmits<{
   submit: []
 }>()
 
-const { fetchDictOptions } = useEnum()
 const SOURCE_OPTIONS = ref<string[]>([])
 onMounted(async () => {
-  const opts = await fetchDictOptions('opportunity_source')
-  SOURCE_OPTIONS.value = opts.map(o => o.label)
+  try {
+    const res = await $fetch('/api/dict/opportunity_source', {
+      headers: useAuthHeaders(),
+    }) as any
+    if (res?.code === 0) {
+      SOURCE_OPTIONS.value = (res.data || []).map((o: any) => o.label)
+    }
+  } catch {}
 })
 </script>
 
