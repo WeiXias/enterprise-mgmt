@@ -74,8 +74,13 @@ const followUpLoading = ref(false)
 const followUpForm = ref({ type: 'phone', content: '', nextFollowUpAt: '' })
 
 // 行业选项
-const industryOptions = ['信息技术', '软件开发', '人工智能', '网络安全', '电子商务', '制造业', '金融', '教育', '医疗', '房地产', '物流', '其他']
-
+const industryOptions = ref<string[]>([])
+async function fetchDictIndustry() {
+  try {
+    const res = await $fetch('/api/dict/industry', { headers: useAuthHeaders() }) as any
+    if (res?.code === 0) industryOptions.value = (res.data || []).map((o: any) => o.label)
+  } catch {}
+}
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
   potential: { label: '潜在客户', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400' },
@@ -216,6 +221,7 @@ async function handleSaveTags() {
 
 onMounted(() => {
   fetchCustomer()
+  fetchDictIndustry()
 })
 </script>
 

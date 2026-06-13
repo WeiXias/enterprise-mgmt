@@ -66,10 +66,13 @@ function handleExport() {
 }
 
 // 行业选项
-const industryOptions = [
-  '信息技术', '软件开发', '人工智能', '网络安全', '电子商务',
-  '制造业', '金融', '教育', '医疗', '房地产', '物流', '其他'
-]
+const industryOptions = ref<string[]>([])
+onMounted(async () => {
+  try {
+    const res = await $fetch("/api/dict/industry", { headers: useAuthHeaders() }) as any
+    if (res?.code === 0) industryOptions.value = (res.data || []).map((o: any) => o.label)
+  } catch {}
+})
 
 // 新增客户弹窗
 const showCreateModal = ref(false)
