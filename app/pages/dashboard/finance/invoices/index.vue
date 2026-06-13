@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '发票管理', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '发票管理', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -25,8 +25,7 @@ const batchVoidLoading = ref(false)
 const contractOptions = ref<any[]>([])
 const customerOptions = ref<any[]>([])
 
-const invoiceTypeLabels: Record<string, string> = { vat_special: '增值税专票', vat_normal: '增值税普票', electronic: '电子发票' }
-const invoiceStatusLabels: Record<string, string> = { pending: '待开票', issued: '已开票', voided: '已作废' }
+const { getLabel, getOptions } = useEnum()
 
 async function fetchItems() {
   loading.value = true
@@ -123,8 +122,8 @@ onMounted(() => { fetchItems(); fetchOptions() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-stone-800">发票管理</h1>
-        <p class="text-sm text-stone-400 mt-0.5">管理开票记录</p>
+        <h1 class="text-lg font-medium text-gray-800">发票管理</h1>
+        <p class="text-sm text-gray-400 mt-0.5">管理开票记录</p>
       </div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">新增发票</UButton>
       <UButton v-if="selectedForVoid.size > 0" icon="i-lucide-x-circle" color="error" variant="outline" size="sm" :loading="batchVoidLoading" @click="handleBatchVoid">
@@ -133,34 +132,34 @@ onMounted(() => { fetchItems(); fetchOptions() })
     </div>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
-      <input v-model="invoiceNoFilter" type="text" placeholder="搜发票号..." class="px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 max-w-[200px]" @input="page = 1; fetchItems()" />
-      <select v-model="statusFilter" class="px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="page = 1; fetchItems()">
+      <input v-model="invoiceNoFilter" type="text" placeholder="搜发票号..." class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 max-w-[200px]" @input="page = 1; fetchItems()" />
+      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white" @change="page = 1; fetchItems()">
         <option value="">全部状态</option>
         <option value="pending">待开票</option>
         <option value="issued">已开票</option>
         <option value="voided">已作废</option>
       </select>
-      <span class="text-xs text-stone-400">共 {{ total }} 条</span>
+      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-stone-400">加载中...</div>
-    <div v-else-if="!items.length" class="text-center py-12 text-stone-400">还没有发票</div>
+    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-else-if="!items.length" class="text-center py-12 text-gray-400">还没有发票</div>
     <div v-else class="space-y-2">
       <div v-for="inv in items" :key="inv.id" class="warm-card flex items-center gap-4">
-        <input v-if="inv.status !== 'voided'" type="checkbox" :checked="selectedForVoid.has(inv.id)" class="w-3.5 h-3.5 rounded border-stone-300 text-amber-500" @change="toggleVoidSelect(inv.id)" />
+        <input v-if="inv.status !== 'voided'" type="checkbox" :checked="selectedForVoid.has(inv.id)" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500" @change="toggleVoidSelect(inv.id)" />
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-stone-800">{{ inv.invoiceNo }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'issued' ? 'bg-teal-50 text-teal-700' : inv.status === 'voided' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-700']">
-              {{ invoiceStatusLabels[inv.status] || inv.status }}
+            <span class="text-sm font-medium text-gray-800">{{ inv.invoiceNo }}</span>
+            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'issued' ? 'bg-teal-50 text-teal-700' : inv.status === 'voided' ? 'bg-red-50 text-red-600' : 'bg-brand-50 text-brand-700']">
+              {{ getLabel('InvoiceStatus', inv.status) || inv.status }}
             </span>
           </div>
-          <div class="text-xs text-stone-400 flex flex-wrap gap-x-4 gap-y-0.5">
-            <span>{{ invoiceTypeLabels[inv.type] || inv.type }}</span>
+          <div class="text-xs text-gray-400 flex flex-wrap gap-x-4 gap-y-0.5">
+            <span>{{ getLabel('InvoiceType', inv.type) || inv.type }}</span>
             <span v-if="inv.contractName">{{ inv.contractName }}</span>
             <span v-if="inv.customerName">{{ inv.customerName }}</span>
             <span>金额 {{ formatMoney(inv.amount) }}</span>
-            <span v-if="inv.taxAmount" class="text-amber-600">税额 {{ formatMoney(inv.taxAmount) }}</span>
+            <span v-if="inv.taxAmount" class="text-brand-600">税额 {{ formatMoney(inv.taxAmount) }}</span>
             <span v-if="inv.issuedAt">{{ inv.issuedAt }}</span>
           </div>
         </div>
@@ -177,27 +176,27 @@ onMounted(() => { fetchItems(); fetchOptions() })
         <form class="space-y-3" @submit.prevent="handleSave">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">发票号 <span class="text-red-400">*</span></label>
-              <input v-model="form.invoiceNo" type="text" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">发票号 <span class="text-red-400">*</span></label>
+              <input v-model="form.invoiceNo" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">发票类型</label>
-              <select v-model="form.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
-                <option v-for="(label, key) in invoiceTypeLabels" :key="key" :value="key">{{ label }}</option>
+              <label class="block text-sm text-gray-600 mb-1">发票类型</label>
+              <select v-model="form.type" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
+                <option v-for="opt in getOptions('InvoiceType')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">关联合同</label>
-              <select v-model="form.contractId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
+              <label class="block text-sm text-gray-600 mb-1">关联合同</label>
+              <select v-model="form.contractId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
                 <option value="">不关联</option>
                 <option v-for="c in contractOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">客户</label>
-              <select v-model="form.customerId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white">
+              <label class="block text-sm text-gray-600 mb-1">客户</label>
+              <select v-model="form.customerId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
                 <option value="">选择客户</option>
                 <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
@@ -205,27 +204,27 @@ onMounted(() => { fetchItems(); fetchOptions() })
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">金额 <span class="text-red-400">*</span></label>
-              <input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">金额 <span class="text-red-400">*</span></label>
+              <input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">税率</label>
-              <input v-model.number="form.taxRate" type="number" step="0.01" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">税率</label>
+              <input v-model.number="form.taxRate" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-stone-600 mb-1">开票日期</label>
-              <input v-model="form.issuedAt" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">开票日期</label>
+              <input v-model="form.issuedAt" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
             </div>
             <div>
-              <label class="block text-sm text-stone-600 mb-1">到期日</label>
-              <input v-model="form.dueDate" type="date" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" />
+              <label class="block text-sm text-gray-600 mb-1">到期日</label>
+              <input v-model="form.dueDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
             </div>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">备注</label>
-            <textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" />
+            <label class="block text-sm text-gray-600 mb-1">备注</label>
+            <textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" />
           </div>
         </form>
       </template>
