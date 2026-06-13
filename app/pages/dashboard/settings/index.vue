@@ -134,10 +134,13 @@ function saveDictItem() {
     })
   } else {
     // 编辑
-    const item = currentDictItems.value[editingDictItemIdx.value]
-    if (item) {
-      item.value = val
-      item.label = lbl
+    const idx = editingDictItemIdx.value
+    if (idx !== null && idx >= 0) {
+      const item = currentDictItems.value[idx]
+      if (item) {
+        item.value = val
+        item.label = lbl
+      }
     }
   }
   hasDictChanges.value = true

@@ -22,11 +22,9 @@ async function fetchEnums(): Promise<EnumData> {
 }
 
 // DB 字典缓存
-let dictCaches: Record<string, { label: string; value: string }[] | null> = {}
+const dictCaches: Record<string, { label: string; value: string }[] | null> = {}
 
 async function fetchDict(type: string): Promise<{ label: string; value: string }[]> {
-  if (dictCaches[type]) return dictCaches[type]!
-
   try {
     const res = await $fetch(`/api/dict/${type}`, {
       headers: useAuthHeaders(),
@@ -73,14 +71,10 @@ export function useEnum() {
     return data.value[enumType] || []
   }
 
-  /**
-   * 获取字典选项（优先代码枚举，兜底 DB 字典）
-   */
   async function fetchDictOptions(enumType: string): Promise<{ label: string; value: string }[]> {
     await ensureLoaded()
     const enumOpts = getOptions(enumType)
     if (enumOpts.length > 0) return enumOpts
-    // 代码枚举没有 → 从 DB 字典获取
     return await fetchDict(enumType)
   }
 
