@@ -59,7 +59,13 @@ const statusConfig: Record<string, { label: string; color: string; dotColor: str
 }
 
 // 商机来源选项
-const sourceOptions = ['线上咨询', '老客户推荐', '展会活动', '电话营销', '合作伙伴', '其他']
+const sourceOptions = ref<string[]>([])
+async function fetchSourceOptions() {
+  try {
+    const res = await $fetch('/api/dict/opportunity_source', { headers: useAuthHeaders() }) as any
+    if (res?.code === 0) sourceOptions.value = (res.data || []).map((o: any) => o.label)
+  } catch {}
+}
 
 // 阶段流转选项（从前一阶段可以往后一阶段推）
 const stageFlow = ['initial_contact', 'requirement_confirmed', 'proposal_submitted', 'business_negotiation']
@@ -265,6 +271,7 @@ function formatAmount(amount: number | null) {
 onMounted(() => {
   fetchOpportunities()
   fetchCustomerOptions()
+  fetchSourceOptions()
 })
 </script>
 
