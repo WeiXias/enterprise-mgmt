@@ -29,6 +29,7 @@ const dictCategories = computed(() => {
   }))
   return [
     { name: '业务字典', types: bizTypes.filter((t: any) => t.category === '业务字典') },
+    { name: '财务', types: bizTypes.filter((t: any) => t.category === '财务') },
     { name: '状态枚举', types: enumTypes },
   ]
 })
