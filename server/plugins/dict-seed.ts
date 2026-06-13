@@ -89,4 +89,23 @@ export default defineNitroPlugin(async () => {
     }
     console.log(`[dict-seed] 财务分类同步 (${financeCatRows.length} 条)`)
   }
+
+  // 5. 报销类型
+  const existingReimb = await db.select().from(dictEntries).where(eq(dictEntries.dict_type, 'reimbursement_type')).limit(1)
+  if (existingReimb.length === 0) {
+    const reimbSeeds = ['办公用品', '差旅费', '招待费', '其他']
+    for (let i = 0; i < reimbSeeds.length; i++) {
+      await db.insert(dictEntries).values({
+        id: generateId(),
+        dict_type: 'reimbursement_type',
+        value: reimbSeeds[i],
+        label: reimbSeeds[i],
+        sort: String(i),
+        is_active: '1',
+        createdAt: now,
+        updatedAt: now,
+      }).catch(() => {})
+    }
+    console.log(`[dict-seed] 报销类型初始化 (${reimbSeeds.length} 条)`)
+  }
 })
