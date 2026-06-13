@@ -30,8 +30,12 @@ const emit = defineEmits<{
   submit: []
 }>()
 
-const { getOptions } = useEnum()
-const SOURCE_OPTIONS = computed(() => getOptions('opportunity_source').map((o: any) => o.label))
+const { fetchDictOptions } = useEnum()
+const SOURCE_OPTIONS = ref<string[]>([])
+onMounted(async () => {
+  const opts = await fetchDictOptions('opportunity_source')
+  SOURCE_OPTIONS.value = opts.map(o => o.label)
+})
 </script>
 
 <template>

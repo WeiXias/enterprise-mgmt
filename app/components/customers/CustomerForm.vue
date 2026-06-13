@@ -32,11 +32,12 @@ const emit = defineEmits<{
   submit: []
 }>()
 
-const { getOptions } = useEnum()
-
-const industryOptions = computed(() =>
-  getOptions('industry').map((o: any) => o.label)
-)
+const { fetchDictOptions } = useEnum()
+const industryOptions = ref<string[]>([])
+onMounted(async () => {
+  const opts = await fetchDictOptions('industry')
+  industryOptions.value = opts.map(o => o.label)
+})
 
 const statusOptions = [
   { value: 'potential', label: '潜在客户' },

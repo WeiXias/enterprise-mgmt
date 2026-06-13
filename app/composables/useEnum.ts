@@ -19,10 +19,29 @@ async function fetchEnums(): Promise<EnumData> {
   return pendingPromise
 }
 
+// DB 字典缓存
+let dictCaches: Record<string, { label: string; value: string }[] | null> = {}
+
+async function fetchDict(type: string): Promise<{ label: string; value: string }[]> {
+  if (dictCaches[type]) return dictCaches[type]!
+
+  try {
+    const res = await $fetch(`/api/dict/${type}`) as any
+    if (res?.code === 0) {
+      dictCaches[type] = (res.data || []).map((item: any) => ({
+        value: item.value,
+        label: item.label,
+      }))
+      return dictCaches[type]!
+    }
+  } catch { /* 未登录或不存在的字典类型 */ }
+
+  return []
+}
+
 export function useEnum() {
   const data = ref<EnumData | null>(enumCache)
 
-  // 首次调用时加载
   async function ensureLoaded() {
     if (!data.value) {
       data.value = await fetchEnums()
@@ -50,5 +69,16 @@ export function useEnum() {
     return data.value[enumType] || []
   }
 
-  return { getLabel, getOptions, ensureLoaded }
+  /**
+   * 获取字典选项（优先代码枚举，兜底 DB 字典）
+   */
+  async function fetchDictOptions(enumType: string): Promise<{ label: string; value: string }[]> {
+    await ensureLoaded()
+    const enumOpts = getOptions(enumType)
+    if (enumOpts.length > 0) return enumOpts
+    // 代码枚举没有 → 从 DB 字典获取
+    return await fetchDict(enumType)
+  }
+
+  return { getLabel, getOptions, ensureLoaded, fetchDictOptions }
 }
