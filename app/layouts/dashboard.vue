@@ -2,13 +2,29 @@
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
 const imStore = useIMStore()
+const watermarkStore = useWatermarkStore()
 const router = useRouter()
+const route = useRoute()
+const { setTheme, name: themeName } = useTheme()
+const { query, results, open, selectedIndex, inputRef, businessLoading, onSelect, handleKeydown, handleGlobalKeydown } = useGlobalSearch()
 
 const showNotificationPanel = ref(false)
 const panelNotifications = ref<any[]>([])
 const panelLoading = ref(false)
 
 const sidebarCollapsed = ref(false)
+const collapsedGroups = reactive<Record<string, boolean>>({})
+
+function toggleGroup(key: string) {
+  collapsedGroups[key] = !collapsedGroups[key]
+}
+
+function isItemActive(item: SidebarItem): boolean {
+  if (!item.to) return false
+  if (item.exact) return route.path === item.to
+  const matched = route.path === item.to || route.path.startsWith(item.to)
+  return matched
+}
 
 async function loadPanelNotifications() {
   panelLoading.value = true
@@ -39,6 +55,7 @@ onMounted(async () => {
   notificationStore.startPolling()
   imStore.startPolling()
   loadSystemConfig()
+  window.addEventListener('keydown', handleGlobalKeydown)
   try {
     const res = await $fetch('/api/system/config', { headers: { Authorization: `Bearer ${authStore.accessToken}` } }) as any
     if (res?.code === 0 && res.data?.sidebar_order) {
@@ -50,7 +67,7 @@ onMounted(async () => {
 watch(sidebarCollapsed, (val) => {
   localStorage.setItem('sidebar-collapsed', String(val))
 })
-onUnmounted(() => { notificationStore.stopPolling(); imStore.stopAllPolling() })
+onUnmounted(() => { notificationStore.stopPolling(); imStore.stopAllPolling(); window.removeEventListener('keydown', handleGlobalKeydown) })
 
 // 系统配置
 const systemConfig = ref<any>({})
@@ -60,6 +77,7 @@ async function loadSystemConfig() {
     const res = await $fetch('/api/system/config', { headers: { Authorization: `Bearer ${authStore.accessToken}` } }) as any
     if (res?.code === 0) {
       systemConfig.value = res.data || {}
+      watermarkStore.loadFromSystemConfig(res.data || {})
       if (systemConfig.value.company_logo) {
         logoUrl.value = '/api/files/logo?token=' + authStore.accessToken
       }
@@ -68,35 +86,88 @@ async function loadSystemConfig() {
 }
 const systemName = computed(() => systemConfig.value.system_name || '一体化管理')
 
-const sidebarItems = computed(() => {
+// 水印
+const showWatermark = computed(() => {
+  if (watermarkStore.config.mode === 'global') return true
+  if (watermarkStore.config.mode === 'page') return !!(router.currentRoute.value.meta.watermark as boolean)
+  return false
+})
+
+interface SidebarItem {
+  label: string
+  icon?: string
+  to?: string
+  exact?: boolean
+  sort?: number
+  hidden?: boolean
+  children?: SidebarItem[]
+}
+
+interface SidebarGroup {
+  key: string
+  label: string
+  items: SidebarItem[]
+}
+
+const sidebarGroups = computed<SidebarGroup[]>(() => {
   const configSort = (key: string) => sidebarOrder.value[key] ?? 99
-  const items: any[] = [
-    { label: '首页', icon: 'i-lucide-home', to: '/dashboard', exact: true, sort: configSort('home') !== 99 ? configSort('home') : 0 },
-    { label: '待办', icon: 'i-lucide-list-checks', to: '/dashboard/todos', sort: configSort('todos') !== 99 ? configSort('todos') : 1 },
-    { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 2 },
-    { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 2 },
-    { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 3 },
-    { label: '合同', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 4 },
-    { label: '项目', icon: 'i-lucide-folder-open', to: '/dashboard/projects', sort: configSort('projects') !== 99 ? configSort('projects') : 5 },
+
+  const groups: SidebarGroup[] = [
+    {
+      key: 'crm',
+      label: '客户经营',
+      items: [
+        { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 0 },
+        { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 1 },
+        { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 2 },
+        {
+          label: '合同', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 3,
+        },
+      ],
+    },
+    {
+      key: 'project',
+      label: '项目',
+      items: [
+        {
+          label: '项目管理', icon: 'i-lucide-folder-open', to: '/dashboard/projects', sort: configSort('projects') !== 99 ? configSort('projects') : 0,
+        },
+      ],
+    },
+    {
+      key: 'inventory',
+      label: '进销存',
+      items: [
+        { label: '采购', icon: 'i-lucide-shopping-cart', to: '/dashboard/purchases', sort: configSort('purchases') !== 99 ? configSort('purchases') : 0 },
+        { label: '销售', icon: 'i-lucide-trending-up', to: '/dashboard/sales', sort: configSort('sales') !== 99 ? configSort('sales') : 1 },
+        { label: '库存', icon: 'i-lucide-package', to: '/dashboard/inventory', sort: configSort('inventory') !== 99 ? configSort('inventory') : 2, hidden: !authStore.isAdmin && !authStore.isSalesManager },
+        { label: '仓库', icon: 'i-lucide-warehouse', to: '/dashboard/warehouses', sort: configSort('warehouses') !== 99 ? configSort('warehouses') : 3, hidden: !authStore.isAdmin && !authStore.isSalesManager },
+        { label: '供应商', icon: 'i-lucide-building-2', to: '/dashboard/suppliers', sort: configSort('suppliers') !== 99 ? configSort('suppliers') : 4 },
+      ],
+    },
+    {
+      key: 'finance',
+      label: '财务',
+      items: (() => {
+        const items: SidebarItem[] = [
+          {
+            label: '财务', icon: 'i-lucide-dollar-sign', to: '/dashboard/finance', sort: configSort('finance') !== 99 ? configSort('finance') : 0, hidden: !authStore.isFinance && !authStore.isAdmin,
+          },
+          { label: '提成', icon: 'i-lucide-wallet', to: '/dashboard/commissions', sort: configSort('commissions') !== 99 ? configSort('commissions') : 1 },
+          { label: '账务', icon: 'i-lucide-book-open', to: '/dashboard/accounting/entries', sort: configSort('accounting') !== 99 ? configSort('accounting') : 2, hidden: !authStore.isAdmin },
+        ]
+        return items
+      })(),
+    },
   ]
-  if (authStore.isAdmin || authStore.isSalesManager) {
-    items.push({ label: '库存', icon: 'i-lucide-package', to: '/dashboard/inventory', sort: configSort('inventory') !== 99 ? configSort('inventory') : 6 })
-  }
-  items.push({ label: '提成', icon: 'i-lucide-wallet', to: '/dashboard/commissions', sort: configSort('commissions') !== 99 ? configSort('commissions') : 7 })
-  items.push({ label: '畅聊', icon: 'i-lucide-message-circle', to: '/dashboard/im', sort: configSort('im') !== 99 ? configSort('im') : 8 })
-  items.push({ label: '消息', icon: 'i-lucide-bell', to: '/dashboard/notifications', sort: configSort('notifications') !== 99 ? configSort('notifications') : 9 })
-  if (authStore.isFinance || authStore.isAdmin) {
-    items.push({ label: '财务', icon: 'i-lucide-dollar-sign', to: '/dashboard/finance', sort: configSort('finance') !== 99 ? configSort('finance') : 10 })
-  }
-  if (authStore.isAdmin) {
-    items.push(
-      { type: 'separator' as const },
-      { label: '同事', icon: 'i-lucide-user-round-plus', to: '/dashboard/users' },
-      { label: '设置', icon: 'i-lucide-settings', to: '/dashboard/settings' },
-      { label: '操作记录', icon: 'i-lucide-clock', to: '/dashboard/logs' },
-    )
-  }
-  return items.sort((a, b) => (a.sort ?? 99) - (b.sort ?? 99))
+
+  // 对每组内可见项排序
+  return groups.map(g => ({
+    ...g,
+    items: g.items
+      .filter(item => !item.hidden)
+      .sort((a, b) => (a.sort ?? 99) - (b.sort ?? 99)),
+  })).filter(g => g.items.length > 0)
 })
 
 const userMenuItems = computed(() => [
@@ -125,53 +196,189 @@ function formatTime(dateStr: string): string {
 
 <template>
   <UApp :toaster="{ position: 'top-center' }">
-    <div class="flex h-screen overflow-hidden bg-[var(--color-bg-warm)]">
+    <div class="flex h-screen overflow-hidden bg-[var(--color-bg-page)]">
       <!-- 侧边栏 -->
-      <aside :class="[sidebarCollapsed ? 'w-16' : 'w-60', 'shrink-0 border-r border-[var(--color-border-warm)] bg-white flex flex-col transition-all duration-300']">
-        <div class="h-14 flex items-center gap-2 px-3 border-b border-[var(--color-border-warm)]" :class="sidebarCollapsed ? 'justify-center' : 'px-5'">
+      <aside :class="[sidebarCollapsed ? 'w-16' : 'w-60', 'shrink-0 border-r border-gray-200 bg-white flex flex-col transition-all duration-300']">
+        <div class="h-14 flex items-center gap-2 px-3 border-b border-gray-100" :class="sidebarCollapsed ? 'justify-center' : 'px-5'">
           <NuxtLink to="/dashboard" class="flex items-center gap-2 hover:opacity-80 transition-opacity" :class="sidebarCollapsed ? 'justify-center' : ''">
             <div v-if="logoUrl" class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
               <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
             </div>
-            <div v-else class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
+            <div v-else class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
               <span class="text-white text-sm font-medium">E</span>
             </div>
-            <span v-show="!sidebarCollapsed" class="text-sm font-medium text-stone-800 truncate">{{ systemName }}</span>
+            <span v-show="!sidebarCollapsed" class="text-sm font-medium text-gray-900 truncate">{{ systemName }}</span>
           </NuxtLink>
         </div>
 
         <nav class="flex-1 overflow-y-auto py-3 px-3">
-          <ul class="space-y-0.5">
-            <li v-for="(item, index) in sidebarItems" :key="index">
-              <div v-if="(item as any).type === 'separator'" class="my-2 border-t border-stone-100" />
+          <!-- 首页 / 待办 / 畅聊 / 消息 / 审批 — 无分组标题，始终显示 -->
+          <ul class="space-y-0.5 mb-2">
+            <li>
               <NuxtLink
-                v-else
-                :to="item.to!"
-                :title="sidebarCollapsed ? item.label : undefined"
-                :class="[
-                  'flex items-center rounded-lg text-sm transition-colors',
-                  sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2',
-                  'text-stone-600 hover:bg-amber-50 hover:text-amber-700',
-                  $route.path === item.to || (!item.exact && $route.path.startsWith(item.to!))
-                    ? 'bg-amber-50 text-amber-700 font-medium' : ''
-                ]"
+                to="/dashboard"
+                :title="sidebarCollapsed ? '首页' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path === '/dashboard' ? 'bg-brand-50 text-brand-600 font-medium' : '']"
               >
-                <UIcon :name="item.icon!" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">{{ item.label }}</span>
+                <UIcon name="i-lucide-home" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">首页</span>
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink
+                to="/dashboard/todos"
+                :title="sidebarCollapsed ? '待办' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path === '/dashboard/todos' || route.path.startsWith('/dashboard/todos') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-list-checks" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">待办</span>
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink
+                to="/dashboard/im"
+                :title="sidebarCollapsed ? '畅聊' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/im') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-message-circle" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">畅聊</span>
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink
+                to="/dashboard/notifications"
+                :title="sidebarCollapsed ? '消息' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/notifications') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-bell" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">消息</span>
+              </NuxtLink>
+            </li>
+            <li v-if="authStore.isAdmin">
+              <NuxtLink
+                to="/dashboard/workflow/approvals"
+                :title="sidebarCollapsed ? '审批' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/workflow') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-check-check" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">审批</span>
+              </NuxtLink>
+            </li>
+          </ul>
+
+          <div class="border-t border-gray-100 my-2" />
+
+          <!-- 分组菜单 -->
+          <div v-for="group in sidebarGroups" :key="group.key">
+            <!-- 分组标题 -->
+            <button
+              v-show="!sidebarCollapsed"
+              class="w-full flex items-center gap-1 text-[11px] text-gray-400 font-medium tracking-wide uppercase py-2 px-3 hover:text-gray-600 transition-colors"
+              @click="toggleGroup(group.key)"
+            >
+              <UIcon
+                :name="collapsedGroups[group.key] ? 'i-lucide-chevron-right' : 'i-lucide-chevron-down'"
+                class="w-3 h-3 shrink-0"
+              />
+              {{ group.label }}
+            </button>
+            <!-- 分组标识：收起时只显示一条分割线 -->
+            <div v-show="sidebarCollapsed" class="border-t border-gray-100 my-2 mx-2" />
+
+            <!-- 菜单项 -->
+            <ul v-show="sidebarCollapsed || !collapsedGroups[group.key]" class="space-y-0.5">
+              <template v-for="(item, idx) in group.items" :key="idx">
+                <li>
+                  <NuxtLink
+                    :to="item.to!"
+                    :title="sidebarCollapsed ? item.label : undefined"
+                    :class="[
+                      'flex items-center rounded-lg text-sm transition-all',
+                      sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2',
+                      'text-gray-600 hover:bg-brand-50 hover:text-brand-600',
+                      isItemActive(item)
+                        ? 'bg-brand-50 text-brand-600 font-medium' : ''
+                    ]"
+                  >
+                    <UIcon v-if="item.icon" :name="item.icon" class="w-[18px] h-[18px] shrink-0" />
+                    <span v-show="!sidebarCollapsed" class="truncate">{{ item.label }}</span>
+                  </NuxtLink>
+                </li>
+                <!-- 二级子项 -->
+                <template v-if="item.children && !sidebarCollapsed && (!collapsedGroups[group.key])">
+                  <li v-for="(child, cIdx) in item.children" :key="'c-' + cIdx">
+                    <NuxtLink
+                      :to="child.to!"
+                      :class="[
+                        'flex items-center rounded-lg text-sm transition-all gap-3 pl-10 py-1.5',
+                        'text-gray-500 hover:bg-brand-50 hover:text-brand-600',
+                        $route.path === child.to || $route.path.startsWith(child.to!) ? 'text-brand-600' : ''
+                      ]"
+                    >
+                      <span class="text-xs truncate">{{ child.label }}</span>
+                    </NuxtLink>
+                  </li>
+                </template>
+              </template>
+            </ul>
+          </div>
+
+          <div class="border-t border-gray-100 my-2" />
+
+          <!-- 管理：同事 / 设置 / 报表 / 操作记录 -->
+          <ul class="space-y-0.5">
+            <li v-if="authStore.isAdmin">
+              <NuxtLink
+                to="/dashboard/users"
+                :title="sidebarCollapsed ? '同事' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/users') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-user-round-plus" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">同事</span>
+              </NuxtLink>
+            </li>
+            <li v-if="authStore.isAdmin">
+              <NuxtLink
+                to="/dashboard/settings"
+                :title="sidebarCollapsed ? '设置' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/settings') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-settings" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">设置</span>
+              </NuxtLink>
+            </li>
+            <li v-if="authStore.isAdmin">
+              <NuxtLink
+                to="/dashboard/reports"
+                :title="sidebarCollapsed ? '报表' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/reports') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-bar-chart-3" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">报表</span>
+              </NuxtLink>
+            </li>
+            <li v-if="authStore.isAdmin">
+              <NuxtLink
+                to="/dashboard/logs"
+                :title="sidebarCollapsed ? '操作记录' : undefined"
+                :class="['flex items-center rounded-lg text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-gray-600 hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/logs') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
+              >
+                <UIcon name="i-lucide-clock" class="w-[18px] h-[18px] shrink-0" />
+                <span v-show="!sidebarCollapsed" class="truncate">操作记录</span>
               </NuxtLink>
             </li>
           </ul>
         </nav>
 
-        <div class="border-t border-stone-100 p-3">
+        <div class="border-t border-gray-100 p-3">
           <UDropdownMenu :items="userMenuItems" :popper="{ placement: 'top' }">
-            <button :class="[sidebarCollapsed ? 'justify-center' : '', 'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-stone-50 transition-colors text-left']">
-              <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                <span class="text-amber-700 text-xs font-medium">{{ authStore.user?.name?.charAt(0) || '?' }}</span>
+            <button :class="[sidebarCollapsed ? 'justify-center' : '', 'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors text-left']">
+              <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
+                <span class="text-brand-700 text-xs font-medium">{{ authStore.user?.name?.charAt(0) || '?' }}</span>
               </div>
               <div v-show="!sidebarCollapsed" class="flex-1 min-w-0">
-                <p class="text-sm text-stone-800 truncate">{{ authStore.user?.name || '未登录' }}</p>
-                <p class="text-xs text-stone-400 truncate">{{ authStore.roleLabel }}</p>
+                <p class="text-sm text-gray-900 truncate">{{ authStore.user?.name || '未登录' }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ authStore.roleLabel }}</p>
               </div>
             </button>
           </UDropdownMenu>
@@ -180,7 +387,7 @@ function formatTime(dateStr: string): string {
             :class="[
               'w-full flex items-center rounded-lg text-sm transition-colors mt-1',
               sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2',
-              'text-stone-400 hover:bg-amber-50 hover:text-amber-600'
+              'text-gray-400 hover:bg-brand-50 hover:text-brand-600'
             ]"
             :title="sidebarCollapsed ? '展开菜单' : '收起菜单'"
           >
@@ -193,20 +400,92 @@ function formatTime(dateStr: string): string {
       <!-- 主内容区 -->
       <div class="flex-1 flex flex-col overflow-hidden">
         <!-- 顶部栏 -->
-        <div class="h-14 shrink-0 flex items-center justify-between px-6 border-b border-[var(--color-border-warm)] bg-white">
-          <div class="flex items-center gap-2 text-sm text-stone-500">
-            <NuxtLink to="/dashboard" class="hover:text-amber-600 transition-colors">首页</NuxtLink>
+        <header class="h-14 shrink-0 flex items-center justify-between px-6 border-b border-gray-200 bg-white">
+          <div class="flex items-center gap-2 text-sm text-gray-500">
+            <NuxtLink to="/dashboard" class="hover:text-brand-600 transition-colors">首页</NuxtLink>
             <template v-if="$route.path !== '/dashboard'">
-              <span>/</span>
-              <span class="text-stone-700">{{ $route.meta.title || '' }}</span>
+              <span class="text-gray-300">/</span>
+              <span class="text-gray-700">{{ $route.meta.title || '' }}</span>
             </template>
           </div>
 
+          <!-- 全局搜索 -->
+          <div class="relative flex-1 max-w-lg mx-8">
+            <div class="relative">
+              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                ref="inputRef"
+                v-model="query"
+                type="text"
+                placeholder='搜索... (⌘K)'
+                class="w-full pl-9 pr-10 py-1.5 text-sm rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-white transition-all placeholder:text-gray-400"
+                @focus="open = true"
+                @blur="open = false"
+                @keydown="handleKeydown"
+              />
+              <kbd v-if="!query" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-md">⌘K</kbd>
+            </div>
+            <!-- 下拉面板 -->
+            <div v-if="open && query.trim()" class="absolute top-full mt-1.5 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              <!-- 加载中 -->
+              <div v-if="businessLoading && results.length === 0" class="px-4 py-6 space-y-3">
+                <div v-for="i in 3" :key="i" class="flex items-center gap-3">
+                  <div class="w-4 h-4 rounded bg-gray-100" />
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-3 bg-gray-100 rounded w-2/3" />
+                    <div class="h-2 bg-gray-50 rounded w-1/2" />
+                  </div>
+                </div>
+              </div>
+              <!-- 空结果 -->
+              <div v-else-if="results.length === 0" class="px-4 py-6 text-xs text-gray-400 text-center">
+                <UIcon name="i-lucide-search-x" class="w-5 h-5 text-gray-300 mx-auto mb-2" />
+                换个关键词试试？
+              </div>
+              <template v-else>
+                <!-- 导航结果分区 -->
+                <template v-for="(item, idx) in results" :key="(item as any).to">
+                  <div v-if="(idx === 0 || (results[idx - 1] as any)?.group !== item.group) && (item as any).source !== 'business'" class="px-4 py-2 text-[10px] font-medium text-gray-400 uppercase tracking-wide bg-gray-50/50">
+                    {{ item.group }}
+                  </div>
+                  <!-- 业务数据分隔线 -->
+                  <div v-if="idx > 0 && (results[idx - 1] as any)?.source !== 'business' && (item as any).source === 'business'" class="px-4 py-2 text-[10px] font-medium text-gray-400 uppercase tracking-wide bg-gray-50/50 border-t border-gray-100">
+                    搜索结果
+                  </div>
+                  <button
+                    class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                    :class="{ 'bg-gray-50': idx === selectedIndex }"
+                    @mousedown.prevent="onSelect(item)"
+                  >
+                    <UIcon :name="item.icon" class="w-4 h-4 text-gray-400 shrink-0" />
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-2">
+                        <p class="text-sm font-medium text-gray-800 truncate">{{ item.label }}</p>
+                        <span v-if="(item as any).status" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 shrink-0">{{ (item as any).status }}</span>
+                      </div>
+                      <p class="text-xs text-gray-400 truncate">{{ item.desc }}</p>
+                    </div>
+                    <UIcon name="i-lucide-corner-down-left" class="w-3 h-3 text-gray-300 ml-auto shrink-0" />
+                  </button>
+                </template>
+              </template>
+            </div>
+          </div>
+
           <div class="flex items-center gap-3">
+            <!-- 主题切换 -->
+            <button
+              @click="setTheme(themeName === 'blue' ? 'warm' : 'blue')"
+              class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+              :title="themeName === 'blue' ? '切换暖色主题' : '切换蓝色主题'"
+            >
+              <UIcon :name="themeName === 'blue' ? 'i-lucide-sun' : 'i-lucide-moon'" class="w-5 h-5" />
+            </button>
+
             <!-- 通知铃铛（合并 IM + 系统通知） + 下拉面板 -->
             <div class="relative">
               <button
-                class="p-2 rounded-lg text-stone-500 hover:bg-stone-100 transition-colors relative"
+                class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors relative"
                 @click="showNotificationPanel = !showNotificationPanel; if (showNotificationPanel) loadPanelNotifications()"
               >
                 <UIcon name="i-lucide-bell" class="w-5 h-5" />
@@ -217,44 +496,44 @@ function formatTime(dateStr: string): string {
               </button>
 
               <!-- 下拉面板 -->
-              <div v-if="showNotificationPanel" class="absolute right-0 top-full mt-2 w-80 bg-white border border-stone-200 rounded-xl shadow-xl z-50 max-h-96 overflow-hidden flex flex-col">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-stone-100">
-                  <h3 class="text-sm font-medium text-stone-700">消息通知</h3>
+              <div v-if="showNotificationPanel" class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <h3 class="text-sm font-medium text-gray-700">消息通知</h3>
                   <div class="flex items-center gap-1">
-                    <NuxtLink to="/dashboard/im" class="text-xs text-amber-600 hover:text-amber-700 transition-colors" @click="showNotificationPanel = false">畅聊</NuxtLink>
-                    <button class="text-xs text-stone-400 hover:text-amber-600 transition-colors" @click="handleMarkAllRead">全部已读</button>
-                    <NuxtLink to="/dashboard/notifications" class="text-xs text-stone-400 hover:text-stone-600 transition-colors ml-1" @click="showNotificationPanel = false">查看全部</NuxtLink>
+                    <NuxtLink to="/dashboard/im" class="text-xs text-blue-600 hover:text-blue-700 transition-colors" @click="showNotificationPanel = false">畅聊</NuxtLink>
+                    <button class="text-xs text-gray-400 hover:text-blue-600 transition-colors" @click="handleMarkAllRead">全部已读</button>
+                    <NuxtLink to="/dashboard/notifications" class="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1" @click="showNotificationPanel = false">查看全部</NuxtLink>
                   </div>
                 </div>
                 <div class="flex-1 overflow-y-auto">
-                  <div v-if="panelLoading" class="text-center py-8 text-xs text-stone-400">加载中...</div>
+                  <div v-if="panelLoading" class="text-center py-8 text-xs text-gray-400">加载中...</div>
                   <div v-else-if="panelNotifications.length === 0" class="text-center py-8">
-                    <UIcon name="i-lucide-bell-off" class="w-6 h-6 text-stone-300 mx-auto mb-2" />
-                    <p class="text-xs text-stone-400">暂时没有通知</p>
+                    <UIcon name="i-lucide-bell-off" class="w-6 h-6 text-gray-300 mx-auto mb-2" />
+                    <p class="text-xs text-gray-400">暂时没有通知</p>
                   </div>
                   <div v-else>
                     <button
                       v-for="notif in panelNotifications" :key="notif.id"
-                      class="w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-50 flex gap-3"
-                      :class="{ 'bg-amber-50/50': !notif.isRead }"
+                      class="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 flex gap-3"
+                      :class="{ 'bg-blue-50/30': !notif.isRead }"
                       @click="handleNotificationClick(notif)"
                     >
-                      <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', notif.isRead ? 'bg-stone-100' : 'bg-amber-100']">
-                        <UIcon :name="getNotificationIcon(notif.type)" class="w-4 h-4" :class="notif.isRead ? 'text-stone-400' : 'text-amber-600'" />
+                      <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', notif.isRead ? 'bg-gray-100' : 'bg-blue-100']">
+                        <UIcon :name="getNotificationIcon(notif.type)" class="w-4 h-4" :class="notif.isRead ? 'text-gray-400' : 'text-blue-600'" />
                       </div>
                       <div class="flex-1 min-w-0">
-                        <p :class="['text-sm truncate', notif.isRead ? 'text-stone-500' : 'text-stone-800 font-medium']">{{ notif.title }}</p>
-                        <p v-if="notif.content" class="text-xs text-stone-400 mt-0.5 line-clamp-1">{{ notif.content }}</p>
-                        <p class="text-[10px] text-stone-400 mt-1">{{ formatTime(notif.createdAt) }}</p>
+                        <p :class="['text-sm truncate', notif.isRead ? 'text-gray-500' : 'text-gray-900 font-medium']">{{ notif.title }}</p>
+                        <p v-if="notif.content" class="text-xs text-gray-400 mt-0.5 line-clamp-1">{{ notif.content }}</p>
+                        <p class="text-[10px] text-gray-400 mt-1">{{ formatTime(notif.createdAt) }}</p>
                       </div>
-                      <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0 mt-1.5" />
+                      <div v-if="!notif.isRead" class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         <!-- 页面内容 -->
         <main class="flex-1 overflow-y-auto p-6">
@@ -262,5 +541,14 @@ function formatTime(dateStr: string): string {
         </main>
       </div>
     </div>
+    <CommonWatermark
+      v-if="showWatermark"
+      :content="watermarkStore.config.content"
+      :opacity="watermarkStore.config.opacity"
+      :font-size="watermarkStore.config.fontSize"
+      :rotate="watermarkStore.config.rotate"
+      :color="watermarkStore.config.color"
+      :gap="watermarkStore.config.gap"
+    />
   </UApp>
 </template>

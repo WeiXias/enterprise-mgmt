@@ -605,24 +605,30 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       <p class="text-sm text-stone-400 mt-0.5">配置系统参数</p>
     </div>
 
-    <!-- Tab 导航 -->
-    <div class="flex items-center gap-1 mb-6 border-b border-stone-200 pb-0 overflow-x-auto">
-      <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        class="flex items-center gap-1.5 px-3 py-2 text-sm rounded-t-lg transition-colors whitespace-nowrap"
-        :class="activeTab === tab.key
-          ? 'text-amber-700 border-b-2 border-amber-500 -mb-[1px] font-medium'
-          : 'text-stone-500 hover:text-stone-700'"
-        @click="activeTab = tab.key"
-      >
-        <UIcon :name="tab.icon" class="w-4 h-4" />
-        {{ tab.label }}
-      </button>
-    </div>
+    <!-- 设置内容左右分栏 -->
+    <div class="flex gap-6">
+      <!-- 左侧竖排导航 -->
+      <nav class="w-40 shrink-0">
+        <p class="text-[11px] font-medium text-stone-400 uppercase tracking-wide mb-2 px-3">设置分类</p>
+        <ul class="space-y-0.5">
+          <li v-for="tab in tabs" :key="tab.key">
+            <button
+              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors"
+              :class="activeTab === tab.key ? 'bg-amber-50 text-amber-700 font-medium' : 'text-stone-500 hover:bg-stone-50'"
+              @click="activeTab = tab.key"
+            >
+              <UIcon :name="tab.icon" class="w-4 h-4 shrink-0" />
+              {{ tab.label }}
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- 右侧内容区 -->
+      <div class="flex-1 min-w-0">
 
     <!-- ==================== 基本信息 ==================== -->
-    <div v-show="activeTab === 'basic'" class="max-w-2xl">
+    <div v-show="activeTab === 'basic'">
       <div class="warm-card space-y-4">
         <h3 class="text-sm font-medium text-stone-700 mb-4">基本信息</h3>
         <div v-for="field in basicFields" :key="field.key">
@@ -678,7 +684,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     <CommonDirPicker v-model="dirPickerOpen" @selected="onDirSelected" />
 
     <!-- ==================== 组织架构 ==================== -->
-    <div v-show="activeTab === 'organizations'" class="max-w-5xl">
+    <div v-show="activeTab === 'organizations'">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="warm-card">
           <div class="flex items-center justify-between mb-3">
@@ -722,7 +728,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 角色权限 ==================== -->
-    <div v-show="activeTab === 'roles'" class="max-w-5xl">
+    <div v-show="activeTab === 'roles'">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="warm-card">
           <div class="flex items-center justify-between mb-3">
@@ -766,7 +772,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 编码规则 ==================== -->
-    <div v-show="activeTab === 'coderules'" class="max-w-2xl">
+    <div v-show="activeTab === 'coderules'">
       <div class="warm-card space-y-4">
         <h3 class="text-sm font-medium text-stone-700 mb-4">编码规则</h3>
         <div v-for="mod in modules" :key="mod.key" class="p-4 rounded-lg bg-stone-50">
@@ -821,7 +827,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 邮件配置 ==================== -->
-    <div v-show="activeTab === 'smtp'" class="max-w-2xl">
+    <div v-show="activeTab === 'smtp'">
       <div class="warm-card">
         <h3 class="text-sm font-medium text-stone-700 mb-4">SMTP 邮件服务配置</h3>
         <p class="text-xs text-stone-400 mb-4">用于系统通知、审批提醒等邮件发送</p>
@@ -888,7 +894,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 安全策略 ==================== -->
-    <div v-show="activeTab === 'security'" class="max-w-2xl">
+    <div v-show="activeTab === 'security'">
       <div class="warm-card">
         <h3 class="text-sm font-medium text-stone-700 mb-4">安全策略</h3>
         <p class="text-xs text-stone-400 mb-4">修改后立即生效，请谨慎操作</p>
@@ -943,7 +949,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 数据备份 ==================== -->
-    <div v-show="activeTab === 'backup'" class="max-w-3xl">
+    <div v-show="activeTab === 'backup'">
       <div class="flex items-center justify-between mb-4">
         <div>
           <h3 class="text-sm font-medium text-stone-700">备份管理</h3>
@@ -1012,7 +1018,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== AI 设置 ==================== -->
-    <div v-show="activeTab === 'ai'" class="max-w-3xl">
+    <div v-show="activeTab === 'ai'">
       <!-- AI 基础设置 -->
       <div class="warm-card mb-4">
         <h3 class="text-sm font-medium text-stone-700 mb-4 flex items-center gap-1.5">
@@ -1106,7 +1112,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 菜单排序 ==================== -->
-    <div v-show="activeTab === 'sidebar'" class="max-w-xl">
+    <div v-show="activeTab === 'sidebar'">
       <div class="warm-card">
         <h3 class="text-sm font-medium text-stone-700 mb-4">侧边栏菜单排序</h3>
         <p class="text-xs text-stone-400 mb-4">拖拽排序暂不支持，点击上下箭头调整顺序，保存后刷新页面生效。</p>
@@ -1131,7 +1137,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- ==================== 操作日志 ==================== -->
-    <div v-show="activeTab === 'logs'" class="max-w-5xl">
+    <div v-show="activeTab === 'logs'">
       <div class="warm-card">
         <h3 class="text-sm font-medium text-stone-700 mb-3">最近操作记录</h3>
         <div class="text-xs text-stone-400 mb-3">
@@ -1234,5 +1240,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </template>
       <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showEmployeeModal = false">取消</UButton><UButton color="primary" :loading="employeeLoading" @click="handleSaveEmployee">保存</UButton></div></template>
     </UModal>
+  </div>
+  </div>
   </div>
 </template>
