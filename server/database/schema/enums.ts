@@ -139,6 +139,7 @@ export const ProductStatusLabels: Record<ProductStatus, string> = {
 export const CommissionStatus = {
   PENDING: 'pending',
   APPROVED: 'approved',
+  REJECTED: 'rejected',
   PAID: 'paid',
 } as const
 
@@ -147,6 +148,7 @@ export type CommissionStatus = (typeof CommissionStatus)[keyof typeof Commission
 export const CommissionStatusLabels: Record<CommissionStatus, string> = {
   [CommissionStatus.PENDING]: '待审批',
   [CommissionStatus.APPROVED]: '已通过',
+  [CommissionStatus.REJECTED]: '已驳回',
   [CommissionStatus.PAID]: '已发放',
 }
 
@@ -227,6 +229,7 @@ export const ReimbursementStatusLabels: Record<ReimbursementStatus, string> = {
 // ---- AIEmployeeRole ----
 export const AIEmployeeRole = {
   CONTRACT_REVIEWER: 'contract_reviewer',
+  CONTRACT_WRITER: 'contract_writer',
   OPPORTUNITY_ANALYST: 'opportunity_analyst',
   CUSTOMER_INSIGHT: 'customer_insight',
   CUSTOM: 'custom',
@@ -234,6 +237,7 @@ export const AIEmployeeRole = {
 export type AIEmployeeRole = (typeof AIEmployeeRole)[keyof typeof AIEmployeeRole]
 export const AIEmployeeRoleLabels: Record<AIEmployeeRole, string> = {
   [AIEmployeeRole.CONTRACT_REVIEWER]: '合同审核员',
+  [AIEmployeeRole.CONTRACT_WRITER]: '合同起草员',
   [AIEmployeeRole.OPPORTUNITY_ANALYST]: '商机分析师',
   [AIEmployeeRole.CUSTOMER_INSIGHT]: '客户洞察师',
   [AIEmployeeRole.CUSTOM]: '自定义角色',
@@ -379,4 +383,153 @@ export const ListColorLabels: Record<ListColor, string> = {
   [ListColor.CORAL]: '珊瑚',
   [ListColor.STONE]: '石色',
   [ListColor.VIOLET]: '紫罗兰',
+}
+
+// ---- RiskType ----
+export const RiskType = { RISK: 'risk', ISSUE: 'issue' } as const
+export type RiskType = (typeof RiskType)[keyof typeof RiskType]
+export const RiskTypeLabels: Record<RiskType, string> = {
+  [RiskType.RISK]: '风险', [RiskType.ISSUE]: '问题',
+}
+
+// ---- RiskStatus ----
+export const RiskStatus = {
+  IDENTIFIED: 'identified', MITIGATING: 'mitigating', RESOLVED: 'resolved', CLOSED: 'closed',
+} as const
+export type RiskStatus = (typeof RiskStatus)[keyof typeof RiskStatus]
+export const RiskStatusLabels: Record<RiskStatus, string> = {
+  [RiskStatus.IDENTIFIED]: '已识别', [RiskStatus.MITIGATING]: '缓解中',
+  [RiskStatus.RESOLVED]: '已解决', [RiskStatus.CLOSED]: '已关闭',
+}
+
+// ---- ImpactLevel ----
+export const ImpactLevel = { LOW: 'low', MEDIUM: 'medium', HIGH: 'high' } as const
+export type ImpactLevel = (typeof ImpactLevel)[keyof typeof ImpactLevel]
+export const ImpactLevelLabels: Record<ImpactLevel, string> = {
+  [ImpactLevel.LOW]: '低', [ImpactLevel.MEDIUM]: '中', [ImpactLevel.HIGH]: '高',
+}
+
+// ---- DeliverableStatus ----
+export const DeliverableStatus = {
+  PENDING: 'pending', SUBMITTED: 'submitted', ACCEPTED: 'accepted', REJECTED: 'rejected',
+} as const
+export type DeliverableStatus = (typeof DeliverableStatus)[keyof typeof DeliverableStatus]
+export const DeliverableStatusLabels: Record<DeliverableStatus, string> = {
+  [DeliverableStatus.PENDING]: '待提交', [DeliverableStatus.SUBMITTED]: '已提交',
+  [DeliverableStatus.ACCEPTED]: '已通过', [DeliverableStatus.REJECTED]: '已驳回',
+}
+
+// ---- QuoteStatus ----
+export const QuoteStatus = {
+  DRAFT: 'draft', SENT: 'sent', ACCEPTED: 'accepted', REJECTED: 'rejected',
+} as const
+export type QuoteStatus = (typeof QuoteStatus)[keyof typeof QuoteStatus]
+export const QuoteStatusLabels: Record<QuoteStatus, string> = {
+  [QuoteStatus.DRAFT]: '草稿', [QuoteStatus.SENT]: '已发送',
+  [QuoteStatus.ACCEPTED]: '已接受', [QuoteStatus.REJECTED]: '已拒绝',
+}
+
+// ---- TimeLogStatus ----
+export const TimeLogStatus = {
+  DRAFT: 'draft', SUBMITTED: 'submitted', APPROVED: 'approved', REJECTED: 'rejected',
+} as const
+export type TimeLogStatus = (typeof TimeLogStatus)[keyof typeof TimeLogStatus]
+export const TimeLogStatusLabels: Record<TimeLogStatus, string> = {
+  [TimeLogStatus.DRAFT]: '草稿', [TimeLogStatus.SUBMITTED]: '已提交',
+  [TimeLogStatus.APPROVED]: '已通过', [TimeLogStatus.REJECTED]: '已驳回',
+}
+
+// ---- PaymentPlanStatus ----
+export const PaymentPlanStatus = {
+  PENDING: 'pending', PAID: 'paid', OVERDUE: 'overdue',
+} as const
+export type PaymentPlanStatus = (typeof PaymentPlanStatus)[keyof typeof PaymentPlanStatus]
+export const PaymentPlanStatusLabels: Record<PaymentPlanStatus, string> = {
+  [PaymentPlanStatus.PENDING]: '待收款', [PaymentPlanStatus.PAID]: '已收款', [PaymentPlanStatus.OVERDUE]: '已逾期',
+}
+
+// ---- ContractType ----
+export const ContractType = { MAIN: 'main', SUBCONTRACT: 'subcontract' } as const
+export type ContractType = (typeof ContractType)[keyof typeof ContractType]
+export const ContractTypeLabels: Record<ContractType, string> = {
+  [ContractType.MAIN]: '主合同', [ContractType.SUBCONTRACT]: '分包合同',
+}
+
+// ---- ContractTemplateCategory ----
+export const ContractTemplateCategory = {
+  SALES: 'sales', PROCUREMENT: 'procurement', SERVICE: 'service', OTHER: 'other',
+} as const
+export type ContractTemplateCategory = (typeof ContractTemplateCategory)[keyof typeof ContractTemplateCategory]
+export const ContractTemplateCategoryLabels: Record<ContractTemplateCategory, string> = {
+  [ContractTemplateCategory.SALES]: '销售合同', [ContractTemplateCategory.PROCUREMENT]: '采购合同',
+  [ContractTemplateCategory.SERVICE]: '服务合同', [ContractTemplateCategory.OTHER]: '其他',
+}
+
+// ---- ProjectMemberRole ----
+export const ProjectMemberRole = { LEADER: 'leader', MEMBER: 'member' } as const
+export type ProjectMemberRole = (typeof ProjectMemberRole)[keyof typeof ProjectMemberRole]
+export const ProjectMemberRoleLabels: Record<ProjectMemberRole, string> = {
+  [ProjectMemberRole.LEADER]: '负责人', [ProjectMemberRole.MEMBER]: '成员',
+}
+
+// ---- ProjectTemplateCategory ----
+export const ProjectTemplateCategory = {
+  IT_IMPLEMENTATION: 'it_implementation', OM_SERVICE: 'om_service', CONSULTING: 'consulting', OTHER: 'other',
+} as const
+export type ProjectTemplateCategory = (typeof ProjectTemplateCategory)[keyof typeof ProjectTemplateCategory]
+export const ProjectTemplateCategoryLabels: Record<ProjectTemplateCategory, string> = {
+  [ProjectTemplateCategory.IT_IMPLEMENTATION]: 'IT 实施', [ProjectTemplateCategory.OM_SERVICE]: '运维服务',
+  [ProjectTemplateCategory.CONSULTING]: '咨询服务', [ProjectTemplateCategory.OTHER]: '其他',
+}
+
+// ---- CommentTargetType ----
+export const CommentTargetType = { PROJECT: 'project', TASK: 'task' } as const
+export type CommentTargetType = (typeof CommentTargetType)[keyof typeof CommentTargetType]
+export const CommentTargetTypeLabels: Record<CommentTargetType, string> = {
+  [CommentTargetType.PROJECT]: '项目', [CommentTargetType.TASK]: '任务',
+}
+
+// ---- CommissionRuleBaseType ----
+export const CommissionRuleBaseType = {
+  CONTRACT_AMOUNT: 'contract_amount', PAYMENT_AMOUNT: 'payment_amount',
+} as const
+export type CommissionRuleBaseType = (typeof CommissionRuleBaseType)[keyof typeof CommissionRuleBaseType]
+export const CommissionRuleBaseTypeLabels: Record<CommissionRuleBaseType, string> = {
+  [CommissionRuleBaseType.CONTRACT_AMOUNT]: '合同金额', [CommissionRuleBaseType.PAYMENT_AMOUNT]: '回款金额',
+}
+
+// ---- CommissionPayoutStatus ----
+export const CommissionPayoutStatus = {
+  DRAFT: 'draft', CONFIRMED: 'confirmed', PAID: 'paid',
+} as const
+export type CommissionPayoutStatus = (typeof CommissionPayoutStatus)[keyof typeof CommissionPayoutStatus]
+export const CommissionPayoutStatusLabels: Record<CommissionPayoutStatus, string> = {
+  [CommissionPayoutStatus.DRAFT]: '草稿', [CommissionPayoutStatus.CONFIRMED]: '已确认', [CommissionPayoutStatus.PAID]: '已发放',
+}
+
+// ---- NotificationType ----
+export const NotificationType = {
+  SYSTEM: 'system', REMIND: 'remind', APPROVAL: 'approval', COMMISSION: 'commission',
+} as const
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+export const NotificationTypeLabels: Record<NotificationType, string> = {
+  [NotificationType.SYSTEM]: '系统通知', [NotificationType.REMIND]: '提醒',
+  [NotificationType.APPROVAL]: '审批', [NotificationType.COMMISSION]: '提成',
+}
+
+// ---- UserStatus ----
+export const UserStatus = { ACTIVE: 'active', DISABLED: 'disabled', PENDING: 'pending' } as const
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+export const UserStatusLabels: Record<UserStatus, string> = {
+  [UserStatus.ACTIVE]: '活跃', [UserStatus.DISABLED]: '已禁用', [UserStatus.PENDING]: '待激活',
+}
+
+// ---- CodeRuleDatePart ----
+export const CodeRuleDatePart = {
+  NONE: 'none', YEAR: 'year', YEAR_MONTH: 'year_month', YEAR_MONTH_DAY: 'year_month_day',
+} as const
+export type CodeRuleDatePart = (typeof CodeRuleDatePart)[keyof typeof CodeRuleDatePart]
+export const CodeRuleDatePartLabels: Record<CodeRuleDatePart, string> = {
+  [CodeRuleDatePart.NONE]: '不使用日期', [CodeRuleDatePart.YEAR]: '年份',
+  [CodeRuleDatePart.YEAR_MONTH]: '年-月', [CodeRuleDatePart.YEAR_MONTH_DAY]: '年-月-日',
 }

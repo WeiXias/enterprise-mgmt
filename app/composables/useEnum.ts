@@ -1,94 +1,54 @@
-const ENUM_LABELS: Record<string, Record<string, string>> = {
-  UserRole: {
-    admin: '管理员',
-    sales_manager: '销售负责人',
-    sales_member: '成员',
-    finance: '财务'
-  },
-  CustomerStatus: {
-    potential: '潜在客户',
-    intentional: '意向客户',
-    closed: '成交客户',
-    lost: '流失客户'
-  },
-  OpportunityStatus: {
-    initial_contact: '初步接触',
-    requirement_confirmed: '需求确认',
-    proposal_submitted: '方案提交',
-    business_negotiation: '商务谈判',
-    closed_won: '已成交',
-    closed_lost: '已输单'
-  },
-  ContractStatus: {
-    draft: '草稿',
-    approved: '已审批',
-    in_progress: '执行中',
-    completed: '已完成',
-    terminated: '已终止'
-  },
-  ProjectStatus: {
-    not_started: '未开始',
-    in_progress: '进行中',
-    completed: '已完成',
-    delayed: '已延期'
-  },
-  TaskStatus: {
-    todo: '待办',
-    in_progress: '进行中',
-    completed: '已完成'
-  },
-  TaskPriority: {
-    low: '低',
-    medium: '中',
-    high: '高'
-  },
-  ProductStatus: {
-    on_sale: '在售',
-    off_shelf: '下架'
-  },
-  CommissionStatus: {
-    pending: '待审批',
-    approved: '已审批',
-    rejected: '已驳回',
-    paid: '已发放'
-  },
-  FollowUpType: {
-    phone: '电话',
-    visit: '拜访',
-    wechat: '微信',
-    email: '邮件',
-    other: '其他'
-  },
-  TodoPriority: {
-    urgent_important: '紧急重要',
-    urgent_not_important: '紧急不重要',
-    important_not_urgent: '重要不紧急',
-    not_urgent_not_important: '不紧急不重要'
-  },
-  TodoStatus: {
-    todo: '待办',
-    in_progress: '进行中',
-    completed: '已完成'
-  },
-  ListColor: {
-    amber: '琥珀',
-    teal: '青绿',
-    blue: '蓝色',
-    coral: '珊瑚',
-    stone: '石色',
-    violet: '紫罗兰'
-  }
+// composable 级缓存：避免多次请求
+type EnumData = Record<string, { label: string; value: string }[]>
+
+let enumCache: EnumData | null = null
+let pendingPromise: Promise<EnumData> | null = null
+
+async function fetchEnums(): Promise<EnumData> {
+  if (enumCache) return enumCache
+  if (pendingPromise) return pendingPromise
+
+  pendingPromise = $fetch('/api/enums').then((res: any) => {
+    if (res?.code !== 0) throw new Error(res?.message || '获取枚举失败')
+    enumCache = res.data as EnumData
+    return enumCache!
+  }).finally(() => {
+    pendingPromise = null
+  })
+
+  return pendingPromise
 }
 
 export function useEnum() {
+  const data = ref<EnumData | null>(enumCache)
+
+  // 首次调用时加载
+  async function ensureLoaded() {
+    if (!data.value) {
+      data.value = await fetchEnums()
+    }
+  }
+
+  function getOptionMap(enumType: string): Record<string, string> {
+    if (!data.value) return {}
+    const options = data.value[enumType] || []
+    const map: Record<string, string> = {}
+    for (const opt of options) {
+      map[opt.value] = opt.label
+    }
+    return map
+  }
+
   function getLabel(enumType: string, value: string): string {
-    return ENUM_LABELS[enumType]?.[value] || value
+    if (!value) return ''
+    const map = getOptionMap(enumType)
+    return map[value] || value
   }
 
   function getOptions(enumType: string): { label: string; value: string }[] {
-    const map = ENUM_LABELS[enumType] || {}
-    return Object.entries(map).map(([value, label]) => ({ label, value }))
+    if (!data.value) return []
+    return data.value[enumType] || []
   }
 
-  return { getLabel, getOptions }
+  return { getLabel, getOptions, ensureLoaded }
 }

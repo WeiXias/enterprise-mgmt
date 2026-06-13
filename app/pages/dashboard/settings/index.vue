@@ -3,6 +3,20 @@ definePageMeta({ layout: 'dashboard', title: '设置', middleware: ['auth'] })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
+const { getOptions } = useEnum()
+
+// ---- 数据字典 ----
+const dictData = ref<Record<string, { label: string; value: string }[]>>({})
+const dictLoading = ref(false)
+async function loadDictData() {
+  dictLoading.value = true
+  try {
+    const res = await $api('/api/enums') as any
+    if (res?.code === 0) dictData.value = res.data
+  } catch { }
+  finally { dictLoading.value = false }
+}
+loadDictData()
 
 const activeTab = ref('basic')
 const config = ref<Record<string, string>>({})
@@ -104,6 +118,7 @@ const tabs = [
   { key: 'backup', label: '数据备份', icon: 'i-lucide-hard-drive' },
   { key: 'ai', label: 'AI 设置', icon: 'i-lucide-bot' },
   { key: 'sidebar', label: '菜单排序', icon: 'i-lucide-menu' },
+  { key: 'datadict', label: '数据字典', icon: 'i-lucide-database' },
   { key: 'logs', label: '操作日志', icon: 'i-lucide-clock' },
 ]
 
@@ -1132,6 +1147,28 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
         </div>
         <div class="mt-4">
           <UButton color="primary" :loading="sidebarSortLoading" @click="saveSidebarOrder">保存排序</UButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 数据字典 ==================== -->
+    <div v-show="activeTab === 'datadict'">
+      <div class="warm-card">
+        <h3 class="text-sm font-medium text-stone-700 mb-4">数据字典</h3>
+        <p class="text-xs text-stone-400 mb-4">系统所有枚举类型及其可选值，统一管理。</p>
+
+        <div v-if="dictLoading" class="text-xs text-stone-400 py-8 text-center">加载中...</div>
+
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="(options, name) in dictData" :key="name" class="rounded-lg border border-stone-200 bg-stone-50/50 p-3">
+            <h4 class="text-xs font-medium text-stone-600 mb-2">{{ name }}</h4>
+            <div class="space-y-1">
+              <div v-for="opt in options" :key="opt.value" class="flex items-center gap-2 text-xs">
+                <code class="text-[11px] px-1.5 py-0.5 rounded bg-stone-200 text-stone-600 font-mono shrink-0">{{ opt.value }}</code>
+                <span class="text-stone-500">{{ opt.label }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
