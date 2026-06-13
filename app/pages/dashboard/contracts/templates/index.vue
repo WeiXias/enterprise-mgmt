@@ -318,17 +318,17 @@ onMounted(fetchTemplates)
                 v-for="(item, i) in productItems" :key="i"
                 class="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2"
               >
-                <select v-model="item.productId" class="flex-1 px-2 py-1.5 text-xs rounded border border-gray-200 bg-white focus:outline-none focus:border-brand-400">
+                <select v-model="item.productId" class="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400">
                   <option value="">选择产品...</option>
                   <option v-for="p in allProducts" :key="p.id" :value="p.id">{{ p.name }} ({{ p.code }})</option>
                 </select>
                 <div class="flex items-center gap-1">
                   <span class="text-xs text-gray-400">数量</span>
-                  <input v-model.number="item.quantity" type="number" min="1" class="w-16 px-2 py-1.5 text-xs rounded border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-center" />
+                  <input v-model.number="item.quantity" type="number" min="1" class="w-16 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-center" />
                 </div>
                 <div class="flex items-center gap-1">
                   <span class="text-xs text-gray-400">单价</span>
-                  <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" class="w-20 px-2 py-1.5 text-xs rounded border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-right" />
+                  <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" class="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-right" />
                 </div>
                 <span class="text-xs text-brand-700 w-16 text-right">¥{{ getProductSubtotal(item).toLocaleString() }}</span>
                 <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeProductRow(i)" />
