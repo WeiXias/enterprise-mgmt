@@ -1,36 +1,38 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { db } from '#database'
-import { productCategories } from '#schema'
+import { dictEntries } from '#schema'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
 import { generateId } from '#server-utils/id'
-import { logOperation } from '#server-utils/log'
+import { z } from 'zod'
 
 const schema = z.object({
-  name: z.string().min(1, '分类名称不能为空').max(50),
+  name: z.string().min(1),
   sort: z.string().optional().default('0'),
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
-
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
-  // 检查重名
-  const existing = await db.select({ id: productCategories.id }).from(productCategories)
-    .where(eq(productCategories.name, parsed.data.name)).limit(1)
+  const { name, sort } = parsed.data
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+  // 检查重复
+  const existing = await db.select({ id: dictEntries.id }).from(dictEntries)
+    .where(eq(dictEntries.dict_type, 'product_category')).where(eq(dictEntries.label, name)).limit(1)
   if (existing.length > 0) throw createError({ statusCode: 409, statusMessage: '分类名称已存在' })
 
-  const result = await db.insert(productCategories).values({
+  await db.insert(dictEntries).values({
     id: generateId(),
-    name: parsed.data.name,
-    sort: parsed.data.sort,
-  }).returning()
+    dict_type: 'product_category',
+    value: name,
+    label: name,
+    sort,
+    is_active: '1',
+    createdAt: now,
+    updatedAt: now,
+  })
 
-  await logOperation(event, { action: 'CREATE', module: 'category', targetId: result[0].id, detail: `创建了产品分类「${parsed.data.name}」` })
-
-  return { code: 0, data: result[0], message: '分类已添加' }
+  return { code: 0, message: '分类已创建' }
 })

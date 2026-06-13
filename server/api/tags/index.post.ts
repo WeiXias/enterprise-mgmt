@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { db } from '#database'
 import { tags } from '#schema/customers'
+import { dictEntries } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
@@ -21,13 +22,23 @@ export default defineEventHandler(async (event) => {
 
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
   const tagId = generateId()
-  const result = await db.insert(tags).values({
+  await db.insert(tags).values({
     id: tagId,
     name: parsed.data.name,
     color: parsed.data.color || null,
     createdAt: now,
   }).returning()
+  await db.insert(dictEntries).values({
+    id: generateId(),
+    dict_type: 'customer_tag',
+    value: parsed.data.name,
+    label: parsed.data.name,
+    sort: '0',
+    is_active: '1',
+    createdAt: now,
+    updatedAt: now,
+  })
 
   await logOperation(event, { action: 'CREATE', module: 'tag', targetId: tagId, detail: `创建了标签「${parsed.data.name}」` })
-  return { code: 0, data: result[0], message: '标签已添加' }
+  return { code: 0, data: { id: tagId }, message: '标签已添加' }
 })

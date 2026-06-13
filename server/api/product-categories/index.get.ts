@@ -1,16 +1,17 @@
 import { defineEventHandler } from 'h3'
 import { db } from '#database'
-import { productCategories } from '#schema'
-import { asc } from 'drizzle-orm'
+import { dictEntries } from '#schema'
+import { eq, asc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const rows = await db.select({
-    id: productCategories.id,
-    name: productCategories.name,
-    sort: productCategories.sort,
-    createdAt: productCategories.createdAt,
-  }).from(productCategories)
-    .orderBy(asc(productCategories.sort), asc(productCategories.name))
+    id: dictEntries.id,
+    name: dictEntries.label,
+    sort: dictEntries.sort,
+    createdAt: dictEntries.createdAt,
+  }).from(dictEntries)
+    .where(eq(dictEntries.dict_type, 'product_category'))
+    .orderBy(asc(dictEntries.sort), asc(dictEntries.label))
 
-  return { code: 0, data: rows }
+  return { code: 0, data: rows.map(r => ({ id: r.id, name: r.name, sort: r.sort, createdAt: r.createdAt })) }
 })
