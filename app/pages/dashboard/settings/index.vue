@@ -18,6 +18,41 @@ async function loadDictData() {
 }
 loadDictData()
 
+// 数据字典行内编辑
+const editingDictKey = ref('')
+const editingDictLabel = ref('')
+function startDictEdit(enumType: string, value: string, currentLabel: string) {
+  editingDictKey.value = `${enumType}|${value}`
+  editingDictLabel.value = currentLabel
+  nextTick(() => {
+    const input = document.querySelector('[data-dict-editing]') as HTMLInputElement
+    input?.focus()
+    input?.select()
+  })
+}
+function cancelDictEdit() {
+  editingDictKey.value = ''
+  editingDictLabel.value = ''
+}
+async function saveDictOverride(enumType: string, value: string) {
+  if (!editingDictLabel.value.trim()) { cancelDictEdit(); return }
+  try {
+    await $api('/api/system/config/dict_override', {
+      method: 'PUT',
+      body: { enumType, value, label: editingDictLabel.value.trim() },
+    })
+    // 更新本地数据
+    const options = dictData.value[enumType]
+    if (options) {
+      const opt = options.find((o: any) => o.value === value)
+      if (opt) opt.label = editingDictLabel.value.trim()
+    }
+    cancelDictEdit()
+  } catch (err: any) {
+    toast.add({ title: err?.data?.message || '保存失败', color: 'error' })
+  }
+}
+
 const activeTab = ref('basic')
 const config = ref<Record<string, string>>({})
 const saving = ref<Record<string, boolean>>({})
@@ -1139,8 +1174,8 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     <!-- ==================== 数据字典 ==================== -->
     <div v-show="activeTab === 'datadict'">
       <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-4">数据字典</h3>
-        <p class="text-xs text-stone-400 mb-4">系统所有枚举类型及其可选值，统一管理。</p>
+        <h3 class="text-sm font-medium text-stone-700 mb-1">数据字典</h3>
+        <p class="text-xs text-stone-400 mb-4">点击标签编辑，回车保存。</p>
 
         <div v-if="dictLoading" class="text-xs text-stone-400 py-8 text-center">加载中...</div>
 
@@ -1148,9 +1183,24 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
           <div v-for="(options, name) in dictData" :key="name" class="rounded-lg border border-stone-200 bg-stone-50/50 p-3">
             <h4 class="text-xs font-medium text-stone-600 mb-2">{{ name }}</h4>
             <div class="space-y-1">
-              <div v-for="opt in options" :key="opt.value" class="flex items-center gap-2 text-xs">
+              <div v-for="opt in options" :key="opt.value" class="flex items-center gap-2 text-xs group">
                 <code class="text-[11px] px-1.5 py-0.5 rounded bg-stone-200 text-stone-600 font-mono shrink-0">{{ opt.value }}</code>
-                <span class="text-stone-500">{{ opt.label }}</span>
+                <!-- 行内编辑 -->
+                <template v-if="editingDictKey === name + '|' + opt.value">
+                  <input
+                    v-model="editingDictLabel"
+                    data-dict-editing
+                    type="text"
+                    class="flex-1 px-1.5 py-0.5 text-xs rounded border border-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    @keydown.enter="saveDictOverride(name, opt.value)"
+                    @keydown.escape="cancelDictEdit()"
+                    @blur="saveDictOverride(name, opt.value)"
+                  />
+                </template>
+                <template v-else>
+                  <span class="text-stone-500 cursor-pointer hover:text-amber-700" @click="startDictEdit(name, opt.value, opt.label)">{{ opt.label }}</span>
+                  <UIcon name="i-lucide-pen-line" class="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 cursor-pointer shrink-0" @click="startDictEdit(name, opt.value, opt.label)" />
+                </template>
               </div>
             </div>
           </div>
