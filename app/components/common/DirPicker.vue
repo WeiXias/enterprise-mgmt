@@ -48,7 +48,7 @@ watch(isOpen, (v) => {
 </script>
 
 <template>
-  <CommonFormModal
+  <FormModal
     v-model:open="isOpen"
     title="选择目录"
     size="compact"
@@ -97,10 +97,10 @@ watch(isOpen, (v) => {
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="isOpen = false">算了</UButton>
+      <div class="flex justify-end gap-2 w-full">
         <UButton color="primary" :disabled="!!errorMsg || loading" @click="select">选择此目录</UButton>
+        <UButton variant="ghost" color="neutral" @click="isOpen = false">算了</UButton>
       </div>
     </template>
-  </CommonFormModal>
+  </FormModal>
 </template>

@@ -79,7 +79,7 @@ onMounted(() => fetchCategories())
       <div class="em-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-medium text-teal-700">收入分类</h3>
-          <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openCreate('income')">添加</UButton>
+          <UButton icon="i-lucide-plus" color="primary" size="xs" @click="openCreate('income')">添加</UButton>
         </div>
         <div class="space-y-1">
           <div v-for="c in incomeCategories" :key="c.id" class="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover text-sm">
@@ -96,7 +96,7 @@ onMounted(() => fetchCategories())
       <div class="em-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-medium text-red-500">支出分类</h3>
-          <UButton icon="i-lucide-plus" variant="ghost" color="error" size="xs" @click="openCreate('expense')">添加</UButton>
+          <UButton icon="i-lucide-plus" color="primary" size="xs" @click="openCreate('expense')">添加</UButton>
         </div>
         <div class="space-y-1">
           <div v-for="c in expenseCategories" :key="c.id" class="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover text-sm">
@@ -111,7 +111,7 @@ onMounted(() => fetchCategories())
     </div>
 
     <!-- 弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="editTarget ? '编辑分类' : '添加分类'"
@@ -131,6 +131,6 @@ onMounted(() => fetchCategories())
         <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="分类名称" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">排序</label><input v-model.number="form.sort" type="number" class="w-full input-base focus-ring" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

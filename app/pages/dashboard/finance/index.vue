@@ -72,7 +72,7 @@ onMounted(() => fetchData())
         <p class="text-sm text-content-secondary mt-0.5">看看财务状况怎么样</p>
       </div>
       <div class="flex items-center gap-2">
-        <UButton icon="i-lucide-plus-circle" color="primary" @click="showQuickModal = true">记一笔</UButton>
+        <UButton icon="i-lucide-plus" color="primary" @click="showQuickModal = true">记一笔</UButton>
         <NuxtLink to="/dashboard/finance/invoices"><UButton icon="i-lucide-file-check" variant="ghost" color="neutral" size="sm">发票管理</UButton></NuxtLink>
         <NuxtLink to="/dashboard/finance/transactions"><UButton icon="i-lucide-list" variant="ghost" color="neutral" size="sm">收支明细</UButton></NuxtLink>
         <NuxtLink to="/dashboard/finance/reports"><UButton icon="i-lucide-chart-no-axes-column" variant="ghost" color="neutral" size="sm">报表</UButton></NuxtLink>
@@ -171,7 +171,7 @@ onMounted(() => fetchData())
     </div>
 
     <!-- 快捷登记弹窗 -->
-    <CommonFormModal v-if="showQuickModal" v-model:open="showQuickModal" title="记一笔" subtitle="快速记录一笔收入或支出" size="compact" :loading="quickLoading" @confirm="handleQuickCreate">
+    <FormModal v-if="showQuickModal" v-model:open="showQuickModal" title="记一笔" subtitle="快速记录一笔收入或支出" size="compact" :loading="quickLoading" @confirm="handleQuickCreate">
       <div class="flex gap-2 mb-3">
         <UButton :color="quickForm.type === 'income' ? 'primary' : 'error'" :variant="quickForm.type === 'income' ? 'solid' : 'outline'" size="sm" @click="quickForm.type = 'income'; quickForm.category = ''">收入</UButton>
         <UButton :color="quickForm.type === 'expense' ? 'error' : 'neutral'" :variant="quickForm.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="quickForm.type = 'expense'; quickForm.category = ''">支出</UButton>
@@ -192,6 +192,6 @@ onMounted(() => fetchData())
         <label class="block text-sm text-content-secondary mb-1">说明</label>
         <input v-model="quickForm.description" type="text" placeholder="简单描述一下..." class="w-full input-base focus-ring" />
       </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

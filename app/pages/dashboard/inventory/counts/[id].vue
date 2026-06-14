@@ -54,11 +54,11 @@ onMounted(() => { fetchData() })
 
 <template>
   <div class="max-w-4xl mx-auto">
-    <CommonPageHeader title="盘点详情">
+    <PageHeader title="盘点详情">
       <template #actions>
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/inventory/counts')">返回列表</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="count" class="space-y-4">

@@ -19,8 +19,10 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const { $api } = useNuxtApp()
 const options = ref<{ id: string; name: string; username: string; role: string }[]>([])
+const loaded = ref(false)
 const loading = ref(false)
 const searchKeyword = ref('')
+const isOpen = ref(false)
 
 async function load() {
   loading.value = true
@@ -42,7 +44,19 @@ function onSearch() {
   timer = setTimeout(load, 250)
 }
 
-onMounted(load)
+function select(id: string) {
+  emit('update:modelValue', id)
+  isOpen.value = false
+}
+
+function onFocus() {
+  if (!loaded.value) { loaded.value = true; load() }
+  isOpen.value = true
+}
+
+function onBlur() {
+  setTimeout(() => { isOpen.value = false }, 150)
+}
 </script>
 
 <template>
@@ -54,13 +68,14 @@ onMounted(load)
         type="text"
         :placeholder="placeholder"
         class="w-full pl-8 input-base focus-ring"
-        @focus="onSearch()"
+        @focus="onFocus"
+        @blur="onBlur"
         @input="onSearch"
       />
     </div>
     <!-- 下拉列表 -->
     <div
-      v-if="options.length > 0"
+      v-if="isOpen && options.length > 0"
       class="absolute z-20 w-full mt-1 max-h-48 overflow-y-auto bg-surface-card border border-line rounded-xl shadow-lg"
     >
       <button
@@ -77,7 +92,7 @@ onMounted(load)
           'w-full text-left px-3 py-2 text-sm hover:bg-brand-50 transition-colors flex items-center gap-2',
           modelValue === opt.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary'
         ]"
-        @click="emit('update:modelValue', opt.id); options = []"
+        @click="select(opt.id)"
       >
         <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
           <span class="text-brand-700 text-[10px]">{{ opt.name?.charAt(0) }}</span>

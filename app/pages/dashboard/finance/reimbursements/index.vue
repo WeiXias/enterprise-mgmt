@@ -155,7 +155,7 @@ onMounted(() => fetchItems())
     </div>
 
     <!-- 提交/编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="editTarget ? '编辑报销' : '提交报销'"
@@ -178,10 +178,10 @@ onMounted(() => fetchItems())
         <UButton variant="ghost" color="neutral" @click="showModal = false">算了</UButton>
         <UButton color="primary" :loading="saving" @click="handleSave">{{ editTarget ? '保存' : '提交' }}</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 驳回弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showRejectModal"
       v-model:open="showRejectModal"
       title="驳回报销"
@@ -195,6 +195,6 @@ onMounted(() => fetchItems())
         <UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton>
         <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

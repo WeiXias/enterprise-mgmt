@@ -188,7 +188,7 @@ onMounted(() => { fetchItems(); fetchProducts() })
       </table>
     </div>
 
-    <CommonFormModal v-if="showModal" v-model:open="showModal" title="登记库存流水" size="standard" :loading="saving" @confirm="handleSave">
+    <FormModal v-if="showModal" v-model:open="showModal" title="登记库存流水" size="standard" :loading="saving" @confirm="handleSave">
       <div>
         <label class="block text-sm text-content-secondary mb-1">产品 <span class="text-danger-600">*</span></label>
         <ProductSelect v-model="form.productId" placeholder="选择产品" />
@@ -222,6 +222,6 @@ onMounted(() => { fetchItems(); fetchProducts() })
         <label class="block text-sm text-content-secondary mb-1">备注</label>
         <input v-model="form.remark" type="text" class="w-full input-base focus-ring" />
       </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

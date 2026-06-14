@@ -136,11 +136,11 @@ onUnmounted(() => {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" size="sm" @click="emit('update:open', false)">取消</UButton>
+      <div class="flex justify-end gap-2 w-full">
         <UButton color="primary" size="sm" :loading="saving" :disabled="isEmpty" @click="handleConfirm">
           确认签名
         </UButton>
+        <UButton variant="ghost" color="neutral" size="sm" @click="emit('update:open', false)">取消</UButton>
       </div>
     </template>
   </UModal>

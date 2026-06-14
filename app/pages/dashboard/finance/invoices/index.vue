@@ -126,7 +126,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
         <p class="text-sm text-content-muted mt-0.5">管理开票记录</p>
       </div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">新增发票</UButton>
-      <UButton v-if="selectedForVoid.size > 0" icon="i-lucide-x-circle" color="error" variant="outline" size="sm" :loading="batchVoidLoading" @click="handleBatchVoid">
+      <UButton v-if="selectedForVoid.size > 0" icon="i-lucide-x-circle" color="error" variant="ghost" size="sm" :loading="batchVoidLoading" @click="handleBatchVoid">
         批量作废 ({{ selectedForVoid.size }})
       </UButton>
     </div>
@@ -165,7 +165,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
       </div>
     </div>
 
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="`${editTarget ? '编辑' : '新增'}发票`"
@@ -223,6 +223,6 @@ onMounted(() => { fetchItems(); fetchOptions() })
           <textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

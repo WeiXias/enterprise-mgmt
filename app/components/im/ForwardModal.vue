@@ -14,7 +14,7 @@ const filteredConvs = computed(() => {
 </script>
 
 <template>
-  <CommonFormModal
+  <FormModal
     :open="true"
     title="转发到"
     size="compact"
@@ -45,5 +45,5 @@ const filteredConvs = computed(() => {
         <div v-if="filteredConvs.length === 0" class="text-center py-4 text-xs text-content-muted">没有可用会话</div>
       </div>
     </div>
-  </CommonFormModal>
+  </FormModal>
 </template>

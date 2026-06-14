@@ -48,7 +48,7 @@ watch(() => props.modelValue, (v) => { if (v) { title.value = ''; selectedIds.va
 </script>
 
 <template>
-  <CommonFormModal
+  <FormModal
     :open="modelValue"
     title="新建群聊"
     size="compact"
@@ -77,5 +77,5 @@ watch(() => props.modelValue, (v) => { if (v) { title.value = ''; selectedIds.va
         <p class="text-xs text-content-muted mt-1">已选 {{ selectedIds.length }} 人</p>
       </div>
     </div>
-  </CommonFormModal>
+  </FormModal>
 </template>

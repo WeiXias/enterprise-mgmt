@@ -6,17 +6,12 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
 
-  // Nuxt 4: common/ 去掉目录前缀，页面用 <EnumSelect> 而非 <CommonEnumSelect>
+  // Nuxt 4 组件注册: common 目录组件去掉目录前缀
+  // Nuxt 默认对 common/ 加 Common 前缀，这里设为空以直接使用组件名
   components: {
     dirs: [
       { path: '~/components/common', prefix: '' },
     ]
-  },
-
-  // 使用本地字体 provider 替代 Google Fonts（避免 SSR 超时）
-  fonts: {
-    provider: 'local',
-    families: []
   },
 
   devtools: {

@@ -208,7 +208,7 @@ onMounted(fetchRoles)
     </div>
 
     <!-- 角色弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showRoleModal"
       v-model:open="showRoleModal"
       :title="editingRoleId ? '编辑角色' : '添加角色'"
@@ -225,9 +225,11 @@ onMounted(fetchRoles)
         <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="roleForm.description" rows="2" placeholder="角色描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       </form>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showRoleModal = false">算了</UButton>
-        <UButton color="primary" :loading="roleLoading" @click="handleRoleSave">{{ editingRoleId ? '保存' : '创建' }}</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="primary" :loading="roleLoading" @click="handleRoleSave">{{ editingRoleId ? '保存' : '创建' }}</UButton>
+          <UButton variant="ghost" color="neutral" @click="showRoleModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

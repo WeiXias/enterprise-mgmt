@@ -21,7 +21,7 @@ onMounted(() => { fetchAccounts() })
 
 <template>
   <div>
-    <CommonPageHeader title="科目表" description="会计科目总览" />
+    <PageHeader title="科目表" description="会计科目总览" />
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else class="em-card">

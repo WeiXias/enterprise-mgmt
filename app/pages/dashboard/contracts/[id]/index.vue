@@ -776,7 +776,7 @@ async function deleteSubcontract(sc: any) {
 
       <template #attachments>
         <div class="mt-4">
-          <CommonFileUpload
+          <FileUpload
             source="attachment"
             :upload-url="`/api/contracts/${contractId}/attachments`"
             :files="attachmentFiles.map((f: any) => ({ id: f.id, fileName: f.fileName, fileSize: f.fileSize }))"
@@ -831,7 +831,7 @@ async function deleteSubcontract(sc: any) {
     </div>
 
     <!-- 产品明细编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showProductModal"
       v-model:open="showProductModal"
       title="编辑产品明细"
@@ -852,10 +852,10 @@ async function deleteSubcontract(sc: any) {
         <UButton variant="ghost" color="neutral" @click="showProductModal = false">取消</UButton>
         <UButton color="primary" :loading="productLoading" @click="handleSaveProducts">保存</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showEditModal"
       v-model:open="showEditModal"
       title="编辑合同"
@@ -919,10 +919,10 @@ async function deleteSubcontract(sc: any) {
           </div>
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 添加收款计划弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showPlanModal"
       v-model:open="showPlanModal"
       :title="editPlanId ? '编辑收款计划' : '添加收款计划'"
@@ -947,10 +947,10 @@ async function deleteSubcontract(sc: any) {
         <UButton variant="ghost" color="neutral" @click="showPlanModal = false">取消</UButton>
         <UButton color="primary" :loading="planLoading" @click="handleSavePlan">{{ editPlanId ? '保存' : '添加' }}</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 登记收款弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showPaymentModal"
       v-model:open="showPaymentModal"
       title="登记收款"
@@ -988,10 +988,10 @@ async function deleteSubcontract(sc: any) {
         <UButton variant="ghost" color="neutral" @click="showPaymentModal = false">取消</UButton>
         <UButton color="primary" :loading="paymentLoading" @click="handleAddPayment">登记</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 审批弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showApproveModal"
       v-model:open="showApproveModal"
       title="确认审批"
@@ -1002,7 +1002,7 @@ async function deleteSubcontract(sc: any) {
     />
 
     <!-- 驳回弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showRejectModal"
       v-model:open="showRejectModal"
       title="驳回合同"
@@ -1018,10 +1018,10 @@ async function deleteSubcontract(sc: any) {
         <UButton variant="ghost" color="neutral" @click="showRejectModal = false">取消</UButton>
         <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
@@ -1034,7 +1034,7 @@ async function deleteSubcontract(sc: any) {
     />
 
     <!-- 分包合同弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showSubcontractModal"
       v-model:open="showSubcontractModal"
       :title="editSubId ? '编辑分包合同' : '创建分包合同'"
@@ -1090,10 +1090,10 @@ async function deleteSubcontract(sc: any) {
           <p v-if="subForm.serviceFee" class="text-xs text-content-muted">技术服务费：{{ formatMoney(subForm.serviceFee) }} (可提现基数)</p>
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 转交弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showTransferModal"
       v-model:open="showTransferModal"
       title="转交合同"
@@ -1126,7 +1126,7 @@ async function deleteSubcontract(sc: any) {
         <UButton variant="ghost" color="neutral" @click="showTransferModal = false">取消</UButton>
         <UButton color="warning" :loading="transferLoading" :disabled="!transferToUserId" @click="handleTransfer">确认转交</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 签章弹窗 -->
     <UModal v-if="showSignModal" v-model:open="showSignModal" :ui="{ content: 'w-screen h-screen !max-w-none !max-h-none rounded-none' }">

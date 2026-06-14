@@ -5,6 +5,7 @@ const DICT_TYPES: Record<string, { label: string; category: string }> = {
   industry: { label: '客户行业', category: '业务字典' },
   opportunity_source: { label: '商机来源', category: '业务字典' },
   product_category: { label: '产品分类', category: '业务字典' },
+  payment_method: { label: '付款方式', category: '业务字典' },
   customer_tag: { label: '客户标签', category: '业务字典' },
   finance_income_category: { label: '收入分类', category: '财务' },
   finance_expense_category: { label: '支出分类', category: '财务' },

@@ -117,13 +117,13 @@ onMounted(() => { fetchSuppliers() })
 
 <template>
   <div>
-    <CommonPageHeader title="供应商" description="管好供应商，进货不踩坑">
+    <PageHeader title="供应商" description="管好供应商，进货不踩坑">
       <template #actions>
         <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">
           添加供应商
         </UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
@@ -170,10 +170,10 @@ onMounted(() => { fetchSuppliers() })
       </div>
     </div>
 
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchSuppliers" @next="fetchSuppliers" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchSuppliers" @next="fetchSuppliers" />
 
     <!-- 新增弹窗 -->
-    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加供应商" subtitle="记一个供应商，进货不迷路" size="standard" :loading="createLoading" @confirm="handleCreate">
+    <FormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加供应商" subtitle="记一个供应商，进货不迷路" size="standard" :loading="createLoading" @confirm="handleCreate">
       <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
           <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
@@ -238,10 +238,10 @@ onMounted(() => { fetchSuppliers() })
         <label class="block text-sm text-content-secondary mb-1">备注</label>
         <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑供应商" size="standard" :loading="editLoading" @confirm="handleEdit">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑供应商" size="standard" :loading="editLoading" @confirm="handleEdit">
       <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
           <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
@@ -313,10 +313,10 @@ onMounted(() => { fetchSuppliers() })
         <label class="block text-sm text-content-secondary mb-1">备注</label>
         <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

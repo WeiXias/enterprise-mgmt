@@ -235,7 +235,7 @@ onMounted(() => fetchDetail())
     </div>
 
     <!-- 驳回弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showRejectModal"
       v-model:open="showRejectModal"
       title="驳回报销"
@@ -249,13 +249,15 @@ onMounted(() => fetchDetail())
         <textarea v-model="rejectReason" rows="2" placeholder="写明原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
       </div>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton>
-        <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
+          <UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 调整弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showAdjustModal"
       v-model:open="showAdjustModal"
       title="调整提成"
@@ -274,10 +276,10 @@ onMounted(() => fetchDetail())
           <input v-model="adjustForm.adjustReason" type="text" placeholder="说明调整原因..." class="w-full input-base focus-ring" />
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

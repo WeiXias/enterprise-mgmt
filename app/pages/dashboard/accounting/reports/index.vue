@@ -28,7 +28,7 @@ onMounted(() => { fetchData() })
 
 <template>
   <div>
-    <CommonPageHeader title="财务报表" description="利润表 + 资产负债表" />
+    <PageHeader title="财务报表" description="利润表 + 资产负债表" />
 
     <div class="flex gap-2 mb-4">
       <UButton :variant="activeTab === 'income' ? 'solid' : 'ghost'" :color="activeTab === 'income' ? 'primary' : 'neutral'" size="sm" @click="activeTab = 'income'">利润表</UButton>

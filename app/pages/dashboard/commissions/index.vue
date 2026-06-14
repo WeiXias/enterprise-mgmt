@@ -143,7 +143,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
 
 <template>
   <div>
-    <CommonPageHeader title="提成" description="管理提成计算和审批发放">
+    <PageHeader title="提成" description="管理提成计算和审批发放">
       <template #actions>
         <div class="flex items-center gap-2">
           <div class="flex items-center gap-2">
@@ -158,7 +158,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
           </NuxtLink>
         </div>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -221,10 +221,10 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
       </NuxtLink>
     </div>
 
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchItems" @next="fetchItems" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchItems" @next="fetchItems" />
 
     <!-- 计算弹窗 -->
-    <CommonFormModal v-if="showCalcModal" v-model:open="showCalcModal" title="计算提成" size="compact" :loading="calcLoading" @confirm="handleCalc" @cancel="showCalcModal = false">
+    <FormModal v-if="showCalcModal" v-model:open="showCalcModal" title="计算提成" size="compact" :loading="calcLoading" @confirm="handleCalc" @cancel="showCalcModal = false">
         <div class="space-y-3">
           <p class="text-sm text-content-secondary">选择合同，根据已配置的提成规则自动计算。</p>
           <div>
@@ -240,10 +240,10 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
             <span v-for="r in rules" :key="r.id" class="ml-2">{{ r.name }}({{ (Number(r.rate) * 100).toFixed(1) }}%)</span>
           </div>
         </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 调整弹窗 -->
-    <CommonFormModal v-if="showAdjustModal" v-model:open="showAdjustModal" title="调整提成" size="compact" :loading="adjustLoading" @confirm="handleAdjust" @cancel="showAdjustModal = false">
+    <FormModal v-if="showAdjustModal" v-model:open="showAdjustModal" title="调整提成" size="compact" :loading="adjustLoading" @confirm="handleAdjust" @cancel="showAdjustModal = false">
         <form class="space-y-3" @submit.prevent="handleAdjust">
           <div>
             <label class="block text-sm text-content-secondary mb-1">调整后金额 <span class="text-red-400">*</span></label>
@@ -254,10 +254,10 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
             <input v-model="adjustForm.adjustReason" type="text" placeholder="说明调整原因..." class="w-full input-base focus-ring" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

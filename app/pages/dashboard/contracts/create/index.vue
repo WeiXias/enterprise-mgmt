@@ -169,7 +169,7 @@ onMounted(() => {
     </div>
 
     <!-- 模板选择弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showTemplateModal"
       v-model:open="showTemplateModal"
       title="选择合同模板"
@@ -183,9 +183,11 @@ onMounted(() => {
         @select="onSelectTemplate"
       />
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
-        <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
+          <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

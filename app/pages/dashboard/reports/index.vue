@@ -85,11 +85,11 @@ onMounted(() => { fetchReports() })
 
 <template>
   <div>
-    <CommonPageHeader title="我的报表" description="自定义报表，随心查">
+    <PageHeader title="我的报表" description="自定义报表，随心查">
       <template #actions>
         <UButton icon="i-lucide-plus" color="primary" @click="openBuilder()">新建报表</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="reports.length === 0" class="text-center py-12 text-content-muted">
@@ -114,7 +114,7 @@ onMounted(() => { fetchReports() })
     </div>
 
     <!-- 报表设计器弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showBuilder"
       v-model:open="showBuilder"
       :title="editingId ? '编辑报表' : '新建报表'"
@@ -151,6 +151,6 @@ onMounted(() => { fetchReports() })
           <p class="text-xs text-content-muted mt-0.5">格式：[{"key":"name","label":"名称","type":"text"}]</p>
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

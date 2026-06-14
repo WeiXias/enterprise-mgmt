@@ -150,7 +150,7 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
     </div>
 
     <!-- 创建发放单弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showCreateModal"
       v-model:open="showCreateModal"
       title="创建发放单"
@@ -184,6 +184,6 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
           </div>
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

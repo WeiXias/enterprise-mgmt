@@ -123,7 +123,7 @@ onMounted(() => fetchCategories())
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-model:open="showModal"
       :title="editTarget ? '编辑分类' : '添加分类'"
       size="compact"
@@ -140,10 +140,10 @@ onMounted(() => fetchCategories())
           <input v-model.number="form.sort" type="number" class="w-full input-base focus-ring" />
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除分类「${deleteTarget?.name}」吗？`"

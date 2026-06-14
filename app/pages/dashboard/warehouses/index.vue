@@ -169,11 +169,11 @@ onMounted(() => { fetchWarehouses() })
 
 <template>
   <div>
-    <CommonPageHeader title="仓库" description="管仓库和库位，东西放哪了心里有数">
+    <PageHeader title="仓库" description="管仓库和库位，东西放哪了心里有数">
       <template #actions>
         <UButton icon="i-lucide-plus" color="primary" @click="resetCreateForm(); showCreateModal = true">添加仓库</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="warehouseList.length === 0" class="text-center py-12 text-content-muted">
@@ -228,7 +228,7 @@ onMounted(() => { fetchWarehouses() })
     </div>
 
     <!-- 仓库新增弹窗 -->
-    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加仓库" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
+    <FormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加仓库" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
         <form class="space-y-4" @submit.prevent="handleCreate">
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -253,10 +253,10 @@ onMounted(() => { fetchWarehouses() })
             <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 仓库编辑弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑仓库" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑仓库" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
         <form class="space-y-4" @submit.prevent="handleEdit">
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -281,10 +281,10 @@ onMounted(() => { fetchWarehouses() })
             <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 库位弹窗 -->
-    <CommonFormModal v-if="showLocationModal" v-model:open="showLocationModal" :title="editingLocationId ? '编辑库位' : '添加库位'" size="compact" :loading="locationLoading" @confirm="handleSaveLocation" @cancel="showLocationModal = false">
+    <FormModal v-if="showLocationModal" v-model:open="showLocationModal" :title="editingLocationId ? '编辑库位' : '添加库位'" size="compact" :loading="locationLoading" @confirm="handleSaveLocation" @cancel="showLocationModal = false">
         <form class="space-y-4" @submit.prevent="handleSaveLocation">
           <div>
             <label class="block text-sm text-content-secondary mb-1">库位名称 <span class="text-red-400">*</span></label>
@@ -299,10 +299,10 @@ onMounted(() => { fetchWarehouses() })
             <input v-model="locationForm.remark" type="text" placeholder="备注" class="w-full input-base focus-ring" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

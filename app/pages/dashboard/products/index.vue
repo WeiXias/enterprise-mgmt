@@ -250,18 +250,15 @@ onMounted(() => {
 <template>
   <div>
     <!-- 页面标题 + 操作按钮 -->
-    <CommonPageHeader title="产品" description="产品和价格都在这里管">
+    <PageHeader title="产品" description="产品和价格都在这里管">
       <template #actions>
         <div class="flex items-center gap-2">
-          <UButton icon="i-lucide-tag" variant="ghost" color="neutral" size="sm" @click="openAddCategory()">
-            管理分类
-          </UButton>
           <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCategories()">
             添加产品
           </UButton>
         </div>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -349,10 +346,10 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchProducts" @next="fetchProducts" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchProducts" @next="fetchProducts" />
 
     <!-- 新增产品弹窗 -->
-    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加产品" subtitle="新增一个产品到目录里" size="standard" :loading="createLoading" @confirm="handleCreate">
+    <FormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加产品" subtitle="新增一个产品到目录里" size="standard" :loading="createLoading" @confirm="handleCreate">
       <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
           <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
@@ -373,7 +370,6 @@ onMounted(() => {
         <label class="block text-sm text-content-secondary mb-1">产品分类</label>
         <div class="flex gap-2">
           <div class="flex-1"><EnumSelect v-model="createForm.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="选择分类" /></div>
-          <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="sm" @click="editingCategoryId = null; categoryForm = { name: '', sort: '0' }; showCategoryModal = true">添加分类</UButton>
         </div>
       </div>
       <div class="rounded-xl border border-line-light bg-line-light/40 p-4 mt-3">
@@ -396,10 +392,10 @@ onMounted(() => {
         <label class="block text-sm text-content-secondary mb-1">描述</label>
         <textarea v-model="createForm.description" rows="3" placeholder="简单描述一下这个产品..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 编辑产品弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑产品" subtitle="修改产品信息和价格" size="standard" :loading="editLoading" @confirm="handleEdit">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑产品" subtitle="修改产品信息和价格" size="standard" :loading="editLoading" @confirm="handleEdit">
       <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
           <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
@@ -444,10 +440,10 @@ onMounted(() => {
         <label class="block text-sm text-content-secondary mb-1">描述</label>
         <textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
@@ -461,7 +457,7 @@ onMounted(() => {
     />
 
     <!-- 分类管理弹窗 -->
-    <CommonFormModal v-if="showCategoryModal" v-model:open="showCategoryModal" :title="editingCategoryId ? '编辑分类' : '管理分类'" size="compact" :loading="categoryLoading" @confirm="handleSaveCategory">
+    <FormModal v-if="showCategoryModal" v-model:open="showCategoryModal" :title="editingCategoryId ? '编辑分类' : '管理分类'" size="compact" :loading="categoryLoading" @confirm="handleSaveCategory">
       <div class="space-y-3">
         <div class="flex gap-2">
           <input
@@ -490,6 +486,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

@@ -63,11 +63,11 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <CommonPageHeader title="销售订单详情">
+    <PageHeader title="销售订单详情">
       <template #actions>
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/sales')">返回列表</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
 
@@ -125,7 +125,7 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
     </div>
 
     <!-- 发货弹窗（选择仓库） -->
-    <CommonFormModal
+    <FormModal
       v-if="showShipModal"
       v-model:open="showShipModal"
       title="确认发货"
@@ -148,9 +148,9 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
         <UButton variant="ghost" color="neutral" @click="showShipModal = false">算了</UButton>
         <UButton color="primary" :loading="actionLoading" @click="doAction('ship', shipForm)">确认发货</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

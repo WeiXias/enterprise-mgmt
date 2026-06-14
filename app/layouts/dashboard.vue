@@ -541,7 +541,7 @@ function formatTime(dateStr: string): string {
         </main>
       </div>
     </div>
-    <CommonWatermark
+    <Watermark
       v-if="showWatermark"
       :content="watermarkStore.config.content"
       :opacity="watermarkStore.config.opacity"

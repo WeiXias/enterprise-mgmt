@@ -138,14 +138,14 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
 
 <template>
   <div>
-    <CommonPageHeader title="项目" description="跟踪项目进度和任务">
+    <PageHeader title="项目" description="跟踪项目进度和任务">
       <template #actions>
         <div class="flex items-center gap-2">
           <UButton icon="i-lucide-calendar-days" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/projects/calendar')">日历视图</UButton>
           <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">添加项目</UButton>
         </div>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-4 gap-3 mb-5">
@@ -198,10 +198,10 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
       </div>
     </div>
 
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchProjects" @next="fetchProjects" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchProjects" @next="fetchProjects" />
 
     <!-- 新增弹窗 -->
-    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加项目" subtitle="填写项目的基本信息和时间安排" :loading="createLoading" @confirm="handleCreate">
+    <FormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加项目" subtitle="填写项目的基本信息和时间安排" :loading="createLoading" @confirm="handleCreate">
       <div class="space-y-4">
         <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
@@ -226,10 +226,10 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><textarea v-model="createForm.remark" rows="2" placeholder="备注..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑项目" subtitle="修改项目基本信息和时间安排" :loading="editLoading" @confirm="handleEdit">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑项目" subtitle="修改项目基本信息和时间安排" :loading="editLoading" @confirm="handleEdit">
       <div class="space-y-4">
         <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
@@ -256,10 +256,10 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

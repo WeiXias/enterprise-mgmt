@@ -58,7 +58,7 @@ async function doImport() {
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <CommonPageHeader title="数据导入" description="从 CSV 文件批量导入数据" />
+    <PageHeader title="数据导入" description="从 CSV 文件批量导入数据" />
 
     <div class="em-card p-6 space-y-4">
       <div>

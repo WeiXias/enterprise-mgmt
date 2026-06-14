@@ -534,7 +534,7 @@ onMounted(() => {
 
           <!-- 跟进记录 -->
           <div class="em-card">
-            <CommonFollowUpList :items="opp.followUps || []" :show-add-button="!isClosed" @add="showFollowUpModal = true" />
+            <FollowUpList :items="opp.followUps || []" :show-add-button="!isClosed" @add="showFollowUpModal = true" />
           </div>
         </div>
 
@@ -583,7 +583,7 @@ onMounted(() => {
     </template>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showEditModal"
       v-model:open="showEditModal"
       title="编辑商机"
@@ -632,13 +632,15 @@ onMounted(() => {
         </form>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
-        <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
+          <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
@@ -651,7 +653,7 @@ onMounted(() => {
     />
 
     <!-- 赢单确认弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showWinModal"
       v-model:open="showWinModal"
       title="确认赢单"
@@ -670,10 +672,10 @@ onMounted(() => {
         <UButton variant="ghost" color="neutral" @click="showWinModal = false">算了</UButton>
         <UButton color="primary" :loading="winLoading" @click="handleWin">确认赢单</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 输单确认弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showLoseModal"
       v-model:open="showLoseModal"
       title="确认输单"
@@ -693,10 +695,10 @@ onMounted(() => {
         <UButton variant="ghost" color="neutral" @click="showLoseModal = false; loseReason = ''">算了</UButton>
         <UButton color="error" :loading="loseLoading" @click="handleLose">确认输单</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 跟进记录弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showFollowUpModal"
       v-model:open="showFollowUpModal"
       title="添加跟进"
@@ -705,16 +707,16 @@ onMounted(() => {
       @confirm="handleFollowUp"
     >
       <template #default>
-        <CommonFollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleFollowUp" />
+        <FollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleFollowUp" />
       </template>
       <template #footer>
         <UButton variant="ghost" color="neutral" @click="showFollowUpModal = false">算了</UButton>
         <UButton color="primary" :loading="followUpLoading" @click="handleFollowUp">添加</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 新建报价弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showQuoteModal"
       v-model:open="showQuoteModal"
       title="新建报价"
@@ -785,10 +787,10 @@ onMounted(() => {
         <UButton variant="ghost" color="neutral" @click="showQuoteModal = false">算了</UButton>
         <UButton color="primary" :loading="quoteLoading" @click="handleCreateQuote">创建报价</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 关联产品弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showProductModal"
       v-model:open="showProductModal"
       title="关联产品"
@@ -813,10 +815,10 @@ onMounted(() => {
         <UButton variant="ghost" color="neutral" @click="showProductModal = false">算了</UButton>
         <UButton color="primary" :loading="productLoading" @click="handleSaveProducts">保存</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 报价预览弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showPreviewModal"
       v-model:open="showPreviewModal"
       title="报价单预览"
@@ -855,10 +857,10 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 发送报价弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showSendModal"
       v-model:open="showSendModal"
       title="发送报价"
@@ -883,6 +885,6 @@ onMounted(() => {
         <UButton variant="ghost" color="neutral" @click="showSendModal = false">算了</UButton>
         <UButton color="primary" :loading="sendLoading" @click="handleSendQuote(null as any)">发送</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

@@ -871,7 +871,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </div>
     </div>
 
-    <CommonDirPicker v-model="dirPickerOpen" @selected="onDirSelected" />
+    <DirPicker v-model="dirPickerOpen" @selected="onDirSelected" />
 
     <!-- ==================== 组织架构 ==================== -->
     <div v-show="activeTab === 'organizations'">
@@ -1188,7 +1188,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </div>
 
       <!-- 恢复确认弹窗 -->
-      <CommonConfirmDialog
+      <ConfirmDialog
         v-if="showRestoreConfirm"
         v-model:open="showRestoreConfirm"
         title="确认恢复备份"
@@ -1413,16 +1413,16 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     </div>
 
     <!-- 部门弹窗 -->
-    <CommonFormModal v-if="showDeptModal" v-model:open="showDeptModal" :title="editingDeptId ? '编辑部门' : '添加部门'" size="compact" :loading="deptLoading" @confirm="handleDeptSave">
+    <FormModal v-if="showDeptModal" v-model:open="showDeptModal" :title="editingDeptId ? '编辑部门' : '添加部门'" size="compact" :loading="deptLoading" @confirm="handleDeptSave">
       <form class="space-y-3" @submit.prevent="handleDeptSave">
         <div><label class="block text-sm text-content-primary mb-1">名称</label><input v-model="deptForm.name" type="text" placeholder="部门名称" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-primary mb-1">上级部门</label><select v-model="deptForm.parentId" class="w-full input-base"><option value="">无（顶级部门）</option><option v-for="n in flatOrgTree" :key="n.id" :value="n.id" :disabled="n.id === editingDeptId">{{ '—'.repeat(n._level || 0) + ' ' + n.name }}</option></select></div>
         <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="deptForm.description" rows="2" placeholder="部门描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 管理成员弹窗 -->
-    <CommonFormModal v-if="showMemberModal" v-model:open="showMemberModal" title="管理成员" size="standard" :loading="memberLoading" @confirm="saveMembers">
+    <FormModal v-if="showMemberModal" v-model:open="showMemberModal" title="管理成员" size="standard" :loading="memberLoading" @confirm="saveMembers">
       <div v-if="allUsers.length === 0" class="text-xs text-content-muted py-4">加载中...</div>
       <div v-else class="space-y-1 max-h-80 overflow-y-auto">
         <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-surface-hover cursor-pointer">
@@ -1432,18 +1432,18 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
           <span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
         </label>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 角色弹窗 -->
-    <CommonFormModal v-if="showRoleModal" v-model:open="showRoleModal" :title="editingRoleId ? '编辑角色' : '添加角色'" size="compact" :loading="roleSaving" @confirm="handleRoleSave">
+    <FormModal v-if="showRoleModal" v-model:open="showRoleModal" :title="editingRoleId ? '编辑角色' : '添加角色'" size="compact" :loading="roleSaving" @confirm="handleRoleSave">
       <form class="space-y-3" @submit.prevent="handleRoleSave">
         <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-primary mb-1">名称</label><input v-model="roleForm.name" type="text" placeholder="角色名称" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-primary mb-1">标识</label><input v-model="roleForm.code" type="text" placeholder="英文下划线" :disabled="!!editingRoleId" class="w-full input-base focus-ring disabled:bg-surface-page font-mono text-xs" /></div></div>
         <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="roleForm.description" rows="2" placeholder="角色描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- ==================== AI 供应商弹窗 ==================== -->
-    <CommonFormModal v-if="showProviderModal" v-model:open="showProviderModal" :title="editingProviderId ? '编辑供应商' : '添加供应商'" size="standard" :loading="providerLoading" @confirm="handleSaveProvider">
+    <FormModal v-if="showProviderModal" v-model:open="showProviderModal" :title="editingProviderId ? '编辑供应商' : '添加供应商'" size="standard" :loading="providerLoading" @confirm="handleSaveProvider">
       <div class="space-y-3">
         <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="providerForm.name" type="text" placeholder="如：我的 DeepSeek" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-primary mb-1">类型</label><EnumSelect v-model="providerForm.type" :options="[{ value: 'deepseek', label: 'DeepSeek' }, { value: 'custom', label: '自定义（OpenAI 兼容）' }]" placeholder="选择类型" /></div>
@@ -1461,15 +1461,15 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
             <UButton v-if="editingProviderId" icon="i-lucide-list" variant="ghost" color="neutral" size="sm" :loading="fetchingModels" @click="handleFetchModels">拉取模型</UButton>
           </div>
           <div class="flex gap-2">
-            <UButton variant="ghost" color="neutral" @click="showProviderModal = false">算了</UButton>
             <UButton color="primary" :loading="providerLoading" @click="handleSaveProvider">保存</UButton>
+            <UButton variant="ghost" color="neutral" @click="showProviderModal = false">算了</UButton>
           </div>
         </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- ==================== AI 员工弹窗 ==================== -->
-    <CommonFormModal v-if="showEmployeeModal" v-model:open="showEmployeeModal" :title="editingEmployeeId ? '编辑 AI 员工' : '创建 AI 员工'" size="standard" :loading="employeeLoading" @confirm="handleSaveEmployee">
+    <FormModal v-if="showEmployeeModal" v-model:open="showEmployeeModal" :title="editingEmployeeId ? '编辑 AI 员工' : '创建 AI 员工'" size="standard" :loading="employeeLoading" @confirm="handleSaveEmployee">
       <div class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="employeeForm.name" type="text" placeholder="如：合同审核助手" class="w-full input-base focus-ring" /></div>
@@ -1486,7 +1486,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
           <div><label class="block text-sm text-content-primary mb-1">最大 Token</label><input v-model.number="employeeForm.maxTokens" type="number" min="1" max="128000" class="w-full input-base focus-ring" /></div>
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
   </div>
   </div>

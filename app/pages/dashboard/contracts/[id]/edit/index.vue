@@ -182,7 +182,7 @@ onMounted(() => { fetchData(); fetchTemplates() })
       </div>
 
       <!-- 模板选择弹窗 -->
-      <CommonFormModal
+      <FormModal
         v-if="showTemplateModal"
         v-model:open="showTemplateModal"
         title="选择合同模板"
@@ -198,7 +198,7 @@ onMounted(() => { fetchData(); fetchTemplates() })
           <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
           <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
         </template>
-      </CommonFormModal>
+      </FormModal>
 
       <!-- 操作按钮 -->
       <div class="mt-6 flex justify-end gap-2">

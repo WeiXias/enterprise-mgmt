@@ -370,7 +370,7 @@ onMounted(() => refreshTodoData())
     </div>
 
     <!-- 弹窗 -->
-    <CommonFormModal v-if="showCreateListModal" v-model:open="showCreateListModal" title="新建清单" size="compact" :loading="createListLoading" @confirm="handleCreateList">
+    <FormModal v-if="showCreateListModal" v-model:open="showCreateListModal" title="新建清单" size="compact" :loading="createListLoading" @confirm="handleCreateList">
       <div>
         <label class="block text-sm text-content-secondary mb-1">名称</label>
         <input v-model="createListForm.name" class="w-full input-base focus-ring" placeholder="输入清单名称" />
@@ -381,9 +381,9 @@ onMounted(() => refreshTodoData())
           <button v-for="(config, color) in listColorConfig" :key="color" @click="createListForm.color = color as ListColor" :class="['w-8 h-8 rounded-md border-2 transition-colors', config.bg, createListForm.color === color ? config.border + ' ring-2 ring-offset-1 ring-brand-400' : 'border-transparent']" />
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonFormModal v-if="showEditListModal" v-model:open="showEditListModal" title="编辑清单" size="compact" :loading="editListLoading" @confirm="handleEditList">
+    <FormModal v-if="showEditListModal" v-model:open="showEditListModal" title="编辑清单" size="compact" :loading="editListLoading" @confirm="handleEditList">
       <div>
         <label class="block text-sm text-content-secondary mb-1">名称</label>
         <input v-model="editListForm.name" class="w-full input-base focus-ring" />
@@ -394,9 +394,9 @@ onMounted(() => refreshTodoData())
           <button v-for="(config, color) in listColorConfig" :key="color" @click="editListForm.color = color as ListColor" :class="['w-8 h-8 rounded-md border-2 transition-colors', config.bg, editListForm.color === color ? config.border + ' ring-2 ring-offset-1 ring-brand-400' : 'border-transparent']" />
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonFormModal v-if="showEditTodoModal" v-model:open="showEditTodoModal" title="编辑待办" size="standard" :loading="editTodoLoading" @confirm="handleEditTodo">
+    <FormModal v-if="showEditTodoModal" v-model:open="showEditTodoModal" title="编辑待办" size="standard" :loading="editTodoLoading" @confirm="handleEditTodo">
       <div>
         <label class="block text-sm text-content-secondary mb-1">标题</label>
         <input v-model="editTodoForm.title" class="w-full input-base focus-ring" placeholder="标题" />
@@ -427,9 +427,9 @@ onMounted(() => refreshTodoData())
           </select>
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonConfirmDialog v-if="showDeleteListModal" v-model:open="showDeleteListModal" title="确认删除" message="确定要删除这个清单吗？清单下的待办也会被清除。" danger :loading="deleteListLoading" @confirm="handleDeleteList" />
-    <CommonConfirmDialog v-if="showDeleteTodoModal" v-model:open="showDeleteTodoModal" title="确认删除" message="确定要删除这条待办吗？" danger :loading="deleteTodoLoading" @confirm="handleDeleteTodo" />
+    <ConfirmDialog v-if="showDeleteListModal" v-model:open="showDeleteListModal" title="确认删除" message="确定要删除这个清单吗？清单下的待办也会被清除。" danger :loading="deleteListLoading" @confirm="handleDeleteList" />
+    <ConfirmDialog v-if="showDeleteTodoModal" v-model:open="showDeleteTodoModal" title="确认删除" message="确定要删除这条待办吗？" danger :loading="deleteTodoLoading" @confirm="handleDeleteTodo" />
   </div>
 </template>

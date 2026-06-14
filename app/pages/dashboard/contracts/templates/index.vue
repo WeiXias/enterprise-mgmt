@@ -261,7 +261,7 @@ onMounted(fetchTemplates)
     </div>
 
     <!-- 新建/编辑弹窗 -->
-    <CommonFormModal v-if="showModal" v-model:open="showModal" :title="editMode === 'create' ? '新建模板' : '编辑模板'" size="spacious" :loading="saving" @confirm="handleSave" @cancel="showModal = false">
+    <FormModal v-if="showModal" v-model:open="showModal" :title="editMode === 'create' ? '新建模板' : '编辑模板'" size="spacious" :loading="saving" @confirm="handleSave" @cancel="showModal = false">
       <template #header="{ close }">
         <div class="flex items-center justify-between w-full">
           <div>
@@ -349,10 +349,10 @@ onMounted(fetchTemplates)
             提示：正文中可用 <code v-pre>{{productList}}</code> 插入产品名称列表，<code v-pre>{{productTable}}</code> 插入产品明细表格，<code v-pre>{{productTotal}}</code> 插入产品总价
           </div>
         </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- AI 编写弹窗 -->
-    <CommonFormModal v-if="showAIDialog" v-model:open="showAIDialog" title="AI 帮你写合同模板" size="compact" :loading="aiGenerating" @confirm="handleAIGenerate" @cancel="showAIDialog = false">
+    <FormModal v-if="showAIDialog" v-model:open="showAIDialog" title="AI 帮你写合同模板" size="compact" :loading="aiGenerating" @confirm="handleAIGenerate" @cancel="showAIDialog = false">
         <div>
           <label class="block text-sm text-content-secondary mb-2">描述一下你想要什么样的合同</label>
           <textarea
@@ -364,6 +364,6 @@ onMounted(fetchTemplates)
           ></textarea>
           <p class="text-xs text-content-muted mt-1">越详细效果越好，最长 1000 字</p>
         </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

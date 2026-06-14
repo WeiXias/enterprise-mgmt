@@ -233,7 +233,7 @@ onMounted(fetchTree)
     </div>
 
     <!-- 部门弹窗 -->
-    <CommonFormModal v-if="showDeptModal" v-model:open="showDeptModal" :title="editingDeptId ? '编辑部门' : '添加部门'" size="compact" :loading="deptLoading" @confirm="handleDeptSave" @cancel="showDeptModal = false">
+    <FormModal v-if="showDeptModal" v-model:open="showDeptModal" :title="editingDeptId ? '编辑部门' : '添加部门'" size="compact" :loading="deptLoading" @confirm="handleDeptSave" @cancel="showDeptModal = false">
         <form class="space-y-3" @submit.prevent="handleDeptSave">
           <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="deptForm.name" type="text" placeholder="部门名称" class="w-full input-base focus-ring" /></div>
           <div>
@@ -255,10 +255,10 @@ onMounted(fetchTree)
             <textarea v-model="deptForm.description" rows="2" placeholder="部门描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 管理成员弹窗 -->
-    <CommonFormModal v-if="showMemberModal" v-model:open="showMemberModal" :title="'管理成员 — ' + (selectedDept?.name || '')" size="compact" :loading="memberLoading" @confirm="saveMembers" @cancel="showMemberModal = false">
+    <FormModal v-if="showMemberModal" v-model:open="showMemberModal" :title="'管理成员 — ' + (selectedDept?.name || '')" size="compact" :loading="memberLoading" @confirm="saveMembers" @cancel="showMemberModal = false">
         <div v-if="allUsers.length === 0" class="text-xs text-content-muted py-4">加载中...</div>
         <div v-else class="space-y-1 max-h-80 overflow-y-auto">
           <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-surface-page cursor-pointer">
@@ -268,6 +268,6 @@ onMounted(fetchTree)
             <span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
           </label>
         </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

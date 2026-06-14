@@ -35,11 +35,11 @@ onMounted(() => { fetchEntry() })
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <CommonPageHeader title="凭证详情">
+    <PageHeader title="凭证详情">
       <template #actions>
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/accounting/entries')">返回</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12">加载中...</div>
     <div v-else-if="entry" class="space-y-4">

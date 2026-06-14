@@ -51,11 +51,11 @@ async function handleSubmit() {
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <CommonPageHeader title="新建销售订单">
+    <PageHeader title="新建销售订单">
       <template #actions>
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/sales')">返回列表</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div class="em-card p-6">
       <form class="space-y-6" @submit.prevent="handleSubmit">

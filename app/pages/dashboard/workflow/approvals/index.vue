@@ -45,11 +45,11 @@ onMounted(() => { fetchPending() })
 
 <template>
   <div>
-    <CommonPageHeader title="待审批" description="需要你审批的事项都在这里">
+    <PageHeader title="待审批" description="需要你审批的事项都在这里">
       <template #actions>
         <UButton icon="i-lucide-refresh-cw" variant="ghost" color="neutral" size="sm" @click="fetchPending">刷新</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">

@@ -550,7 +550,7 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
     </div>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑项目" size="standard" :loading="editLoading" @confirm="handleEdit">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑项目" size="standard" :loading="editLoading" @confirm="handleEdit">
       <form class="space-y-4" @submit.prevent="handleEdit">
         <div><label class="block text-sm text-content-primary mb-1">项目名称 <span class="text-danger-500">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-primary mb-1">状态</label><EnumSelect v-model="editForm.status" dict="projectStatus" placeholder="选择状态" /></div>
@@ -558,18 +558,18 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
         <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-primary mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-primary mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full input-base focus-ring" /></div></div>
         <div><label class="block text-sm text-content-primary mb-1">备注</label><textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 添加成员弹窗 -->
-    <CommonFormModal v-if="showMemberModal" v-model:open="showMemberModal" title="添加成员" size="compact" :loading="memberLoading" @confirm="handleAddMember">
+    <FormModal v-if="showMemberModal" v-model:open="showMemberModal" title="添加成员" size="compact" :loading="memberLoading" @confirm="handleAddMember">
       <form class="space-y-3" @submit.prevent="handleAddMember">
         <div><label class="block text-sm text-content-primary mb-1">选择成员</label><UserSelect v-model="memberForm.userId" placeholder="选择..." /></div>
         <div><label class="block text-sm text-content-primary mb-1">角色</label><EnumSelect v-model="memberForm.role" dict="projectMemberRole" placeholder="选择角色" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 任务弹窗 -->
-    <CommonFormModal v-if="showTaskModal" v-model:open="showTaskModal" :title="editingTaskId ? '编辑任务' : '添加任务'" size="standard" :loading="taskLoading" @confirm="handleSaveTask">
+    <FormModal v-if="showTaskModal" v-model:open="showTaskModal" :title="editingTaskId ? '编辑任务' : '添加任务'" size="standard" :loading="taskLoading" @confirm="handleSaveTask">
       <form class="space-y-3" @submit.prevent="handleSaveTask">
         <div><label class="block text-sm text-content-primary mb-1">任务名称 <span class="text-danger-500">*</span></label><input v-model="taskForm.name" type="text" placeholder="要做什么..." class="w-full input-base focus-ring" /></div>
         <div class="grid grid-cols-2 gap-3">
@@ -583,27 +583,27 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
         </div>
         <div><label class="block text-sm text-content-primary mb-1">备注</label><textarea v-model="taskForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 里程碑弹窗 -->
-    <CommonFormModal v-if="showMilestoneModal" v-model:open="showMilestoneModal" title="添加里程碑" size="compact" :loading="mlLoading" @confirm="handleAddMilestone">
+    <FormModal v-if="showMilestoneModal" v-model:open="showMilestoneModal" title="添加里程碑" size="compact" :loading="mlLoading" @confirm="handleAddMilestone">
       <form class="space-y-3" @submit.prevent="handleAddMilestone">
         <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="mlForm.name" type="text" placeholder="里程碑名称" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-primary mb-1">目标日期 <span class="text-danger-500">*</span></label><input v-model="mlForm.targetDate" type="date" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="mlForm.description" rows="2" placeholder="里程碑说明..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 交付物弹窗 -->
-    <CommonFormModal v-if="showDeliverableModal" v-model:open="showDeliverableModal" title="添加交付物" size="compact" :loading="deliverableLoading" @confirm="handleAddDeliverable">
+    <FormModal v-if="showDeliverableModal" v-model:open="showDeliverableModal" title="添加交付物" size="compact" :loading="deliverableLoading" @confirm="handleAddDeliverable">
       <form class="space-y-3" @submit.prevent="handleAddDeliverable">
         <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="deliverableForm.name" type="text" placeholder="交付物名称" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="deliverableForm.description" rows="2" placeholder="交付物说明..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

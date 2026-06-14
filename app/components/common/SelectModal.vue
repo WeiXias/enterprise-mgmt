@@ -103,8 +103,8 @@ defineExpose({ search, selectedId })
     <!-- 底部 -->
     <template #footer>
       <div class="flex justify-end gap-2 w-full">
-        <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
         <UButton color="primary" :loading="loading" @click="$emit('confirm')">确认转交</UButton>
+        <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
       </div>
     </template>
   </UModal>

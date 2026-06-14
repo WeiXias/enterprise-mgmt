@@ -184,7 +184,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
     </div>
 
     <!-- 创建/编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="editTarget ? '编辑预算' : '添加预算'"
@@ -208,10 +208,10 @@ onMounted(() => { fetchItems(); fetchCategories() })
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><textarea v-model="form.remark" rows="2" placeholder="预算说明..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

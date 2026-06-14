@@ -64,11 +64,11 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <CommonPageHeader title="采购订单详情">
+    <PageHeader title="采购订单详情">
       <template #actions>
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/purchases')">返回列表</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
 
@@ -128,7 +128,7 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
     </div>
 
     <!-- 收货弹窗（选择仓库） -->
-    <CommonFormModal
+    <FormModal
       v-if="showReceiveModal"
       v-model:open="showReceiveModal"
       title="确认收货"
@@ -148,12 +148,14 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
         </div>
       </div>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showReceiveModal = false">算了</UButton>
-        <UButton color="primary" :loading="actionLoading" @click="doAction('receive', receiveForm)">确认收货</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="primary" :loading="actionLoading" @click="doAction('receive', receiveForm)">确认收货</UButton>
+          <UButton variant="ghost" color="neutral" @click="showReceiveModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

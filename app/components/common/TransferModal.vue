@@ -116,9 +116,9 @@ onMounted(loadUsers)
 
     <!-- 底部 -->
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="emit('update:open', false)">算了</UButton>
+      <div class="flex justify-end gap-2 w-full">
         <UButton color="primary" :loading="loading" @click="handleTransfer">确认转交</UButton>
+        <UButton variant="ghost" color="neutral" @click="emit('update:open', false)">算了</UButton>
       </div>
     </template>
   </UModal>

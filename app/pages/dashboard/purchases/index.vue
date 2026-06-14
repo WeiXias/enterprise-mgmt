@@ -40,11 +40,11 @@ onMounted(() => { fetchOrders() })
 
 <template>
   <div>
-    <CommonPageHeader title="采购订单" description="向供应商采购产品，管好进货">
+    <PageHeader title="采购订单" description="向供应商采购产品，管好进货">
       <template #actions>
         <UButton icon="i-lucide-plus" color="primary" @click="$router.push('/dashboard/purchases/create')">新建采购订单</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
@@ -95,9 +95,9 @@ onMounted(() => { fetchOrders() })
       </div>
     </div>
 
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchOrders" @next="fetchOrders" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchOrders" @next="fetchOrders" />
 
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

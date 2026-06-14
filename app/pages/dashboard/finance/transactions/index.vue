@@ -179,7 +179,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
     </div>
 
     <!-- 弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="`${editTarget ? '编辑' : '登记'}${form.type === 'income' ? '收入' : '支出'}`"
@@ -199,10 +199,10 @@ onMounted(() => { fetchItems(); fetchCategories() })
         <div><label class="block text-sm text-content-secondary mb-1">说明</label><input v-model="form.description" type="text" placeholder="简单描述..." class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">支付方式</label><EnumSelect v-model="form.paymentMethod" dict="paymentMethod" placeholder="选择" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

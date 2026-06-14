@@ -81,11 +81,11 @@ onMounted(() => { fetchSupplier() })
 
 <template>
   <div class="max-w-2xl mx-auto">
-    <CommonPageHeader title="供应商详情">
+    <PageHeader title="供应商详情">
       <template #actions>
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/suppliers')">返回列表</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
 
@@ -146,7 +146,7 @@ onMounted(() => { fetchSupplier() })
     </div>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showEditModal"
       v-model:open="showEditModal"
       title="编辑供应商"
@@ -210,10 +210,10 @@ onMounted(() => { fetchSupplier() })
           <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

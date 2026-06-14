@@ -65,6 +65,6 @@ onMounted(() => { fetchList() })
       </div>
     </div>
 
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchList" @next="fetchList" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchList" @next="fetchList" />
   </div>
 </template>

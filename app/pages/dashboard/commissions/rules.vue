@@ -114,7 +114,7 @@ onMounted(() => fetchRules())
     </div>
 
     <!-- 规则弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="editTarget ? '编辑规则' : '添加规则'"
@@ -139,9 +139,11 @@ onMounted(() => fetchRules())
         </div>
       </form>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showModal = false">算了</UButton>
-        <UButton color="primary" :loading="saving" @click="handleSave">{{ editTarget ? '保存' : '添加' }}</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="primary" :loading="saving" @click="handleSave">{{ editTarget ? '保存' : '添加' }}</UButton>
+          <UButton variant="ghost" color="neutral" @click="showModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

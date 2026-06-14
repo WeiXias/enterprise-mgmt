@@ -381,13 +381,13 @@ onMounted(() => {
       <!-- 右栏：跟进记录 -->
       <div>
         <div class="em-card">
-          <CommonFollowUpList :items="customer.latestFollowUps || []" @add="showFollowUpModal = true" />
+          <FollowUpList :items="customer.latestFollowUps || []" @add="showFollowUpModal = true" />
         </div>
       </div>
     </div>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑客户" size="standard" :loading="editLoading" @confirm="handleEdit">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑客户" size="standard" :loading="editLoading" @confirm="handleEdit">
       <form class="space-y-4" @submit.prevent="handleEdit">
         <div>
           <label class="block text-sm text-content-primary mb-1">客户名称 <span class="text-danger-500">*</span></label>
@@ -416,10 +416,10 @@ onMounted(() => {
           <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 新增联系人弹窗 -->
-    <CommonFormModal v-if="showContactModal" v-model:open="showContactModal" title="添加联系人" size="compact" :loading="contactLoading" @confirm="handleAddContact">
+    <FormModal v-if="showContactModal" v-model:open="showContactModal" title="添加联系人" size="compact" :loading="contactLoading" @confirm="handleAddContact">
       <form class="space-y-3" @submit.prevent="handleAddContact">
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -446,15 +446,15 @@ onMounted(() => {
           设为主要联系人
         </label>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 新增跟进记录弹窗 -->
-    <CommonFormModal v-if="showFollowUpModal" v-model:open="showFollowUpModal" title="添加跟进记录" size="compact" :loading="followUpLoading" @confirm="handleAddFollowUp">
-      <CommonFollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleAddFollowUp" />
-    </CommonFormModal>
+    <FormModal v-if="showFollowUpModal" v-model:open="showFollowUpModal" title="添加跟进记录" size="compact" :loading="followUpLoading" @confirm="handleAddFollowUp">
+      <FollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleAddFollowUp" />
+    </FormModal>
 
     <!-- 标签管理弹窗 -->
-    <CommonFormModal v-if="showTagModal" v-model:open="showTagModal" title="管理标签" size="compact" :loading="tagLoading" @confirm="handleSaveTags">
+    <FormModal v-if="showTagModal" v-model:open="showTagModal" title="管理标签" size="compact" :loading="tagLoading" @confirm="handleSaveTags">
       <div class="space-y-2 max-h-64 overflow-y-auto">
         <label
           v-for="tag in allTags"
@@ -475,8 +475,8 @@ onMounted(() => {
         </label>
         <p v-if="allTags.length === 0" class="text-xs text-content-muted py-2 text-center">还没有标签，先去标签管理创建</p>
       </div>
-    </CommonFormModal>
+    </FormModal>
     <!-- 转交弹窗 -->
-    <CommonTransferModal v-if="showTransferModal" v-model:open="showTransferModal" title="转交客户" api-path="/api/customers/batch-transfer" ids-key="customerIds" :target-ids="[customerId]" @done="showTransferModal = false; fetchCustomer()" />
+    <TransferModal v-if="showTransferModal" v-model:open="showTransferModal" title="转交客户" api-path="/api/customers/batch-transfer" ids-key="customerIds" :target-ids="[customerId]" @done="showTransferModal = false; fetchCustomer()" />
   </div>
 </template>

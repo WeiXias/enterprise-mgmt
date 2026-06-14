@@ -59,15 +59,7 @@ function close() {
     </template>
 
     <template #footer>
-      <div class="flex justify-center gap-2 px-8 pb-8">
-        <UButton
-          variant="ghost"
-          color="neutral"
-          class="min-w-[100px] justify-center"
-          @click="close"
-        >
-          {{ cancelText }}
-        </UButton>
+      <div class="flex justify-center gap-2 px-8 pb-8 w-full">
         <UButton
           :color="danger ? 'error' : 'primary'"
           :loading="loading"
@@ -75,6 +67,14 @@ function close() {
           @click="$emit('confirm')"
         >
           {{ confirmText }}
+        </UButton>
+        <UButton
+          variant="ghost"
+          color="neutral"
+          class="min-w-[100px] justify-center"
+          @click="close"
+        >
+          {{ cancelText }}
         </UButton>
       </div>
     </template>

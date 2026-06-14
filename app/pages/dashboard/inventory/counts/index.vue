@@ -67,11 +67,11 @@ onMounted(() => { fetchList(); fetchWarehouses() })
 
 <template>
   <div>
-    <CommonPageHeader title="盘点管理" description="定期盘一盘，账实要相符">
+    <PageHeader title="盘点管理" description="定期盘一盘，账实要相符">
       <template #actions>
         <UButton icon="i-lucide-plus" color="primary" @click="resetCreateForm(); showCreateModal = true">新建盘点</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
@@ -112,9 +112,9 @@ onMounted(() => { fetchList(); fetchWarehouses() })
       </div>
     </div>
 
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchList" @next="fetchList" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchList" @next="fetchList" />
 
-    <CommonFormModal
+    <FormModal
       v-if="showCreateModal"
       v-model:open="showCreateModal"
       title="新建盘点计划"
@@ -144,9 +144,9 @@ onMounted(() => { fetchList(); fetchWarehouses() })
           <textarea v-model="createForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
         </div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

@@ -258,7 +258,7 @@ onMounted(() => { fetchItems(); loadOptions() })
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <CommonFormModal v-if="showModal" v-model:open="showModal" :title="editTarget ? '编辑成员' : '添加成员'" size="standard" :loading="saving" @confirm="handleSave">
+    <FormModal v-if="showModal" v-model:open="showModal" :title="editTarget ? '编辑成员' : '添加成员'" size="standard" :loading="saving" @confirm="handleSave">
       <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
           <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
@@ -315,18 +315,18 @@ onMounted(() => { fetchItems(); loadOptions() })
           </div>
         </div>
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 重置密码弹窗 -->
-    <CommonFormModal v-if="showPasswordModal" v-model:open="showPasswordModal" :title="'重置密码 — ' + (resetPwdTarget?.name || '')" size="compact" :loading="passwordLoading" @confirm="handleResetPwd">
+    <FormModal v-if="showPasswordModal" v-model:open="showPasswordModal" :title="'重置密码 — ' + (resetPwdTarget?.name || '')" size="compact" :loading="passwordLoading" @confirm="handleResetPwd">
       <div>
         <label class="block text-sm text-content-secondary mb-1">新密码</label>
         <input v-model="newPassword" type="password" placeholder="至少8位" class="w-full input-base focus-ring" />
       </div>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
@@ -340,12 +340,12 @@ onMounted(() => { fetchItems(); loadOptions() })
     />
 
     <!-- 审批弹窗 -->
-    <CommonFormModal v-if="showApprovalModal" v-model:open="showApprovalModal" :title="'审批通过 — ' + (approvalTarget?.name || '')" size="compact" :loading="approvalLoading" @confirm="confirmApprove">
+    <FormModal v-if="showApprovalModal" v-model:open="showApprovalModal" :title="'审批通过 — ' + (approvalTarget?.name || '')" size="compact" :loading="approvalLoading" @confirm="confirmApprove">
       <p class="text-sm text-content-secondary mb-3">请为该用户分配角色权限：</p>
       <div>
         <label class="block text-sm text-content-secondary mb-1">角色</label>
         <EnumSelect v-model="approvalRole" dict="userRoles" placeholder="选择角色" />
       </div>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

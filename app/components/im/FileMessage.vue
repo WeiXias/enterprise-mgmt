@@ -72,11 +72,11 @@ const getFileIcon = computed(() => {
         </div>
       </template>
       <template #footer>
-        <div class="flex justify-end">
-          <UButton variant="ghost" color="neutral" @click="showPreview = false">关闭</UButton>
+        <div class="flex justify-end gap-2 w-full">
           <a :href="fileUrl" download>
-            <UButton color="primary" class="ml-2">下载</UButton>
+            <UButton color="primary">下载</UButton>
           </a>
+          <UButton variant="ghost" color="neutral" @click="showPreview = false">关闭</UButton>
         </div>
       </template>
     </UModal>

@@ -203,7 +203,7 @@ onMounted(() => {
 <template>
   <div>
     <!-- 页面标题 + 操作按钮 -->
-    <CommonPageHeader title="客户" description="管理你的客户资源和联系人">
+    <PageHeader title="客户" description="管理你的客户资源和联系人">
       <template #actions>
         <div class="flex items-center gap-2">
           <UButton v-if="selectedIds.size > 0 && isAdminOrManager()" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
@@ -211,7 +211,7 @@ onMounted(() => {
           <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">添加客户</UButton>
         </div>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -299,10 +299,10 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchCustomers" @next="fetchCustomers" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchCustomers" @next="fetchCustomers" />
 
     <!-- 新增客户弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showCreateModal"
       v-model:open="showCreateModal"
       title="添加客户"
@@ -376,13 +376,15 @@ onMounted(() => {
         </form>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showCreateModal = false; resetCreateForm()">算了</UButton>
+        <div class="flex justify-end gap-2 w-full">
         <UButton color="primary" :loading="createLoading" @click="handleCreate">添加客户</UButton>
+        <UButton variant="ghost" color="neutral" @click="showCreateModal = false; resetCreateForm()">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 编辑客户弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showEditModal"
       v-model:open="showEditModal"
       title="编辑客户"
@@ -429,13 +431,15 @@ onMounted(() => {
         </form>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
+        <div class="flex justify-end gap-2 w-full">
         <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
+        <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
@@ -449,7 +453,7 @@ onMounted(() => {
     />
 
     <!-- 转交弹窗 -->
-    <CommonTransferModal
+    <TransferModal
       v-if="showTransferModal"
       v-model:open="showTransferModal"
       title="转交客户"

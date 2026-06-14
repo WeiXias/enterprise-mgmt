@@ -11,7 +11,7 @@ const statusColors: Record<string, string> = { pending: 'bg-surface-hover text-c
 <template>
   <div>
     <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-medium text-content-secondary">交付物</h3><UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="$emit('add')">添加</UButton></div>
-    <CommonFileUpload v-if="items.length > 0" :upload-url="''" :files="items.map(d => ({ id: d.id, fileName: d.name, fileSize: 0, fileUrl: d.filePath, createdAt: d.createdAt }))" @delete="(f: any) => {}" />
+    <FileUpload v-if="items.length > 0" :upload-url="''" :files="items.map(d => ({ id: d.id, fileName: d.name, fileSize: 0, fileUrl: d.filePath, createdAt: d.createdAt }))" @delete="(f: any) => {}" />
     <div v-else-if="!loading" class="text-xs text-content-muted py-3 text-center">暂无交付物</div>
     <div v-if="items.length > 0" class="mt-2 space-y-1"><div v-for="d in items" :key="d.id" class="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover text-xs"><div><span class="text-content-secondary">{{ d.name }}</span><span :class="['ml-2 text-[10px] px-1 py-0.5 rounded-full', statusColors[d.status] || '']">{{ getLabel('DeliverableStatus', d.status) || d.status }}</span></div></div></div>
   </div>

@@ -158,7 +158,7 @@ onMounted(() => fetchFunnel())
     </div>
 
     <!-- 阶段详情弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="stageModalOpen"
       v-model:open="stageModalOpen"
       :title="selectedStage ? `${getLabel('OpportunityStatus', selectedStage)}阶段的商机` : ''"
@@ -189,6 +189,6 @@ onMounted(() => fetchFunnel())
       <template #footer>
         <UButton variant="ghost" color="neutral" @click="closeStageModal">关闭</UButton>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

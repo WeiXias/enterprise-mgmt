@@ -68,7 +68,7 @@ onMounted(fetchItems)
       </div>
     </div>
 
-    <CommonFormModal
+    <FormModal
       v-if="showModal"
       v-model:open="showModal"
       :title="`${editTarget ? '编辑' : '添加'}分包对象`"
@@ -83,9 +83,9 @@ onMounted(fetchItems)
         <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-secondary mb-1">邮箱</label><input v-model="form.email" type="email" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-secondary mb-1">地址</label><input v-model="form.address" type="text" class="w-full input-base focus-ring" /></div></div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       </form>
-    </CommonFormModal>
+    </FormModal>
 
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"

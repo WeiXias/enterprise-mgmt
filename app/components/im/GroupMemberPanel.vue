@@ -78,7 +78,7 @@ onMounted(() => fetchMembers())
 </script>
 
 <template>
-  <CommonFormModal
+  <FormModal
     :open="true"
     :title="`群成员 (${members.length})`"
     size="compact"
@@ -117,5 +117,5 @@ onMounted(() => fetchMembers())
         <UButton variant="ghost" color="neutral" size="sm" @click="showAddUser = false">取消</UButton>
       </div>
     </div>
-  </CommonFormModal>
+  </FormModal>
 </template>

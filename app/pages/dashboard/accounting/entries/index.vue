@@ -60,11 +60,11 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
 
 <template>
   <div>
-    <CommonPageHeader title="会计凭证" description="记账凭证都在这里管">
+    <PageHeader title="会计凭证" description="记账凭证都在这里管">
       <template #actions>
         <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; fetchAccounts()">录入凭证</UButton>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <div class="flex items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
@@ -93,7 +93,7 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
     </div>
 
     <!-- 录入凭证弹窗 -->
-    <CommonFormModal
+    <FormModal
       v-if="showCreateModal"
       v-model:open="showCreateModal"
       title="录入凭证"
@@ -156,9 +156,11 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
         </div>
       </form>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showCreateModal = false">算了</UButton>
-        <UButton color="primary" :loading="saving" @click="handleCreate">录入</UButton>
+        <div class="flex justify-end gap-2 w-full">
+          <UButton color="primary" :loading="saving" @click="handleCreate">录入</UButton>
+          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">算了</UButton>
+        </div>
       </template>
-    </CommonFormModal>
+    </FormModal>
   </div>
 </template>

@@ -58,7 +58,7 @@ function close() {
 
     <!-- 底部 -->
     <template #footer>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center justify-end gap-2 w-full">
         <UButton
           v-if="secondaryAction"
           variant="ghost"
@@ -70,8 +70,8 @@ function close() {
           {{ secondaryAction.label }}
         </UButton>
         <slot name="footer">
-          <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
           <UButton color="primary" :loading="loading" @click="$emit('confirm')">确定</UButton>
+          <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
         </slot>
       </div>
     </template>

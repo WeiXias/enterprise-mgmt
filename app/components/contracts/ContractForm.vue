@@ -24,18 +24,21 @@ withDefaults(defineProps<Props>(), {
   loading: false
 })
 
+const props = defineProps<Props>()
+
 const emit = defineEmits<{
   'update:modelValue': [value: any]
   submit: []
 }>()
 
-const PAYMENT_METHODS = [
-  { value: 'bank_transfer', label: '银行转账' },
-  { value: 'check', label: '支票' },
-  { value: 'cash', label: '现金' },
-  { value: 'alipay', label: '支付宝' },
-  { value: 'wechat_pay', label: '微信支付' },
-]
+function setQuickDate(years: number) {
+  const today = new Date()
+  const start = today.toISOString().slice(0, 10)
+  const endDate = new Date(today)
+  endDate.setFullYear(endDate.getFullYear() + years)
+  emit('update:modelValue', { ...props.modelValue, startDate: start, endDate: endDate.toISOString().slice(0, 10) })
+}
+
 </script>
 
 <template>
@@ -75,7 +78,7 @@ const PAYMENT_METHODS = [
         <label class="block text-sm text-content-secondary mb-1">付款方式</label>
         <EnumSelect
           :model-value="modelValue.paymentMethod || ''"
-          :options="PAYMENT_METHODS"
+          dict="PaymentMethod"
           placeholder="选择方式"
           @update:model-value="$emit('update:modelValue', { ...modelValue, paymentMethod: $event })"
         />
@@ -108,12 +111,23 @@ const PAYMENT_METHODS = [
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-sm text-content-secondary mb-1">开始日期</label>
-        <input
-          :value="modelValue.startDate"
-          type="date"
-          class="w-full input-base focus-ring"
-          @input="$emit('update:modelValue', { ...modelValue, startDate: ($event.target as HTMLInputElement).value })"
-        />
+        <div class="flex gap-1.5">
+          <input
+            :value="modelValue.startDate"
+            type="date"
+            class="flex-1 input-base focus-ring"
+            @input="$emit('update:modelValue', { ...modelValue, startDate: ($event.target as HTMLInputElement).value })"
+          />
+          <UButton
+            v-for="y in [1, 3, 5]"
+            :key="y"
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            class="text-[10px] px-1.5"
+            @click="setQuickDate(y)"
+          >+{{ y }}年</UButton>
+        </div>
       </div>
       <div>
         <label class="block text-sm text-content-secondary mb-1">结束日期</label>

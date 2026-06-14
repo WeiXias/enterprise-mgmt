@@ -260,7 +260,7 @@ onMounted(() => {
 <template>
   <div>
     <!-- 页面标题 -->
-    <CommonPageHeader title="合同" description="管理合同、收款和审批">
+    <PageHeader title="合同" description="管理合同、收款和审批">
       <template #actions>
         <div class="flex items-center gap-2">
           <UButton v-if="isAdminOrManager()" icon="i-lucide-layout-template" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/contracts/templates')">模板</UButton>
@@ -271,7 +271,7 @@ onMounted(() => {
           </UButton>
         </div>
       </template>
-    </CommonPageHeader>
+    </PageHeader>
 
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
@@ -417,10 +417,10 @@ onMounted(() => {
     </div>
 
     <!-- 分页 -->
-    <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchContracts" @next="fetchContracts" />
+    <Pagination v-model:page="page" :total-pages="totalPages" @prev="fetchContracts" @next="fetchContracts" />
 
     <!-- 新增合同弹窗 -->
-    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加合同" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
+    <FormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加合同" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
         <form class="space-y-4" @submit.prevent="handleCreate">
           <div>
             <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-red-400">*</span></label>
@@ -453,7 +453,18 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm text-content-secondary mb-1">开始日期</label>
-              <input v-model="createForm.startDate" type="date" class="w-full input-base focus-ring" />
+              <div class="flex gap-1.5">
+                <input v-model="createForm.startDate" type="date" class="flex-1 input-base focus-ring" />
+                <UButton
+                  v-for="y in [1, 3, 5]"
+                  :key="y"
+                  :variant="createForm.startDate ? 'ghost' : 'soft'"
+                  color="neutral"
+                  size="xs"
+                  class="text-[10px] px-1.5"
+                  @click="createForm.startDate = new Date().toISOString().slice(0, 10); createForm.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + y)).toISOString().slice(0, 10)"
+                >+{{ y }}年</UButton>
+              </div>
             </div>
             <div>
               <label class="block text-sm text-content-secondary mb-1">结束日期</label>
@@ -465,10 +476,10 @@ onMounted(() => {
             <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 编辑合同弹窗 -->
-    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑合同" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
+    <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑合同" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
         <form class="space-y-4" @submit.prevent="handleEdit">
           <div>
             <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-red-400">*</span></label>
@@ -497,7 +508,18 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm text-content-secondary mb-1">开始日期</label>
-              <input v-model="editForm.startDate" type="date" class="w-full input-base focus-ring" />
+              <div class="flex gap-1.5">
+                <input v-model="editForm.startDate" type="date" class="flex-1 input-base focus-ring" />
+                <UButton
+                  v-for="y in [1, 3, 5]"
+                  :key="y"
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  class="text-[10px] px-1.5"
+                  @click="editForm.startDate = new Date().toISOString().slice(0, 10); editForm.endDate = new Date(new Date().setFullYear(new Date().getFullYear() + y)).toISOString().slice(0, 10)"
+                >+{{ y }}年</UButton>
+              </div>
             </div>
             <div>
               <label class="block text-sm text-content-secondary mb-1">结束日期</label>
@@ -509,18 +531,18 @@ onMounted(() => {
             <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 审批确认弹窗 -->
-    <CommonConfirmDialog v-if="showApproveModal" v-model:open="showApproveModal" title="确认审批" :message="`确定要审批通过合同「${approveTarget?.name}」吗？审批后将进入执行状态。`" :loading="approveLoading" @confirm="handleApprove" @cancel="showApproveModal = false; approveTarget = null" />
+    <ConfirmDialog v-if="showApproveModal" v-model:open="showApproveModal" title="确认审批" :message="`确定要审批通过合同「${approveTarget?.name}」吗？审批后将进入执行状态。`" :loading="approveLoading" @confirm="handleApprove" @cancel="showApproveModal = false; approveTarget = null" />
     <!-- 驳回弹窗 -->
-    <CommonFormModal v-if="showRejectModal" v-model:open="showRejectModal" title="驳回合同" size="compact" :loading="rejectLoading" @confirm="handleReject" @cancel="showRejectModal = false; rejectTarget = null">
+    <FormModal v-if="showRejectModal" v-model:open="showRejectModal" title="驳回合同" size="compact" :loading="rejectLoading" @confirm="handleReject" @cancel="showRejectModal = false; rejectTarget = null">
       <p class="text-sm text-content-secondary mb-3">确定要驳回「{{ rejectTarget?.name }}」吗？请填写驳回原因。</p>
       <textarea v-model="rejectReason" rows="2" placeholder="写明驳回原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-page focus-ring resize-none" />
-    </CommonFormModal>
+    </FormModal>
 
     <!-- 删除确认弹窗 -->
-    <CommonConfirmDialog
+    <ConfirmDialog
       v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
@@ -534,7 +556,7 @@ onMounted(() => {
     />
 
     <!-- 转交弹窗 -->
-    <CommonTransferModal
+    <TransferModal
       v-if="showTransferModal"
       v-model:open="showTransferModal"
       title="转交合同"
