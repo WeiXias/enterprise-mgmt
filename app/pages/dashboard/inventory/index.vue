@@ -115,15 +115,15 @@ onMounted(() => { fetchItems(); fetchProducts() })
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-package" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-lg font-semibold text-content-primary">{{ overview.totalProducts }}</p><p class="text-xs text-content-secondary">产品种类</p></div>
+        <div><p class="text-lg font-medium text-content-primary">{{ overview.totalProducts }}</p><p class="text-xs text-content-secondary">产品种类</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-layers" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-lg font-semibold text-teal-600">{{ overview.totalStock }}</p><p class="text-xs text-content-secondary">总库存量</p></div>
+        <div><p class="text-lg font-medium text-teal-600">{{ overview.totalStock }}</p><p class="text-xs text-content-secondary">总库存量</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3" :class="overview.lowStockCount > 0 ? 'border-brand-300' : ''">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-lg font-semibold" :class="overview.lowStockCount > 0 ? 'text-brand-600' : 'text-content-primary'">{{ overview.lowStockCount }}</p><p class="text-xs text-content-secondary">低库存预警</p></div>
+        <div><p class="text-lg font-medium" :class="overview.lowStockCount > 0 ? 'text-brand-600' : 'text-content-primary'">{{ overview.lowStockCount }}</p><p class="text-xs text-content-secondary">低库存预警</p></div>
       </div>
       <div v-if="overview.lowStockProducts.length > 0" class="em-card col-span-full">
         <h3 class="text-sm font-medium text-content-primary mb-2">低库存产品（库存 &lt; {{ LOW_STOCK_THRESHOLD }}）</h3>

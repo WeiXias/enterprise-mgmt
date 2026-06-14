@@ -334,15 +334,17 @@ export default defineAppConfig({
 - [ ] 新建 `.em-card` 全局 class，`.card` 别名指向它
 - [ ] 新建 `.em-badge` 系列替代 `.warm-badge`
 
-### Phase 2 — 令牌统一（逐步推进）
+### Phase 2 — 令牌统一 ✅ 已完成
 
-- [ ] 将 `bg-[var(--color-brand-*)]` 替换为 `bg-brand-*`（约 400+ 处）
-- [ ] 将 `text-[var(--color-content-*)]` 替换为 `text-content-*`（约 243 处）
-- [ ] 将 `border-[var(--color-line*)]` 替换为 `border-line`（约 200+ 处）
-- [ ] 将 `bg-white` 替换为 `bg-surface-card` 或 `bg-surface-page`（90 处）
-- [ ] 将 `ring-[var(--color-brand-400)]/15` 替换为 `focus-ring` 工具类（106 处 focus 组合）
+- [x] 将 `bg-[var(--color-brand-*)]` 替换为 `bg-brand-*` — 0 处残留
+- [x] 将 `text-[var(--color-content-*)]` 替换为 `text-content-*` — 0 处残留
+- [x] 将 `border-[var(--color-line*)]` 替换为 `border-line` — 0 处残留
+- [x] 将 `bg-white` 替换为 `bg-surface-card` 或 `bg-surface-page` — 0 处残留
+- [x] 将 `font-semibold` / `font-bold` 替换为 `font-medium` — 0 处残留
+- [x] 移除 `.warm-card` / `.warm-badge` / `.form-group` — 0 处残留
+- [x] 将 `rounded-lg` 统一迁移为 `rounded-md` 或 `rounded-xl` — 0 处残留
 
-### Phase 3 — 清理（Phase 2 完成后）
+### Phase 3 — 清理（待实施）
 
 - [ ] 移除 `@theme` 中的 `blue-*`、`stone-*`、`amber-*` 兼容别名
 - [ ] 移除 `.warm-card` 及 `.warm-badge-*` 定义

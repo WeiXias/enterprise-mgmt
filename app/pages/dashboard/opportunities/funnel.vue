@@ -90,7 +90,7 @@ onMounted(() => fetchFunnel())
           <UIcon name="i-lucide-flag" class="w-5 h-5 text-brand-500" />
         </div>
         <div>
-          <p class="text-lg font-semibold text-content-primary">{{ funnelData.total }}</p>
+          <p class="text-lg font-medium text-content-primary">{{ funnelData.total }}</p>
           <p class="text-xs text-content-muted">商机总数</p>
         </div>
       </div>
@@ -99,7 +99,7 @@ onMounted(() => fetchFunnel())
           <UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-teal-500" />
         </div>
         <div>
-          <p class="text-lg font-semibold text-teal-600">{{ formatMoney(funnelData.totalAmount) }}</p>
+          <p class="text-lg font-medium text-teal-600">{{ formatMoney(funnelData.totalAmount) }}</p>
           <p class="text-xs text-content-muted">总金额</p>
         </div>
       </div>
@@ -108,7 +108,7 @@ onMounted(() => fetchFunnel())
           <UIcon name="i-lucide-trending-up" class="w-5 h-5 text-brand-400" />
         </div>
         <div>
-          <p class="text-lg font-semibold text-brand-600">{{ Math.round(funnelData.winRate * 100) }}%</p>
+          <p class="text-lg font-medium text-brand-600">{{ Math.round(funnelData.winRate * 100) }}%</p>
           <p class="text-xs text-content-muted">赢单率</p>
         </div>
       </div>

@@ -316,8 +316,7 @@ onMounted(() => {
         <div
           :class="['w-1 h-10 rounded-full flex-shrink-0', {
             'bg-gray-400': ct.status === 'draft',
-            'bg-brand-400': ct.status === 'approved',
-            'bg-brand-400': ct.status === 'in_progress',
+            'bg-brand-400': ct.status === 'approved' || ct.status === 'in_progress',
             'bg-teal-400': ct.status === 'completed',
             'bg-red-400': ct.status === 'terminated',
           }]"

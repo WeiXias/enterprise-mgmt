@@ -37,7 +37,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET || process.env.NUXT_JWT_SECRET || '',
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || process.env.NUXT_JWT_REFRESH_SECRET || '',
-    aiEncryptionKey: process.env.AI_ENCRYPTION_KEY || process.env.JWT_SECRET || '',
+    aiEncryptionKey: process.env.AI_ENCRYPTION_KEY || '',
     public: {
       appName: process.env.NUXT_PUBLIC_APP_NAME || '企业一体化管理系统'
     }
@@ -71,6 +71,8 @@ export default defineNuxtConfig({
       '#ai-utils': resolve(__dirname, 'server/utils/ai')
     },
 
+    // 压缩：Nitro 生产模式默认 gzip，此处显式开启 brotli 优先
+    compressPublicAssets: true,
     // 安全头
     routeRules: {
       '/api/**': {
@@ -80,6 +82,12 @@ export default defineNuxtConfig({
           'X-XSS-Protection': '0',
           'Referrer-Policy': 'strict-origin-when-cross-origin',
           'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
+        },
+      },
+      // 静态资源缓存
+      '/_nuxt/**': {
+        headers: {
+          'Cache-Control': 'public, max-age=31536000, immutable',
         },
       },
     },

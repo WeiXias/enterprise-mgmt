@@ -3,7 +3,7 @@ import { db } from '#database'
 import { deliverables } from '#schema/projects'
 import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
-import { getUploadDir } from '#server-utils/upload'
+import { getUploadDir, safeFileName } from '#server-utils/upload'
 import path from 'path'
 import fs from 'fs'
 import { logOperation } from '#server-utils/log'
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
   const uploadDir = await getUploadDir()
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-  const fileName = `${Date.now()}-${file!.filename || 'unnamed'}`
+  const fileName = `${Date.now()}-${safeFileName(file!.filename)}`
   const filePath = path.join(uploadDir, fileName)
   fs.writeFileSync(filePath, file!.data)
 

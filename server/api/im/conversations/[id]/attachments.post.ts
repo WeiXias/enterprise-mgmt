@@ -3,7 +3,7 @@ import { db } from '#database'
 import { imConversations, imMembers, imAttachments, imMessages, users } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
-import { getUploadDir } from '#server-utils/upload'
+import { getUploadDir, safeFileName } from '#server-utils/upload'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -29,7 +29,8 @@ export default defineEventHandler(async (event) => {
   const path = await import('path')
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
 
-  const fileName = `${Date.now()}-${file!.filename || 'unnamed'}`
+  const safeName = safeFileName(file!.filename)
+  const fileName = `${Date.now()}-${safeName}`
   const filePath = path.join(uploadDir, fileName)
   fs.writeFileSync(filePath, file!.data)
 
@@ -40,13 +41,13 @@ export default defineEventHandler(async (event) => {
   // 创建文件消息
   await db.insert(imMessages).values({
     id: msgId, conversationId: convId, senderId: user.userId, type: 'file',
-    content: JSON.stringify({ fileName: file!.filename || 'unnamed', fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }),
+    content: JSON.stringify({ fileName: safeName, fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }),
     createdAt: now, updatedAt: now,
   })
 
   // 创建附件记录
   await db.insert(imAttachments).values({
-    id: attId, messageId: msgId, fileName: file!.filename || 'unnamed',
+    id: attId, messageId: msgId, fileName: safeName,
     filePath: `/uploads/${fileName}`, fileSize: file!.data.length, fileType: file.type || 'application/octet-stream',
     uploadedBy: user.userId, createdAt: now,
   })
@@ -57,8 +58,8 @@ export default defineEventHandler(async (event) => {
   return {
     code: 0,
     data: {
-      message: { id: msgId, type: 'file', content: JSON.stringify({ fileName: file!.filename || 'unnamed', fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }), createdAt: now },
-      attachment: { id: attId, fileName: file!.filename, fileSize: file.data.length, fileType: file.type || 'application/octet-stream' },
+      message: { id: msgId, type: 'file', content: JSON.stringify({ fileName: safeName, fileSize: file.data.length, fileType: file.type || 'application/octet-stream', attachmentId: attId }), createdAt: now },
+      attachment: { id: attId, fileName: safeName, fileSize: file.data.length, fileType: file.type || 'application/octet-stream' },
     },
     message: '文件已发送',
   }

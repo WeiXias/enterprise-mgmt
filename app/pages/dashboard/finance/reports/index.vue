@@ -62,9 +62,9 @@ onMounted(() => { fetchMonthly(); fetchProject() })
       <div v-else>
         <!-- 汇总 -->
         <div class="grid grid-cols-3 gap-4 mb-6">
-          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总收入</p><p class="text-lg font-semibold text-teal-600">{{ formatMoney(monthlyTotals.income) }}</p></div>
-          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总支出</p><p class="text-lg font-semibold text-red-500">{{ formatMoney(monthlyTotals.expense) }}</p></div>
-          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">净利润</p><p class="text-lg font-semibold" :class="monthlyTotals.profit >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(monthlyTotals.profit) }}</p></div>
+          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总收入</p><p class="text-lg font-medium text-teal-600">{{ formatMoney(monthlyTotals.income) }}</p></div>
+          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总支出</p><p class="text-lg font-medium text-red-500">{{ formatMoney(monthlyTotals.expense) }}</p></div>
+          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">净利润</p><p class="text-lg font-medium" :class="monthlyTotals.profit >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(monthlyTotals.profit) }}</p></div>
         </div>
 
         <!-- 月度趋势柱状图 -->

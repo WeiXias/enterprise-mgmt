@@ -1,5 +1,6 @@
 import { defineEventHandler, createError, readMultipartFormData } from 'h3'
 import { extractPlaceholders } from '#server-utils/contract-template'
+import { safeFileName } from '#server-utils/upload'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -10,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const uploadFile = files[0]
   if (!uploadFile || !uploadFile.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
 
-  const fileName = uploadFile.filename || 'unnamed'
+  const fileName = safeFileName(uploadFile.filename)
   if (!fileName.toLowerCase().endsWith('.docx')) {
     throw createError({ statusCode: 422, statusMessage: '只支持 .docx 格式的 Word 文件，换个文件试试？' })
   }

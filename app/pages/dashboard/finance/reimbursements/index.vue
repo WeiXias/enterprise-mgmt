@@ -124,7 +124,7 @@ onMounted(() => fetchItems())
     <div v-else class="space-y-2">
       <div v-for="r in items" :key="r.id" class="em-card flex items-center gap-3">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', {
-          'bg-brand-400': r.status === 'pending', 'bg-brand-400': r.status === 'approved',
+          'bg-brand-400': r.status === 'pending' || r.status === 'approved',
           'bg-red-400': r.status === 'rejected', 'bg-teal-400': r.status === 'paid'
         }]" />
         <div class="flex-1 min-w-0">

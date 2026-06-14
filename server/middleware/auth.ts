@@ -1,20 +1,68 @@
-import { defineEventHandler, sendRedirect, createError, getHeader, getQuery } from 'h3'
+import { defineEventHandler, createError, getHeader, getQuery } from 'h3'
 
 // 不需要认证的公共路由
 const PUBLIC_API_ROUTES = [
   '/api/auth/login',
-  '/api/auth/register',
   '/api/auth/refresh',
   '/api/enums',
-  '/api/system/config',
   '/api/files/logo',
   '/api/health',
 ]
 
 const PUBLIC_API_PREFIXES = [
-  '/api/auth/',
-  '/api/_nuxt',  // Nuxt 内部 API（图标数据等）
+  '/api/_nuxt',       // Nuxt 内部 API（图标数据等）
+  '/api/_nuxt_icon',  // Nuxt 图标 API
 ]
+
+// 按路由前缀限制角色：仅管理员可访问
+const ADMIN_ONLY_PREFIXES = [
+  '/api/roles',
+  '/api/permissions',
+  '/api/departments',
+  '/api/system',
+  '/api/users',
+  '/api/ai',
+  '/api/tags',
+]
+
+// 仅管理员和财务可访问
+const ADMIN_FINANCE_PREFIXES = [
+  '/api/commissions',
+  '/api/commission-rules',
+  '/api/commission-payouts',
+  '/api/finance',
+]
+
+// 以下路由仅管理员和销售负责人可访问
+const ADMIN_MANAGER_PREFIXES = [
+  '/api/product-categories',
+]
+
+function checkRolePrefix(url: string, payload: any): void {
+  const role = payload?.role
+
+  // 管理员拥有所有权限
+  if (role === 'admin') return
+
+  // 管理员专属
+  if (ADMIN_ONLY_PREFIXES.some(p => url.startsWith(p))) {
+    throw createError({ statusCode: 403, statusMessage: '这个需要管理员才能操作' })
+  }
+
+  // 管理员 + 财务
+  if (ADMIN_FINANCE_PREFIXES.some(p => url.startsWith(p))) {
+    if (role !== 'finance') {
+      throw createError({ statusCode: 403, statusMessage: '这个需要财务或管理员才能操作' })
+    }
+  }
+
+  // 管理员 + 销售负责人
+  if (ADMIN_MANAGER_PREFIXES.some(p => url.startsWith(p))) {
+    if (role !== 'sales_manager') {
+      throw createError({ statusCode: 403, statusMessage: '这个需要销售负责人或管理员才能操作' })
+    }
+  }
+}
 
 export default defineEventHandler(async (event) => {
   const url = event.path || ''
@@ -44,7 +92,12 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 401, statusMessage: '登录已过期，请重新登录' })
     }
     event.context.user = payload
-  } catch {
+
+    // 角色权限检查
+    checkRolePrefix(url, payload)
+  } catch (err: any) {
+    // 如果已经抛出了 h3 错误（401/403），直接重新抛出
+    if (err?.statusCode) throw err
     throw createError({ statusCode: 401, statusMessage: '登录已过期，请重新登录' })
   }
 })

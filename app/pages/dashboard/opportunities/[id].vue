@@ -508,7 +508,7 @@ onMounted(() => {
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-sm font-semibold text-content-primary">{{ formatAmount(q.totalAmount) }}</p>
+                    <p class="text-sm font-medium text-content-primary">{{ formatAmount(q.totalAmount) }}</p>
                     <p v-if="q.finalAmount && q.finalAmount !== q.totalAmount" class="text-xs text-content-muted line-through">{{ formatAmount(q.totalAmount) }}</p>
                     <p v-if="q.finalAmount && q.finalAmount !== q.totalAmount" class="text-xs text-teal-600">{{ formatAmount(q.finalAmount) }}</p>
                   </div>
@@ -777,7 +777,7 @@ onMounted(() => {
               <!-- 汇总 -->
               <div class="flex justify-end border-t border-line-light pt-2 mt-1 text-sm">
                 <span class="text-content-secondary mr-2">合计</span>
-                <span class="font-semibold text-content-primary">¥{{ quoteForm.items.reduce((s: number, it: any) => s + (it.quantity || 0) * (it.listPrice || 0) * ((it.discount ?? 100) / 100), 0).toLocaleString() }}</span>
+                <span class="font-medium text-content-primary">¥{{ quoteForm.items.reduce((s: number, it: any) => s + (it.quantity || 0) * (it.listPrice || 0) * ((it.discount ?? 100) / 100), 0).toLocaleString() }}</span>
               </div>
             </div>
           </div>
@@ -834,7 +834,7 @@ onMounted(() => {
             <p class="text-xs text-content-muted mt-0.5">编号：{{ previewQuote.quoteNo || '-' }} · 状态：{{ ({ draft: '草稿', sent: '已发送', accepted: '已接受', rejected: '已拒绝' } as Record<string, string>)[previewQuote.status as string] || previewQuote.status }}</p>
           </div>
           <div class="text-right">
-            <p class="text-lg font-semibold text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</p>
+            <p class="text-lg font-medium text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</p>
             <p v-if="previewQuote.validUntil" class="text-xs text-content-muted">有效期至 {{ (previewQuote.validUntil || '').slice(0, 10) }}</p>
           </div>
         </div>
@@ -844,7 +844,7 @@ onMounted(() => {
         </table>
         <div class="flex justify-end border-t border-line-light pt-3">
           <span class="text-base font-medium text-content-primary mr-2">合计</span>
-          <span class="text-base font-semibold text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</span>
+          <span class="text-base font-medium text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</span>
         </div>
       </div>
       <template #footer>

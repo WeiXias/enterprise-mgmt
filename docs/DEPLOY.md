@@ -128,6 +128,19 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header Strict-Transport-Security "max-age=63072000" always;
 
+    # Gzip 压缩
+    gzip on;
+    gzip_vary on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 256;
+
+    # 静态资源长期缓存（Nuxt 构建产物带 hash）
+    location /_nuxt/ {
+        proxy_pass http://127.0.0.1:3000;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;

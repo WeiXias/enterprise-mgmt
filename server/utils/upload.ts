@@ -46,3 +46,8 @@ export function isOffice(fileName: string): boolean {
   const t = getContentType(fileName)
   return t.includes('officedocument') || t.includes('ms-word') || t.includes('ms-excel') || t.includes('ms-powerpoint')
 }
+
+export function safeFileName(raw: string | undefined): string {
+  const name = raw || 'unnamed'
+  return path.basename(name)
+}

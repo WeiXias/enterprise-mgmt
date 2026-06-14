@@ -228,19 +228,22 @@
 │   │       └── CommissionStats.vue
 │   │
 │   ├── composables/             # 组合式函数
-│   │   ├── useAuth.ts           # 认证与权限
 │   │   ├── useApi.ts            # API 请求封装
+│   │   ├── useAuthHeaders.ts    # 认证头
 │   │   ├── useTable.ts          # 列表通用逻辑
 │   │   ├── useEnum.ts           # 枚举值缓存
 │   │   ├── useConfirm.ts        # 确认弹窗
-│   │   ├── useToast.ts          # 消息提示
-│   │   ├── usePermission.ts     # 权限判断
-│   │   └── useExport.ts         # Excel 导出
+│   │   ├── useExport.ts         # Excel 导出
+│   │   ├── useExportCsv.ts      # CSV 导出
+│   │   ├── useTheme.ts          # 主题
+│   │   └── ...
 │   │
 │   ├── stores/                  # Pinia 状态管理
 │   │   ├── auth.ts              # 用户认证状态
-│   │   ├── app.ts               # 全局 UI 状态（侧边栏折叠等）
-│   │   └── notification.ts      # 通知状态
+│   │   ├── notification.ts      # 通知状态
+│   │   ├── im.ts + im/          # IM 状态
+│   │   ├── seal.ts              # 印章状态
+│   │   └── watermark.ts         # 水印状态
 │   │
 │   ├── utils/                   # 工具函数
 │   │   ├── format.ts            # 格式化（金额、日期、电话）
@@ -256,28 +259,28 @@
 │   └── middleware/
 │       └── auth.ts              # 认证中间件
 │
-├── server/                      # Nuxt 3 服务端
-│   ├── api/
-│   │   └── v1/                  # API 路由（对应 API 文档）
-│   │       ├── auth/
-│   │       ├── users/
-│   │       ├── customers/
-│   │       ├── opportunities/
-│   │       ├── products/
-│   │       ├── contracts/
-│   │       ├── projects/
-│   │       ├── commissions/
-│   │       ├── dashboard/
-│   │       └── system/
+├── server/                      # Nuxt 4 服务端（Nitro）
+│   ├── api/                     # API 路由（无 /v1 前缀，Nginx 反代时添加）
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── customers/
+│   │   ├── opportunities/
+│   │   ├── products/
+│   │   ├── contracts/
+│   │   ├── projects/
+│   │   ├── commissions/
+│   │   ├── dashboard/
+│   │   └── system/
+│   ├── database/                # Drizzle ORM
+│   │   ├── schema/              # Schema 定义
+│   │   ├── migrations/          # 迁移 SQL
+│   │   └── index.ts             # 数据库连接
 │   ├── utils/
-│   │   ├── db.ts                # 数据库连接
 │   │   ├── auth.ts              # JWT 工具
-│   │   └── permission.ts        # 权限检查
+│   │   ├── permission.ts        # 权限检查
+│   │   └── ...
 │   └── middleware/
-│       └── auth.ts              # 服务端认证中间件
-│
-├── db/
-│   └── schema/                  # Drizzle ORM Schema
+│       └── auth.ts              # 服务端认证中间件（含角色权限）
 │
 ├── docs/
 │   ├── API.md                   # API 接口文档
@@ -762,10 +765,10 @@ export const useAppStore = defineStore('app', () => {
 // stores/notification.ts
 export const useNotificationStore = defineStore('notification', () => {
   const unreadCount = ref(0)
-  const pollingTimer = ref<NodeJS.Timer | null>(null)
+  let pollingTimer: ReturnType<typeof setInterval> | null = null
 
   const fetchUnreadCount = async () => { ... }
-  const startPolling = () => { ... }   // 每 30 秒轮询
+  const startPolling = (intervalMs = 30000) => { ... }   // 默认 30 秒轮询
   const stopPolling = () => { ... }
 
   return { unreadCount, fetchUnreadCount, startPolling, stopPolling }
@@ -847,26 +850,30 @@ export const rules = {
 
 ---
 
-## 十、Nuxt 3 配置要点
+## 十、Nuxt 4 配置要点
 
 ```typescript
 // nuxt.config.ts
 export default defineNuxtConfig({
   modules: [
-    '@nuxt/ui',           // UI 组件库
+    '@nuxt/ui',           // UI 组件库 (v4)
     '@pinia/nuxt',        // 状态管理
-    'nuxt-auth-utils',    // 认证工具（可选）
   ],
 
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET,
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
+    aiEncryptionKey: process.env.AI_ENCRYPTION_KEY,
     public: {
-      apiBase: '/api/v1',
+      appName: '企业一体化管理系统',
     },
   },
 
-  // SQLite 通过 better-sqlite3 直接访问
-  // 无需外部数据库服务
+  // Nitro 别名：`#database`、`#schema/*`、`#server-utils`、`#enums`
+  nitro: {
+    alias: { ... }
+  },
+
+  // SQLite 通过 better-sqlite3 直接访问，无需外部数据库服务
 })
 ```

@@ -164,19 +164,19 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-lg font-semibold text-content-secondary">{{ formatMoney(stats.totalAmount) }}</p><p class="text-xs text-content-muted">总提成金额</p></div>
+        <div><p class="text-lg font-medium text-content-secondary">{{ formatMoney(stats.totalAmount) }}</p><p class="text-xs text-content-muted">总提成金额</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-check-circle" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-lg font-semibold text-teal-600">{{ formatMoney(stats.paidAmount) }}</p><p class="text-xs text-content-muted">已发放</p></div>
+        <div><p class="text-lg font-medium text-teal-600">{{ formatMoney(stats.paidAmount) }}</p><p class="text-xs text-content-muted">已发放</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-clock" class="w-5 h-5 text-brand-400" /></div>
-        <div><p class="text-lg font-semibold text-brand-600">{{ formatMoney(stats.pendingAmount) }}</p><p class="text-xs text-content-muted">待审批</p></div>
+        <div><p class="text-lg font-medium text-brand-600">{{ formatMoney(stats.pendingAmount) }}</p><p class="text-xs text-content-muted">待审批</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-surface-hover flex items-center justify-center"><UIcon name="i-lucide-users" class="w-5 h-5 text-content-muted" /></div>
-        <div><p class="text-lg font-semibold text-content-secondary">{{ stats.byUser.length }}</p><p class="text-xs text-content-muted">涉及人员</p></div>
+        <div><p class="text-lg font-medium text-content-secondary">{{ stats.byUser.length }}</p><p class="text-xs text-content-muted">涉及人员</p></div>
       </div>
     </div>
 

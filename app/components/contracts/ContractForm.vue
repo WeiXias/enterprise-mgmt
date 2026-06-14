@@ -19,12 +19,10 @@ interface Props {
   loading?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   customerOptions: () => [],
   loading: false
 })
-
-const props = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: any]

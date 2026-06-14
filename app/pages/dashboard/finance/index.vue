@@ -88,20 +88,20 @@ onMounted(() => fetchData())
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="em-card flex items-center gap-4">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-trending-up" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-xl font-semibold text-teal-600">{{ formatMoney(stats.totalIncome) }}</p><p class="text-xs text-content-secondary">总收入</p></div>
+        <div><p class="text-xl font-medium text-teal-600">{{ formatMoney(stats.totalIncome) }}</p><p class="text-xs text-content-secondary">总收入</p></div>
       </div>
       <div class="em-card flex items-center gap-4">
         <div class="w-10 h-10 rounded-md bg-red-50 flex items-center justify-center"><UIcon name="i-lucide-trending-down" class="w-5 h-5 text-red-400" /></div>
-        <div><p class="text-xl font-semibold text-red-500">{{ formatMoney(stats.totalExpense) }}</p><p class="text-xs text-content-secondary">总支出</p></div>
+        <div><p class="text-xl font-medium text-red-500">{{ formatMoney(stats.totalExpense) }}</p><p class="text-xs text-content-secondary">总支出</p></div>
       </div>
       <div class="em-card flex items-center gap-4">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-xl font-semibold" :class="stats.netBalance >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(stats.netBalance) }}</p><p class="text-xs text-content-secondary">净利润</p></div>
+        <div><p class="text-xl font-medium" :class="stats.netBalance >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(stats.netBalance) }}</p><p class="text-xs text-content-secondary">净利润</p></div>
       </div>
       <div class="em-card flex items-center gap-4">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-bell" class="w-5 h-5 text-brand-400" /></div>
         <div>
-          <p class="text-xl font-semibold text-content-primary">{{ stats.overduePaymentCount + stats.pendingReimbursementCount }}</p>
+          <p class="text-xl font-medium text-content-primary">{{ stats.overduePaymentCount + stats.pendingReimbursementCount }}</p>
           <p class="text-xs text-content-secondary">待处理（{{ stats.overduePaymentCount }} 逾期 + {{ stats.pendingReimbursementCount }} 报销）</p>
         </div>
       </div>

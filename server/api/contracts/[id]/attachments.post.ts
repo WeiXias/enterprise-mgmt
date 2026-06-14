@@ -2,7 +2,7 @@ import { defineEventHandler, getRouterParams, createError, readMultipartFormData
 import { db } from '#database'
 import { contractAttachments } from '#schema'
 import { generateId } from '#server-utils/id'
-import { getUploadDir } from '#server-utils/upload'
+import { getUploadDir, safeFileName } from '#server-utils/upload'
 import path from 'path'
 import fs from 'fs'
 
@@ -19,13 +19,14 @@ export default defineEventHandler(async (event) => {
 
   const uploadDir = await getUploadDir()
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-  const fileName = `${Date.now()}-${file.filename || 'unnamed'}`
+  const safeName = safeFileName(file.filename)
+  const fileName = `${Date.now()}-${safeName}`
   const filePath = path.join(uploadDir, fileName)
   fs.writeFileSync(filePath, file.data)
 
   const result = await db.insert(contractAttachments).values({
     id: generateId(), contractId,
-    fileName: file.filename || 'unnamed',
+    fileName: safeName,
     filePath: `/uploads/${fileName}`,
     fileSize,
     uploadedBy: user.userId,

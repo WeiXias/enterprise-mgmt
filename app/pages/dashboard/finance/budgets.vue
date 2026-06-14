@@ -121,15 +121,15 @@ onMounted(() => { fetchItems(); fetchCategories() })
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-target" class="w-5 h-5 text-brand-400" /></div>
-        <div><p class="text-lg font-semibold text-content-secondary">{{ formatMoney(totalStats.budgetTotal) }}</p><p class="text-xs text-content-muted">预算总额</p></div>
+        <div><p class="text-lg font-medium text-content-secondary">{{ formatMoney(totalStats.budgetTotal) }}</p><p class="text-xs text-content-muted">预算总额</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-trending-up" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-lg font-semibold text-teal-600">{{ formatMoney(totalStats.actualTotal) }}</p><p class="text-xs text-content-muted">实际执行</p></div>
+        <div><p class="text-lg font-medium text-teal-600">{{ formatMoney(totalStats.actualTotal) }}</p><p class="text-xs text-content-muted">实际执行</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3" :class="totalStats.percent > 100 ? 'border-red-300' : totalStats.percent > 80 ? 'border-brand-300' : ''">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-percent" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-lg font-semibold" :class="totalStats.percent > 100 ? 'text-red-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">执行率</p></div>
+        <div><p class="text-lg font-medium" :class="totalStats.percent > 100 ? 'text-red-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">执行率</p></div>
       </div>
     </div>
 

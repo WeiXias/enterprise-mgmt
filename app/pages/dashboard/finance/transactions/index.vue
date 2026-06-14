@@ -164,7 +164,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
             <NuxtLink v-if="t.contractId" :to="`/dashboard/contracts/${t.contractId}`" class="text-brand-600 hover:underline">← {{ t.contractName || t.contractCode }}</NuxtLink>
           </div>
         </div>
-        <span :class="['text-sm font-semibold', t.type === 'income' ? 'text-teal-600' : 'text-red-500']">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
+        <span :class="['text-sm font-medium', t.type === 'income' ? 'text-teal-600' : 'text-red-500']">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
         <div v-if="t.sourceType === 'manual'" class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(t)" />
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = t; showDeleteModal = true" />
