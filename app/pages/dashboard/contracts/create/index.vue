@@ -114,22 +114,22 @@ onMounted(() => {
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div>
-        <h1 class="text-lg font-medium text-gray-800">新建合同</h1>
-        <p class="text-sm text-gray-400 mt-0.5">创建一份新合同</p>
+        <h1 class="text-lg font-medium text-content-primary">新建合同</h1>
+        <p class="text-sm text-content-muted mt-0.5">创建一份新合同</p>
       </div>
     </div>
 
     <!-- 元数据表单 -->
-    <div class="warm-card">
+    <div class="em-card">
       <ContractForm v-model="form" :customer-options="customerOptions" @submit="handleSubmit" />
     </div>
 
     <!-- 模板选择区域 -->
-    <div class="warm-card mt-4">
+    <div class="em-card mt-4">
       <div class="flex items-center justify-between mb-3">
         <div>
-          <h3 class="text-sm font-medium text-gray-700">从模板开始</h3>
-          <p class="text-xs text-gray-400 mt-0.5">选一个模板快速生成合同正文，占位符会自动替换为合同实际信息</p>
+          <h3 class="text-sm font-medium text-content-secondary">从模板开始</h3>
+          <p class="text-xs text-content-muted mt-0.5">选一个模板快速生成合同正文，占位符会自动替换为合同实际信息</p>
         </div>
         <UButton
           v-if="!selectedTemplate"
@@ -144,7 +144,7 @@ onMounted(() => {
       </div>
 
       <!-- 已选模板提示 -->
-      <div v-if="selectedTemplate" class="flex items-center gap-3 p-3 bg-brand-50 rounded-lg border border-brand-200">
+      <div v-if="selectedTemplate" class="flex items-center gap-3 p-3 bg-brand-50 rounded-xl border border-brand-200">
         <UIcon name="i-lucide-file-check" class="w-4 h-4 text-brand-600 flex-shrink-0" />
         <div class="flex-1 min-w-0">
           <span class="text-sm text-brand-800 font-medium">{{ selectedTemplate.name }}</span>
@@ -155,8 +155,8 @@ onMounted(() => {
     </div>
 
     <!-- 合同正文编辑区 -->
-    <div class="warm-card mt-4">
-      <h3 class="text-sm font-medium text-gray-700 mb-3">合同正文</h3>
+    <div class="em-card mt-4">
+      <h3 class="text-sm font-medium text-content-secondary mb-3">合同正文</h3>
       <ContractEditor v-model="content" placeholder="开始撰写合同正文，或从上方选择模板快速生成..." />
     </div>
 
@@ -169,22 +169,23 @@ onMounted(() => {
     </div>
 
     <!-- 模板选择弹窗 -->
-    <UModal v-model:open="showTemplateModal">
-      <template #header>选择合同模板</template>
-      <template #body>
-        <p class="text-xs text-gray-400 mb-4">选一个模板，保存时占位符会自动替换为合同中的实际信息（如客户名称、金额、日期等）。</p>
-        <TemplateSelector
-          :templates="templates"
-          :selected-id="selectedTemplate?.id"
-          @select="onSelectTemplate"
-        />
-      </template>
+    <CommonFormModal
+      v-if="showTemplateModal"
+      v-model:open="showTemplateModal"
+      title="选择合同模板"
+      size="standard"
+      @cancel="showTemplateModal = false"
+    >
+      <p class="text-xs text-content-muted mb-4">选一个模板，保存时占位符会自动替换为合同中的实际信息（如客户名称、金额、日期等）。</p>
+      <TemplateSelector
+        :templates="templates"
+        :selected-id="selectedTemplate?.id"
+        @select="onSelectTemplate"
+      />
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">取消</UButton>
-          <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
-        </div>
+        <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
+        <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
   </div>
 </template>

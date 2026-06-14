@@ -22,8 +22,8 @@ const emit = defineEmits<{
 
 
 const statusColors: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-500',
-  submitted: 'bg-blue-50 text-blue-600',
+  draft: 'bg-surface-hover text-content-muted',
+  submitted: 'bg-brand-50 text-brand-600',
   approved: 'bg-teal-50 text-teal-600',
   rejected: 'bg-red-50 text-red-500',
 }
@@ -50,27 +50,27 @@ function groupByDate(logs: TimeLog[]): { date: string; items: TimeLog[]; totalHo
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-8 text-gray-400 text-xs">加载中...</div>
-    <div v-else-if="logs.length === 0" class="text-center py-8 text-gray-300 text-xs">暂无工时记录</div>
+    <div v-if="loading" class="text-center py-8 text-content-muted text-xs">加载中...</div>
+    <div v-else-if="logs.length === 0" class="text-center py-8 text-content-muted text-xs">暂无工时记录</div>
     <div v-else class="space-y-3">
       <div v-for="group in groupByDate(logs)" :key="group.date">
-        <div class="flex items-center gap-2 text-xs text-gray-400 mb-1.5">
+        <div class="flex items-center gap-2 text-xs text-content-muted mb-1.5">
           <UIcon name="i-lucide-calendar" class="w-3 h-3" />
           <span>{{ group.date }}</span>
-          <span class="text-gray-300">|</span>
+          <span class="text-content-muted">|</span>
           <span>合计 {{ group.totalHours }}h</span>
         </div>
         <div class="space-y-1">
-          <div v-for="l in group.items" :key="l.id" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+          <div v-for="l in group.items" :key="l.id" class="flex items-center gap-2 p-2 rounded-md hover:bg-surface-hover transition-colors">
             <div class="flex-shrink-0 w-7 h-7 rounded-full bg-brand-50 flex items-center justify-center">
               <span class="text-brand-700 text-xs">{{ (l.userName || getMemberName(l.userId)).charAt(0) }}</span>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1">
-                <span class="text-sm text-gray-700 truncate">{{ l.userName || getMemberName(l.userId) }}</span>
-                <span class="text-xs text-gray-500">{{ l.hours }}h</span>
+                <span class="text-sm text-content-secondary truncate">{{ l.userName || getMemberName(l.userId) }}</span>
+                <span class="text-xs text-content-muted">{{ l.hours }}h</span>
               </div>
-              <div class="flex items-center gap-2 text-xs text-gray-400">
+              <div class="flex items-center gap-2 text-xs text-content-muted">
                 <span v-if="l.taskName" class="truncate">{{ l.taskName }}</span>
                 <span v-if="l.description" class="truncate">{{ l.description }}</span>
               </div>

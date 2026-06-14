@@ -12,19 +12,19 @@ function formatDate(v: string) { return v?.slice(0, 16).replace('T', ' ') || '-'
 <template>
   <div>
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-medium text-gray-700">跟进记录</h3>
+      <h3 class="text-sm font-medium text-content-secondary">跟进记录</h3>
       <UButton v-if="showAddButton" icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="$emit('add')">添加</UButton>
     </div>
-    <div v-if="loading" class="text-center py-6 text-gray-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-6 text-gray-400 text-xs">还没有跟进记录，记一笔？</div>
+    <div v-if="loading" class="text-center py-6 text-content-muted">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-6 text-content-muted text-xs">还没有跟进记录，记一笔？</div>
     <div v-else class="space-y-2">
-      <div v-for="fu in items" :key="fu.id" class="flex gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+      <div v-for="fu in items" :key="fu.id" class="flex gap-3 p-2 rounded-md hover:bg-surface-hover transition-colors">
         <div class="w-7 h-7 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
           <UIcon :name="typeIcons[fu.type] || 'i-lucide-more-horizontal'" class="w-3.5 h-3.5 text-brand-600" />
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-700">{{ fu.content }}</p>
-          <p class="text-[10px] text-gray-400 mt-1">
+          <p class="text-sm text-content-secondary">{{ fu.content }}</p>
+          <p class="text-[10px] text-content-muted mt-1">
             {{ getLabel('FollowUpType', fu.type) || fu.type }}
             <span v-if="fu.user?.name"> · {{ fu.user.name }}</span>
             <span class="ml-1"> · {{ formatDate(fu.createdAt) }}</span>

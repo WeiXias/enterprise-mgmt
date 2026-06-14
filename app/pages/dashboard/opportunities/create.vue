@@ -34,11 +34,11 @@ onMounted(fetchCustomers)
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div>
-        <h1 class="text-lg font-medium text-gray-800">新建商机</h1>
-        <p class="text-sm text-gray-400 mt-0.5">创建新的销售机会</p>
+        <h1 class="text-lg font-medium text-content-primary">新建商机</h1>
+        <p class="text-sm text-content-muted mt-0.5">创建新的销售机会</p>
       </div>
     </div>
-    <div class="warm-card">
+    <div class="em-card">
       <OpportunityForm v-model="form" :customer-options="customerOptions" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2">
         <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>

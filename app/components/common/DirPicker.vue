@@ -48,57 +48,59 @@ watch(isOpen, (v) => {
 </script>
 
 <template>
-  <UModal v-model="isOpen" title="选择目录" class="sm:max-w-lg">
-    <template #body>
-      <div class="space-y-3">
-        <!-- 面包屑导航 -->
-        <div class="flex items-center gap-1 text-xs text-gray-500 overflow-x-auto pb-1">
+  <CommonFormModal
+    v-model:open="isOpen"
+    title="选择目录"
+    size="compact"
+  >
+    <div class="space-y-3">
+      <!-- 面包屑导航 -->
+      <div class="flex items-center gap-1 text-xs text-content-muted overflow-x-auto pb-1">
+        <button
+          v-for="crumb in breadcrumbs"
+          :key="crumb.path"
+          class="whitespace-nowrap hover:text-brand-600 transition-colors"
+          @click="browse(crumb.path)"
+        >
+          {{ crumb.name }}
+        </button>
+      </div>
+
+      <!-- 错误提示 -->
+      <div v-if="errorMsg" class="text-sm text-red-500 text-center py-4">
+        {{ errorMsg }}
+      </div>
+
+      <!-- 加载 -->
+      <div v-else-if="loading" class="flex justify-center py-4">
+        <UIcon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-content-muted" />
+      </div>
+
+      <!-- 当前路径 + 选中按钮 -->
+      <div v-else class="space-y-2">
+        <div class="text-xs text-content-muted truncate">{{ current }}</div>
+        <div class="border border-line rounded-md max-h-64 overflow-y-auto">
+          <div v-if="dirs.length === 0" class="text-sm text-content-muted text-center py-8">
+            该目录下没有子目录
+          </div>
           <button
-            v-for="crumb in breadcrumbs"
-            :key="crumb.path"
-            class="whitespace-nowrap hover:text-brand-600 transition-colors"
-            @click="browse(crumb.path)"
+            v-for="d in dirs"
+            :key="d.path"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-brand-50 transition-colors border-b border-line-light last:border-b-0"
+            @click="browse(d.path)"
           >
-            {{ crumb.name }}
+            <UIcon name="i-lucide-folder" class="w-4 h-4 text-brand-500 flex-shrink-0" />
+            <span class="truncate">{{ d.name }}</span>
           </button>
         </div>
-
-        <!-- 错误提示 -->
-        <div v-if="errorMsg" class="text-sm text-red-500 text-center py-4">
-          {{ errorMsg }}
-        </div>
-
-        <!-- 加载 -->
-        <div v-else-if="loading" class="flex justify-center py-4">
-          <UIcon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-gray-400" />
-        </div>
-
-        <!-- 当前路径 + 选中按钮 -->
-        <div v-else class="space-y-2">
-          <div class="text-xs text-gray-400 truncate">{{ current }}</div>
-          <div class="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
-            <div v-if="dirs.length === 0" class="text-sm text-gray-400 text-center py-8">
-              该目录下没有子目录
-            </div>
-            <button
-              v-for="d in dirs"
-              :key="d.path"
-              class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-brand-50 transition-colors border-b border-gray-100 last:border-b-0"
-              @click="browse(d.path)"
-            >
-              <UIcon name="i-lucide-folder" class="w-4 h-4 text-brand-500 flex-shrink-0" />
-              <span class="truncate">{{ d.name }}</span>
-            </button>
-          </div>
-        </div>
       </div>
-    </template>
+    </div>
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <UButton color="neutral" variant="outline" size="sm" @click="isOpen = false">取消</UButton>
-        <UButton color="primary" size="sm" @click="select" :disabled="!!errorMsg || loading">选择此目录</UButton>
+        <UButton variant="ghost" color="neutral" @click="isOpen = false">算了</UButton>
+        <UButton color="primary" :disabled="!!errorMsg || loading" @click="select">选择此目录</UButton>
       </div>
     </template>
-  </UModal>
+  </CommonFormModal>
 </template>

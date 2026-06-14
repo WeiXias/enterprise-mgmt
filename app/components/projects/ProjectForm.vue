@@ -30,70 +30,66 @@ const emit = defineEmits<{
 <template>
   <form class="space-y-4" @submit.prevent="$emit('submit')">
     <div>
-      <label class="block text-sm text-gray-600 mb-1">项目名称 <span class="text-red-400">*</span></label>
+      <label class="block text-sm text-content-secondary mb-1">项目名称 <span class="text-red-400">*</span></label>
       <input
         :value="modelValue.name"
         type="text"
         placeholder="项目名称"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+        class="w-full input-base focus-ring"
         @input="$emit('update:modelValue', { ...modelValue, name: ($event.target as HTMLInputElement).value })"
       />
     </div>
 
     <div v-if="contractOptions && contractOptions.length > 0">
-      <label class="block text-sm text-gray-600 mb-1">关联合同</label>
-      <select
-        :value="modelValue.contractId"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
-        @change="$emit('update:modelValue', { ...modelValue, contractId: ($event.target as HTMLSelectElement).value })"
-      >
-        <option value="">不关联合同</option>
-        <option v-for="c in contractOptions" :key="c.id" :value="c.id">
-          {{ c.code ? c.code + ' - ' : '' }}{{ c.name }}
-        </option>
-      </select>
+      <label class="block text-sm text-content-secondary mb-1">关联合同</label>
+      <EnumSelect
+        :model-value="modelValue.contractId || ''"
+        :options="contractOptions.map(c => ({ value: c.id, label: (c.code ? c.code + ' - ' : '') + c.name }))"
+        placeholder="不关联合同"
+        @update:model-value="$emit('update:modelValue', { ...modelValue, contractId: $event })"
+      />
     </div>
 
     <div>
-      <label class="block text-sm text-gray-600 mb-1">预算</label>
+      <label class="block text-sm text-content-secondary mb-1">预算</label>
       <input
         :value="modelValue.budget"
         type="number"
         step="0.01"
         placeholder="0"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+        class="w-full input-base focus-ring"
         @input="$emit('update:modelValue', { ...modelValue, budget: Number(($event.target as HTMLInputElement).value) })"
       />
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm text-gray-600 mb-1">开始日期</label>
+        <label class="block text-sm text-content-secondary mb-1">开始日期</label>
         <input
           :value="modelValue.startDate"
           type="date"
-          class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+          class="w-full input-base focus-ring"
           @input="$emit('update:modelValue', { ...modelValue, startDate: ($event.target as HTMLInputElement).value })"
         />
       </div>
       <div>
-        <label class="block text-sm text-gray-600 mb-1">结束日期</label>
+        <label class="block text-sm text-content-secondary mb-1">结束日期</label>
         <input
           :value="modelValue.endDate"
           type="date"
-          class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+          class="w-full input-base focus-ring"
           @input="$emit('update:modelValue', { ...modelValue, endDate: ($event.target as HTMLInputElement).value })"
         />
       </div>
     </div>
 
     <div>
-      <label class="block text-sm text-gray-600 mb-1">备注</label>
+      <label class="block text-sm text-content-secondary mb-1">备注</label>
       <textarea
         :value="modelValue.remark"
         rows="2"
         placeholder="项目备注..."
-        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none"
+        class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none"
         @input="$emit('update:modelValue', { ...modelValue, remark: ($event.target as HTMLTextAreaElement).value })"
       />
     </div>

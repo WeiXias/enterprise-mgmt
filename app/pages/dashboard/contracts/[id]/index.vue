@@ -200,14 +200,14 @@ const deleteLoading = ref(false)
 
 // 状态配置
 const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: '草稿', color: 'bg-[var(--color-surface-element)] text-[var(--color-content-secondary)]' },
-  approved: { label: '已审批', color: 'bg-[var(--color-brand-50)] text-[var(--color-brand-600)]' },
-  in_progress: { label: '执行中', color: 'bg-[var(--color-brand-50)] text-[var(--color-brand-700)]' },
+  draft: { label: '草稿', color: 'bg-surface-hover text-content-secondary' },
+  approved: { label: '已审批', color: 'bg-brand-50 text-brand-600' },
+  in_progress: { label: '执行中', color: 'bg-brand-50 text-brand-700' },
   completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
-  terminated: { label: '已终止', color: 'bg-[var(--color-danger-50)] text-[var(--color-danger-600)]' },
+  terminated: { label: '已终止', color: 'bg-danger-50 text-danger-600' },
 }
 
-const { getLabel, getOptions } = useEnum()
+const { getLabel } = useEnum()
 
 function formatMoney(v: any) {
   const n = Number(v)
@@ -241,9 +241,8 @@ async function fetchContract() {
 }
 
 // 产品明细编辑
-const showProductModal = ref(false); const productLoading = ref(false); const editProducts = ref<any[]>([]); const allProducts = ref<any[]>([])
+const showProductModal = ref(false); const productLoading = ref(false); const editProducts = ref<any[]>([])
 async function openProductModal() {
-  try { const res = await $api('/api/products', { params: { pageSize: 200 } }) as any; if (res?.code === 0) allProducts.value = res.data.items || [] } catch {}
   editProducts.value = (contract.value.products || []).map((p: any) => ({ productId: p.productId, quantity: p.quantity || 1, unitPrice: p.unitPrice || 0, discount: (p.discount ?? 1) * 100 }))
   showProductModal.value = true
 }
@@ -468,7 +467,6 @@ const subcontracts = ref<any[]>([])
 const showSubcontractModal = ref(false); const subLoading = ref(false)
 const subForm = ref({ name: '', totalAmount: 0, subcontractPartyId: '', taxRate: 0.05, serviceFee: 0, items: [] as any[] })
 const subParties = ref<any[]>([]); const editSubId = ref<string | null>(null)
-const subProductOptions = ref<any[]>([])
 
 async function fetchSubcontracts() {
   try {
@@ -479,9 +477,8 @@ async function fetchSubcontracts() {
 
 async function openSubcontractModal() {
   try {
-    const [partiesRes, prodRes] = await Promise.all([$api('/api/subcontract-parties') as any, $api('/api/products', { params: { pageSize: 200 } }) as any])
+    const partiesRes = await $api('/api/subcontract-parties') as any
     if (partiesRes?.code === 0) subParties.value = partiesRes.data || []
-    if (prodRes?.code === 0) subProductOptions.value = prodRes.data.items || []
   } catch {}
   subForm.value = { name: '', totalAmount: 0, subcontractPartyId: '', taxRate: 0.05, serviceFee: 0, items: [] }; editSubId.value = null; showSubcontractModal.value = true
 }
@@ -514,15 +511,15 @@ async function deleteSubcontract(sc: any) {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-12 text-[var(--color-content-muted)]">马上就好...</div>
-  <div v-else-if="!contract" class="text-center py-12 text-[var(--color-content-muted)]">合同不存在</div>
+  <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+  <div v-else-if="!contract" class="text-center py-12 text-content-muted">合同不存在</div>
   <div v-else>
     <!-- 顶部面包屑 + 操作 -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2 text-sm">
-        <NuxtLink to="/dashboard/contracts" class="text-[var(--color-content-muted)] hover:text-[var(--color-brand-600)] transition-colors">合同</NuxtLink>
-        <span class="text-[var(--color-content-muted)]">/</span>
-        <span class="text-[var(--color-content-primary)]">{{ contract.name }}</span>
+        <NuxtLink to="/dashboard/contracts" class="text-content-muted hover:text-brand-600 transition-colors">合同</NuxtLink>
+        <span class="text-content-muted">/</span>
+        <span class="text-content-primary">{{ contract.name }}</span>
       </div>
       <div class="flex gap-2">
         <UButton
@@ -568,20 +565,20 @@ async function deleteSubcontract(sc: any) {
     </div>
 
     <!-- 合同信息卡片 -->
-    <div class="warm-card mb-6">
+    <div class="em-card mb-6">
       <div class="flex items-start gap-4">
         <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
           <UIcon name="i-lucide-file-text" class="w-6 h-6 text-teal-600" />
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-1">
-            <h2 class="text-base font-medium text-[var(--color-content-inverse)]">{{ contract.name }}</h2>
+            <h2 class="text-base font-medium text-content-inverse">{{ contract.name }}</h2>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[contract.status]?.color || '']">
               {{ statusConfig[contract.status]?.label || contract.status }}
             </span>
           </div>
-          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-content-muted)]">
-            <span v-if="contract.code" class="text-[var(--color-content-muted)] font-mono text-[11px]">{{ contract.code }}</span>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-content-muted">
+            <span v-if="contract.code" class="text-content-muted font-mono text-[11px]">{{ contract.code }}</span>
             <span v-if="contract.customer?.name">
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline mr-0.5" />
               {{ contract.customer.name }}
@@ -592,12 +589,12 @@ async function deleteSubcontract(sc: any) {
               {{ contract.startDate || '-' }} 至 {{ contract.endDate || '-' }}
             </span>
           </div>
-          <div v-if="contract.partyA || contract.partyB" class="flex gap-4 mt-1 text-xs text-[var(--color-content-muted)]">
+          <div v-if="contract.partyA || contract.partyB" class="flex gap-4 mt-1 text-xs text-content-muted">
             <span v-if="contract.partyA">甲方：{{ contract.partyA }}</span>
             <span v-if="contract.partyB">乙方：{{ contract.partyB }}</span>
           </div>
           <div class="flex items-center gap-2 mt-1">
-            <span v-if="contract.owner?.name" class="text-xs text-[var(--color-brand-600)]">
+            <span v-if="contract.owner?.name" class="text-xs text-brand-600">
               <UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ contract.owner.name }}
             </span>
             <UButton
@@ -612,12 +609,12 @@ async function deleteSubcontract(sc: any) {
           </div>
 
           <!-- 回款进度 -->
-          <div class="mt-3 pt-3 border-t border-[var(--color-line-light)]">
+          <div class="mt-3 pt-3 border-t border-line-light">
             <div class="flex items-center justify-between text-xs mb-1">
-              <span class="text-[var(--color-content-muted)]">已收款 {{ formatMoney(contract.receivedAmount || 0) }} / {{ formatMoney(contract.totalAmount) }}</span>
-              <span class="text-[var(--color-content-muted)]">{{ contract.totalAmount > 0 ? Math.round((contract.receivedAmount || 0) / contract.totalAmount * 100) : 0 }}%</span>
+              <span class="text-content-muted">已收款 {{ formatMoney(contract.receivedAmount || 0) }} / {{ formatMoney(contract.totalAmount) }}</span>
+              <span class="text-content-muted">{{ contract.totalAmount > 0 ? Math.round((contract.receivedAmount || 0) / contract.totalAmount * 100) : 0 }}%</span>
             </div>
-            <div class="h-2 bg-[var(--color-surface-element)] rounded-full overflow-hidden">
+            <div class="h-2 bg-surface-hover rounded-full overflow-hidden">
               <div
                 class="h-full bg-teal-400 rounded-full transition-all"
                 :style="{ width: (contract.totalAmount > 0 ? Math.round((contract.receivedAmount || 0) / contract.totalAmount * 100) : 0) + '%' }"
@@ -628,14 +625,14 @@ async function deleteSubcontract(sc: any) {
       </div>
 
       <!-- 审批信息 -->
-      <div v-if="contract.approvedBy" class="mt-3 pt-3 border-t border-[var(--color-line-light)] flex gap-4 text-xs text-[var(--color-content-muted)]">
+      <div v-if="contract.approvedBy" class="mt-3 pt-3 border-t border-line-light flex gap-4 text-xs text-content-muted">
         <span>审批人：{{ contract.approvedBy?.name }}</span>
         <span v-if="contract.approvedAt">审批时间：{{ formatDate(contract.approvedAt) }}</span>
       </div>
-      <div v-if="contract.rejectReason" class="mt-2 text-xs text-[var(--color-danger-600)]">
+      <div v-if="contract.rejectReason" class="mt-2 text-xs text-danger-600">
         驳回原因：{{ contract.rejectReason }}
       </div>
-      <p v-if="contract.remark" class="text-sm text-[var(--color-content-muted)] mt-3 pt-3 border-t border-[var(--color-line-light)]">{{ contract.remark }}</p>
+      <p v-if="contract.remark" class="text-sm text-content-muted mt-3 pt-3 border-t border-line-light">{{ contract.remark }}</p>
     </div>
 
     <!-- Tab 区域 -->
@@ -651,31 +648,31 @@ async function deleteSubcontract(sc: any) {
       <template #content>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-[var(--color-content-muted)]">合同正文</span>
+            <span class="text-sm text-content-muted">合同正文</span>
             <div class="flex items-center gap-2">
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" :to="`/dashboard/contracts/${contract.id}/edit`">编辑正文</UButton>
               <UButton icon="i-lucide-file-down" variant="ghost" color="primary" size="xs" :loading="pdfLoading" @click="handleExportPdf">导出 PDF</UButton>
               <UButton icon="i-lucide-stamp" variant="ghost" color="warning" size="xs" @click="openSignModal">签章</UButton>
             </div>
           </div>
-          <div v-if="!contract.content" class="text-center py-12 text-[var(--color-content-muted)]">
+          <div v-if="!contract.content" class="text-center py-12 text-content-muted">
             <p>还没起草正文</p>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="primary" size="sm" class="mt-2" :to="`/dashboard/contracts/${contract.id}/edit`">点击编辑开始撰写</UButton>
           </div>
-          <div v-else class="warm-card prose prose-sm max-w-none prose-headings:text-[var(--color-content-inverse)] prose-p:text-[var(--color-content-secondary)]" v-html="contract.content" />
+          <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="contract.content" />
         </div>
       </template>
       <template #products>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-[var(--color-content-muted)]">产品明细 {{ contract.products?.length ? '(' + contract.products.length + ')' : '' }}</span>
+            <span class="text-sm text-content-muted">产品明细 {{ contract.products?.length ? '(' + contract.products.length + ')' : '' }}</span>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="primary" size="xs" @click="openProductModal">编辑</UButton>
           </div>
-          <div v-if="!contract.products?.length" class="text-center py-8 text-[var(--color-content-muted)] text-sm">暂无关联产品</div>
-          <div v-else class="warm-card overflow-hidden">
+          <div v-if="!contract.products?.length" class="text-center py-8 text-content-muted text-sm">暂无关联产品</div>
+          <div v-else class="em-card overflow-hidden">
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-[var(--color-line-light)] text-left text-xs text-[var(--color-content-muted)]">
+                <tr class="border-b border-line-light text-left text-xs text-content-muted">
                   <th class="py-2 px-4 font-normal">产品</th>
                   <th class="py-2 px-4 font-normal text-right">数量</th>
                   <th class="py-2 px-4 font-normal text-right">单价</th>
@@ -684,15 +681,15 @@ async function deleteSubcontract(sc: any) {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="p in contract.products" :key="p.id" class="border-b border-[var(--color-line-light)]">
+                <tr v-for="p in contract.products" :key="p.id" class="border-b border-line-light">
                   <td class="py-2 px-4">
-                    <div class="font-medium text-[var(--color-content-primary)]">{{ p.productName || '-' }}</div>
-                    <div v-if="p.productCode" class="text-xs text-[var(--color-content-muted)]">{{ p.productCode }}</div>
+                    <div class="font-medium text-content-primary">{{ p.productName || '-' }}</div>
+                    <div v-if="p.productCode" class="text-xs text-content-muted">{{ p.productCode }}</div>
                   </td>
-                  <td class="py-2 px-4 text-right text-[var(--color-content-secondary)]">{{ p.quantity }}</td>
-                  <td class="py-2 px-4 text-right text-[var(--color-content-secondary)]">{{ formatMoney(p.unitPrice) }}</td>
-                  <td class="py-2 px-4 text-right text-[var(--color-content-secondary)]">{{ (Number(p.discount || 1) * 100).toFixed(0) }}%</td>
-                  <td class="py-2 px-4 text-right text-[var(--color-content-primary)] font-medium">{{ formatMoney(p.quantity * p.unitPrice * (p.discount || 1)) }}</td>
+                  <td class="py-2 px-4 text-right text-content-secondary">{{ p.quantity }}</td>
+                  <td class="py-2 px-4 text-right text-content-secondary">{{ formatMoney(p.unitPrice) }}</td>
+                  <td class="py-2 px-4 text-right text-content-secondary">{{ (Number(p.discount || 1) * 100).toFixed(0) }}%</td>
+                  <td class="py-2 px-4 text-right text-content-primary font-medium">{{ formatMoney(p.quantity * p.unitPrice * (p.discount || 1)) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -703,34 +700,34 @@ async function deleteSubcontract(sc: any) {
       <template #plans>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-[var(--color-content-muted)]">收款计划列表</span>
+            <span class="text-sm text-content-muted">收款计划列表</span>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="editPlanId = null; planForm = { amount: 0, planDate: '', remark: '' }; showPlanModal = true">添加计划</UButton>
           </div>
-          <div v-if="!contract.paymentPlans?.length" class="text-center py-8 text-[var(--color-content-muted)] text-sm">暂无收款计划</div>
+          <div v-if="!contract.paymentPlans?.length" class="text-center py-8 text-content-muted text-sm">暂无收款计划</div>
           <div v-else class="space-y-2">
             <div
               v-for="plan in contract.paymentPlans"
               :key="plan.id"
-              class="warm-card flex items-center gap-4"
+              class="em-card flex items-center gap-4"
             >
               <div
                 :class="['w-2 h-2 rounded-full flex-shrink-0', {
-                  'bg-[var(--color-surface-element)]': plan.status === 'pending',
+                  'bg-surface-hover': plan.status === 'pending',
                   'bg-teal-400': plan.status === 'paid',
-                  'bg-[var(--color-danger-400)]': plan.status === 'overdue',
+                  'bg-danger-400': plan.status === 'overdue',
                 }]"
               />
               <div class="flex-1 flex items-center gap-4">
-                <span class="text-sm text-[var(--color-content-primary)] font-medium">{{ formatMoney(plan.amount) }}</span>
-                <span class="text-xs text-[var(--color-content-muted)]">{{ plan.planDate }}</span>
+                <span class="text-sm text-content-primary font-medium">{{ formatMoney(plan.amount) }}</span>
+                <span class="text-xs text-content-muted">{{ plan.planDate }}</span>
                 <span
                   :class="['text-[10px] px-1.5 py-0.5 rounded-full', {
-                    'bg-[var(--color-surface-element)] text-[var(--color-content-muted)]': plan.status === 'pending',
+                    'bg-surface-hover text-content-muted': plan.status === 'pending',
                     'bg-teal-50 text-teal-700': plan.status === 'paid',
-                    'bg-[var(--color-danger-50)] text-[var(--color-danger-600)]': plan.status === 'overdue',
+                    'bg-danger-50 text-danger-600': plan.status === 'overdue',
                   }]"
                 >{{ ({ pending: '待收款', paid: '已收款', overdue: '已逾期' } as Record<string, string>)[plan.status] || plan.status }}</span>
-                <span v-if="plan.remark" class="text-xs text-[var(--color-content-muted)]">{{ plan.remark }}</span>
+                <span v-if="plan.remark" class="text-xs text-content-muted">{{ plan.remark }}</span>
               </div>
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditPlan(plan)" />
               <UButton
@@ -748,22 +745,22 @@ async function deleteSubcontract(sc: any) {
       <template #payments>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-[var(--color-content-muted)]">收款记录列表</span>
+            <span class="text-sm text-content-muted">收款记录列表</span>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="paymentForm = { amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '' }; showPaymentModal = true">登记收款</UButton>
           </div>
-          <div v-if="!contract.payments?.length" class="text-center py-8 text-[var(--color-content-muted)] text-sm">暂无收款记录</div>
+          <div v-if="!contract.payments?.length" class="text-center py-8 text-content-muted text-sm">暂无收款记录</div>
           <div v-else class="space-y-2">
             <div
               v-for="pay in contract.payments"
               :key="pay.id"
-              class="warm-card flex items-center gap-4"
+              class="em-card flex items-center gap-4"
             >
               <div class="w-2 h-2 rounded-full bg-teal-400 flex-shrink-0" />
               <div class="flex-1 flex items-center gap-4">
-                <span class="text-sm text-[var(--color-content-primary)] font-medium">{{ formatMoney(pay.amount) }}</span>
-                <span class="text-xs text-[var(--color-content-muted)]">{{ formatDate(pay.paymentDate) }}</span>
-                <span v-if="pay.paymentMethod" class="text-xs text-[var(--color-content-muted)]">{{ getLabel('PaymentMethod', pay.paymentMethod) || pay.paymentMethod }}</span>
-                <span v-if="pay.remark" class="text-xs text-[var(--color-content-muted)]">{{ pay.remark }}</span>
+                <span class="text-sm text-content-primary font-medium">{{ formatMoney(pay.amount) }}</span>
+                <span class="text-xs text-content-muted">{{ formatDate(pay.paymentDate) }}</span>
+                <span v-if="pay.paymentMethod" class="text-xs text-content-muted">{{ getLabel('PaymentMethod', pay.paymentMethod) || pay.paymentMethod }}</span>
+                <span v-if="pay.remark" class="text-xs text-content-muted">{{ pay.remark }}</span>
               </div>
               <UButton
                 icon="i-lucide-trash-2"
@@ -795,13 +792,13 @@ async function deleteSubcontract(sc: any) {
       <template #subcontracts>
         <div v-if="!contract.parentContractId" class="mt-4">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-[var(--color-content-muted)]">分包合同列表</span>
+            <span class="text-sm text-content-muted">分包合同列表</span>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openSubcontractModal">创建分包</UButton>
           </div>
-          <div v-if="!subcontracts?.length" class="text-center py-8 text-[var(--color-content-muted)] text-sm">暂无分包合同</div>
+          <div v-if="!subcontracts?.length" class="text-center py-8 text-content-muted text-sm">暂无分包合同</div>
           <div v-else class="space-y-2">
-            <div v-for="sc in subcontracts" :key="sc.id" class="warm-card flex items-center gap-4">
-              <div class="flex-1"><span class="text-sm text-[var(--color-content-primary)] font-medium">{{ sc.name }}</span><span :class="['ml-2 text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[sc.status]?.color || '']">{{ statusConfig[sc.status]?.label || sc.status }}</span><p class="text-xs text-[var(--color-content-muted)] mt-0.5">{{ sc.subcontractPartyName || '-' }} · {{ formatMoney(sc.totalAmount) }} · 税费 {{ (sc.taxRate * 100).toFixed(0) }}%</p></div>
+            <div v-for="sc in subcontracts" :key="sc.id" class="em-card flex items-center gap-4">
+              <div class="flex-1"><span class="text-sm text-content-primary font-medium">{{ sc.name }}</span><span :class="['ml-2 text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[sc.status]?.color || '']">{{ statusConfig[sc.status]?.label || sc.status }}</span><p class="text-xs text-content-muted mt-0.5">{{ sc.subcontractPartyName || '-' }} · {{ formatMoney(sc.totalAmount) }} · 税费 {{ (sc.taxRate * 100).toFixed(0) }}%</p></div>
               <div class="flex gap-1">
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditSubcontract(sc)" />
                 <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteSubcontract(sc)" />
@@ -818,38 +815,36 @@ async function deleteSubcontract(sc: any) {
     </UTabs>
 
     <!-- 关联项目 -->
-    <div v-if="contract.projects?.length" class="mt-6 warm-card">
-      <h3 class="text-sm font-medium text-[var(--color-content-primary)] mb-3">关联项目</h3>
+    <div v-if="contract.projects?.length" class="mt-6 em-card">
+      <h3 class="text-sm font-medium text-content-primary mb-3">关联项目</h3>
       <div class="space-y-2">
         <NuxtLink
           v-for="p in contract.projects"
           :key="p.id"
           :to="`/dashboard/projects/${p.id}`"
-          class="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--color-line-light)]/40 transition-colors"
+          class="flex items-center justify-between p-2 rounded-md hover:bg-line-light/40 transition-colors"
         >
-          <span class="text-sm text-[var(--color-content-primary)]">{{ p.name }}</span>
-          <span class="text-xs text-[var(--color-content-muted)]">{{ p.status }}</span>
+          <span class="text-sm text-content-primary">{{ p.name }}</span>
+          <span class="text-xs text-content-muted">{{ p.status }}</span>
         </NuxtLink>
       </div>
     </div>
 
     <!-- 产品明细编辑弹窗 -->
     <CommonFormModal
-      v-model="showProductModal"
+      v-if="showProductModal"
+      v-model:open="showProductModal"
       title="编辑产品明细"
       :loading="productLoading"
       :secondary-action="{ label: '添加产品行', onClick: addProductRow }"
     >
       <div class="space-y-3 max-h-[50vh] overflow-y-auto">
         <div v-for="(p, i) in editProducts" :key="i" class="flex items-center gap-2 text-sm">
-          <select v-model="p.productId" class="flex-[2] px-2 py-1.5 rounded border border-[var(--color-line)] bg-[var(--color-surface-card)] text-sm" @change="const prod = allProducts.find((o: any) => o.id === p.productId); if (prod) { p.unitPrice = p.unitPrice || prod.standardPrice || 0 }">
-            <option value="">选择产品</option>
-            <option v-for="prod in allProducts" :key="prod.id" :value="prod.id">{{ prod.name }}</option>
-          </select>
-          <input v-model.number="p.quantity" type="number" min="1" class="w-16 px-1 py-1.5 text-center rounded border border-[var(--color-line)] text-sm" />
-          <input v-model.number="p.unitPrice" type="number" step="0.01" placeholder="单价" class="w-20 px-1 py-1.5 rounded border border-[var(--color-line)] text-sm" />
-          <input v-model.number="p.discount" type="number" min="0" max="100" class="w-16 px-1 py-1.5 text-center rounded border border-[var(--color-line)] text-sm" title="折扣%" />
-          <span class="text-xs text-[var(--color-content-muted)] w-20 text-right">{{ formatMoney(p.quantity * p.unitPrice * (p.discount / 100)) }}</span>
+          <ProductSelect v-model="p.productId" class="flex-[2]" @select="(prod: any) => { if (prod) p.unitPrice = p.unitPrice || (prod.price || 0) }" />
+          <input v-model.number="p.quantity" type="number" min="1" class="w-16 px-1 py-1.5 text-center rounded border border-line text-sm" />
+          <input v-model.number="p.unitPrice" type="number" step="0.01" placeholder="单价" class="w-20 px-1 py-1.5 rounded border border-line text-sm" />
+          <input v-model.number="p.discount" type="number" min="0" max="100" class="w-16 px-1 py-1.5 text-center rounded border border-line text-sm" title="折扣%" />
+          <span class="text-xs text-content-muted w-20 text-right">{{ formatMoney(p.quantity * p.unitPrice * (p.discount / 100)) }}</span>
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="removeProductRow(i)" />
         </div>
       </div>
@@ -861,67 +856,65 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 编辑弹窗 -->
     <CommonFormModal
-      v-model="showEditModal"
+      v-if="showEditModal"
+      v-model:open="showEditModal"
       title="编辑合同"
       :loading="editLoading"
       @confirm="handleEdit"
     >
       <form class="space-y-5" @submit.prevent="handleEdit">
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">基本信息</span>
           </div>
           <div class="space-y-3">
             <div>
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">合同名称 <span class="text-[var(--color-danger-500)]">*</span></label>
-              <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-danger-500">*</span></label>
+              <input v-model="editForm.name" type="text" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
             </div>
             <div>
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">合同金额</label>
-              <input v-model.number="editForm.totalAmount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              <label class="block text-sm text-content-secondary mb-1">合同金额</label>
+              <input v-model.number="editForm.totalAmount" type="number" step="0.01" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
             </div>
           </div>
         </div>
 
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">签约方</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">签约方</span>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">甲方</label><input v-model="editForm.partyA" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">乙方</label><input v-model="editForm.partyB" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">甲方</label><input v-model="editForm.partyA" type="text" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">乙方</label><input v-model="editForm.partyB" type="text" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
           </div>
         </div>
 
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">合同周期</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">合同周期</span>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
           </div>
         </div>
 
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">其他</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">其他</span>
           </div>
           <div class="space-y-3">
             <div>
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">付款方式</label>
-              <select v-model="editForm.paymentMethod" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 bg-[var(--color-surface-card)]">
-                <option value="">选择方式</option>
-                <option v-for="opt in getOptions('PaymentMethod')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
+              <label class="block text-sm text-content-secondary mb-1">付款方式</label>
+              <EnumSelect v-model="editForm.paymentMethod" dict="PaymentMethod" placeholder="选择方式" />
             </div>
             <div>
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label>
-              <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+              <label class="block text-sm text-content-secondary mb-1">备注</label>
+              <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" />
             </div>
           </div>
         </div>
@@ -930,23 +923,24 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 添加收款计划弹窗 -->
     <CommonFormModal
-      v-model="showPlanModal"
+      v-if="showPlanModal"
+      v-model:open="showPlanModal"
       :title="editPlanId ? '编辑收款计划' : '添加收款计划'"
       :loading="planLoading"
       size="compact"
     >
       <div class="space-y-3">
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">收款金额 <span class="text-[var(--color-danger-500)]">*</span></label>
-          <input v-model.number="planForm.amount" type="number" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">收款金额 <span class="text-danger-500">*</span></label>
+          <input v-model.number="planForm.amount" type="number" step="0.01" placeholder="0.00" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">计划收款日期 <span class="text-[var(--color-danger-500)]">*</span></label>
-          <input v-model="planForm.planDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">计划收款日期 <span class="text-danger-500">*</span></label>
+          <input v-model="planForm.planDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label>
-          <input v-model="planForm.remark" type="text" placeholder="备注信息..." class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">备注</label>
+          <input v-model="planForm.remark" type="text" placeholder="备注信息..." class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
         </div>
       </div>
       <template #footer>
@@ -957,30 +951,28 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 登记收款弹窗 -->
     <CommonFormModal
-      v-model="showPaymentModal"
+      v-if="showPaymentModal"
+      v-model:open="showPaymentModal"
       title="登记收款"
       size="compact"
       :loading="paymentLoading"
     >
       <div class="space-y-3">
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">收款金额 <span class="text-[var(--color-danger-500)]">*</span></label>
-          <input v-model.number="paymentForm.amount" type="number" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">收款金额 <span class="text-danger-500">*</span></label>
+          <input v-model.number="paymentForm.amount" type="number" step="0.01" placeholder="0.00" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">收款日期 <span class="text-[var(--color-danger-500)]">*</span></label>
-          <input v-model="paymentForm.paymentDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">收款日期 <span class="text-danger-500">*</span></label>
+          <input v-model="paymentForm.paymentDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">付款方式</label>
-          <select v-model="paymentForm.paymentMethod" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 bg-[var(--color-surface-card)]">
-            <option value="">选择方式</option>
-            <option v-for="opt in getOptions('PaymentMethod')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-          </select>
+          <label class="block text-sm text-content-secondary mb-1">付款方式</label>
+          <EnumSelect v-model="paymentForm.paymentMethod" dict="PaymentMethod" placeholder="选择方式" />
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">关联收款计划</label>
-          <select v-model="paymentForm.paymentPlanId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 bg-[var(--color-surface-card)]">
+          <label class="block text-sm text-content-secondary mb-1">关联收款计划</label>
+          <select v-model="paymentForm.paymentPlanId" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15">
             <option value="">不关联</option>
             <option v-for="plan in contract.paymentPlans" :key="plan.id" :value="plan.id">
               {{ formatMoney(plan.amount) }} - {{ plan.planDate }}
@@ -988,8 +980,8 @@ async function deleteSubcontract(sc: any) {
           </select>
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label>
-          <input v-model="paymentForm.remark" type="text" placeholder="备注信息..." class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">备注</label>
+          <input v-model="paymentForm.remark" type="text" placeholder="备注信息..." class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
         </div>
       </div>
       <template #footer>
@@ -1000,6 +992,7 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 审批弹窗 -->
     <CommonConfirmDialog
+      v-if="showApproveModal"
       v-model:open="showApproveModal"
       title="确认审批"
       :message="`确定要审批通过合同「${contract.name}」吗？`"
@@ -1010,15 +1003,16 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 驳回弹窗 -->
     <CommonFormModal
-      v-model="showRejectModal"
+      v-if="showRejectModal"
+      v-model:open="showRejectModal"
       title="驳回合同"
       :loading="rejectLoading"
       size="compact"
       @confirm="handleReject"
     >
       <div class="space-y-3">
-        <p class="text-sm text-[var(--color-content-secondary)]">请填写驳回原因：</p>
-        <textarea v-model="rejectReason" rows="3" placeholder="写明驳回原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+        <p class="text-sm text-content-secondary">请填写驳回原因：</p>
+        <textarea v-model="rejectReason" rows="3" placeholder="写明驳回原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" />
       </div>
       <template #footer>
         <UButton variant="ghost" color="neutral" @click="showRejectModal = false">取消</UButton>
@@ -1028,6 +1022,7 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 删除弹窗 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除合同「${contract.name}」吗？删了就找不回来。`"
@@ -1040,89 +1035,91 @@ async function deleteSubcontract(sc: any) {
 
     <!-- 分包合同弹窗 -->
     <CommonFormModal
-      v-model="showSubcontractModal"
+      v-if="showSubcontractModal"
+      v-model:open="showSubcontractModal"
       :title="editSubId ? '编辑分包合同' : '创建分包合同'"
       :loading="subLoading"
       @confirm="handleSaveSubcontract"
     >
       <div class="space-y-4">
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">基本信息</span>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">名称 <span class="text-[var(--color-danger-500)]">*</span></label><input v-model="subForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">分包对象</label><select v-model="subForm.subcontractPartyId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 bg-[var(--color-surface-card)]"><option value="">选择分包对象</option><option v-for="p in subParties" :key="p.id" :value="p.id">{{ p.name }}</option></select></div>
+            <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="subForm.name" type="text" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">分包对象</label><EnumSelect v-model="subForm.subcontractPartyId" :options="subParties.map(p => ({ value: p.id, label: p.name }))" placeholder="选择分包对象" /></div>
           </div>
         </div>
 
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">金额与税费</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">金额与税费</span>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">基础分包金额 <span class="text-[var(--color-danger-500)]">*</span></label><input v-model.number="subForm.totalAmount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">税费率</label><input v-model.number="subForm.taxRate" type="number" step="0.01" min="0" max="1" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">基础分包金额 <span class="text-danger-500">*</span></label><input v-model.number="subForm.totalAmount" type="number" step="0.01" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">税费率</label><input v-model.number="subForm.taxRate" type="number" step="0.01" min="0" max="1" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
           </div>
-          <div class="mt-3"><label class="block text-sm text-[var(--color-content-secondary)] mb-1">技术服务费</label><input v-model.number="subForm.serviceFee" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+          <div class="mt-3"><label class="block text-sm text-content-secondary mb-1">技术服务费</label><input v-model.number="subForm.serviceFee" type="number" step="0.01" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
         </div>
 
         <!-- 外采产品 -->
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-1.5">
-              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-              <span class="text-sm font-medium text-[var(--color-brand-700)]">外采产品</span>
+              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+              <span class="text-sm font-medium text-brand-700">外采产品</span>
             </div>
             <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="subForm.items.push({ productId: '', quantity: 1, unitPrice: 0, discount: 100 })">添加</UButton>
           </div>
           <div v-if="subForm.items.length" class="space-y-1 max-h-48 overflow-y-auto">
             <div v-for="(it, i) in subForm.items" :key="i" class="flex items-center gap-1.5 text-xs">
-              <select v-model="it.productId" class="flex-1 px-1.5 py-1 rounded border border-[var(--color-line)] bg-[var(--color-surface-card)]" @change="const p = subProductOptions.find((o: any) => o.id === it.productId); if (p) { it.productName = p.name; it.unitPrice = it.unitPrice || p.standardPrice || 0 }"><option value="">选产品</option><option v-for="p in subProductOptions" :key="p.id" :value="p.id">{{ p.name }}</option></select>
-              <input v-model.number="it.quantity" type="number" min="1" class="w-10 px-1 py-1 text-center rounded border border-[var(--color-line)]" />
-              <input v-model.number="it.unitPrice" type="number" step="0.01" class="w-16 px-1 py-1 rounded border border-[var(--color-line)]" />
+              <ProductSelect v-model="it.productId" class="flex-1" @select="(prod: any) => { if (prod) { it.productName = prod.name; it.unitPrice = it.unitPrice || (prod.price || 0) } }" />
+              <input v-model.number="it.quantity" type="number" min="1" class="w-10 px-1 py-1 text-center rounded border border-line" />
+              <input v-model.number="it.unitPrice" type="number" step="0.01" class="w-16 px-1 py-1 rounded border border-line" />
               <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="subForm.items.splice(i, 1)" />
             </div>
           </div>
         </div>
 
-        <div class="rounded-xl bg-[var(--color-brand-50)] border border-[var(--color-brand-200)] p-4 text-sm space-y-1">
-          <p>含税总额：<span class="font-medium text-[var(--color-brand-700)]">{{ formatMoney(subForm.totalAmount * (1 + (subForm.taxRate || 0))) }}</span></p>
-          <p v-if="subForm.items.length" class="text-xs text-[var(--color-content-muted)]">外采产品小计：{{ formatMoney(subForm.items.reduce((s: number, it: any) => s + (it.quantity || 0) * (it.unitPrice || 0), 0)) }}</p>
-          <p v-if="subForm.serviceFee" class="text-xs text-[var(--color-content-muted)]">技术服务费：{{ formatMoney(subForm.serviceFee) }} (可提现基数)</p>
+        <div class="rounded-xl bg-brand-50 border border-brand-200 p-4 text-sm space-y-1">
+          <p>含税总额：<span class="font-medium text-brand-700">{{ formatMoney(subForm.totalAmount * (1 + (subForm.taxRate || 0))) }}</span></p>
+          <p v-if="subForm.items.length" class="text-xs text-content-muted">外采产品小计：{{ formatMoney(subForm.items.reduce((s: number, it: any) => s + (it.quantity || 0) * (it.unitPrice || 0), 0)) }}</p>
+          <p v-if="subForm.serviceFee" class="text-xs text-content-muted">技术服务费：{{ formatMoney(subForm.serviceFee) }} (可提现基数)</p>
         </div>
       </div>
     </CommonFormModal>
 
     <!-- 转交弹窗 -->
     <CommonFormModal
-      v-model="showTransferModal"
+      v-if="showTransferModal"
+      v-model:open="showTransferModal"
       title="转交合同"
       size="compact"
       :loading="transferLoading"
     >
       <div class="space-y-4">
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-2">新归属人 <span class="text-[var(--color-danger-500)]">*</span></label>
+          <label class="block text-sm text-content-secondary mb-2">新归属人 <span class="text-danger-500">*</span></label>
           <div class="relative">
-            <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-content-muted)] pointer-events-none" />
-            <input v-model="userSearchKeyword" type="text" placeholder="搜索同事姓名..." class="w-full pl-8 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 bg-[var(--color-surface-card)]" @input="onUserSearch" @focus="loadUsers" />
+            <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
+            <input v-model="userSearchKeyword" type="text" placeholder="搜索同事姓名..." class="w-full pl-8 input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" @input="onUserSearch" @focus="loadUsers" />
           </div>
-          <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-[var(--color-line)] rounded-lg divide-y divide-[var(--color-line-light)]">
-            <button v-for="u in userOptions" :key="u.id" :class="['w-full text-left px-3 py-2.5 text-sm hover:bg-[var(--color-brand-50)] transition-colors flex items-center gap-2', transferToUserId === u.id ? 'bg-[var(--color-brand-50)]' : '']" @click="transferToUserId = u.id">
-              <span class="w-6 h-6 rounded-full bg-[var(--color-brand-100)] flex items-center justify-center flex-shrink-0"><span class="text-[var(--color-brand-700)] text-[10px]">{{ u.name?.charAt(0) }}</span></span>
-              <span class="text-[var(--color-content-primary)]">{{ u.name }}</span>
-              <span class="text-xs text-[var(--color-content-muted)] ml-auto">{{ u.username }}</span>
-              <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-[var(--color-brand-500)] ml-1" />
+          <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-line rounded-md divide-y divide-line-light">
+            <button v-for="u in userOptions" :key="u.id" :class="['w-full text-left px-3 py-2.5 text-sm hover:bg-brand-50 transition-colors flex items-center gap-2', transferToUserId === u.id ? 'bg-brand-50' : '']" @click="transferToUserId = u.id">
+              <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0"><span class="text-brand-700 text-[10px]">{{ u.name?.charAt(0) }}</span></span>
+              <span class="text-content-primary">{{ u.name }}</span>
+              <span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
+              <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-brand-500 ml-1" />
             </button>
           </div>
-          <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-[var(--color-content-muted)]">加载中...</div>
+          <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-content-muted">加载中...</div>
         </div>
         <div>
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">转交原因</label>
-          <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+          <label class="block text-sm text-content-secondary mb-1">转交原因</label>
+          <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" />
         </div>
       </div>
       <template #footer>
@@ -1132,10 +1129,10 @@ async function deleteSubcontract(sc: any) {
     </CommonFormModal>
 
     <!-- 签章弹窗 -->
-    <UModal v-model:open="showSignModal" :ui="{ content: 'w-screen h-screen !max-w-none !max-h-none rounded-none' }">
+    <UModal v-if="showSignModal" v-model:open="showSignModal" :ui="{ content: 'w-screen h-screen !max-w-none !max-h-none rounded-none' }">
       <template #header>
         <div class="flex items-center justify-between w-full">
-          <span class="text-sm font-medium text-[var(--color-content-primary)]">合同签章 — {{ contract?.name }}</span>
+          <span class="text-sm font-medium text-content-primary">合同签章 — {{ contract?.name }}</span>
           <UButton icon="i-lucide-x" variant="solid" color="neutral" size="sm" class="rounded-full" @click="showSignModal = false">关闭</UButton>
         </div>
       </template>
@@ -1143,15 +1140,15 @@ async function deleteSubcontract(sc: any) {
         <div v-if="signPdfLoading" class="h-full flex items-center justify-center">
           <div class="text-center">
             <div class="flex items-center gap-2">
-              <div class="w-2 h-2 bg-[var(--color-brand-400)] rounded-full animate-bounce" style="animation-delay: 0ms" />
-              <div class="w-2 h-2 bg-[var(--color-brand-400)] rounded-full animate-bounce" style="animation-delay: 150ms" />
-              <div class="w-2 h-2 bg-[var(--color-brand-400)] rounded-full animate-bounce" style="animation-delay: 300ms" />
+              <div class="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style="animation-delay: 0ms" />
+              <div class="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style="animation-delay: 150ms" />
+              <div class="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style="animation-delay: 300ms" />
             </div>
-            <p class="mt-2 text-xs text-[var(--color-content-muted)]">正在生成 PDF...</p>
+            <p class="mt-2 text-xs text-content-muted">正在生成 PDF...</p>
           </div>
         </div>
         <div v-else-if="!signPdfUrl" class="h-full flex items-center justify-center">
-          <p class="text-sm text-[var(--color-content-muted)]">PDF 生成出了点问题，请重试</p>
+          <p class="text-sm text-content-muted">PDF 生成出了点问题，请重试</p>
         </div>
         <div v-else class="flex h-full">
           <!-- PDF 查看器 + 签章叠加层 -->

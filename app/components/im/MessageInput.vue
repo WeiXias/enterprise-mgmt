@@ -77,18 +77,18 @@ watch(() => props.modelValue, (val) => {
 </script>
 
 <template>
-  <div class="shrink-0 px-4 py-3 border-t border-gray-200 bg-white">
-    <div v-if="showEmojiPicker" class="mb-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm">
+  <div class="shrink-0 px-4 py-3 border-t border-line bg-surface-card">
+    <div v-if="showEmojiPicker" class="mb-2 p-2 bg-surface-card border border-line rounded-xl shadow-sm">
       <div class="grid grid-cols-10 gap-1">
-        <button v-for="e in CHAT_EMOJIS" :key="e" class="w-7 h-7 text-sm hover:bg-gray-100 rounded flex items-center justify-center" @click="insertEmoji(e)">{{ e }}</button>
+        <button v-for="e in CHAT_EMOJIS" :key="e" class="w-7 h-7 text-sm hover:bg-surface-hover rounded flex items-center justify-center" @click="insertEmoji(e)">{{ e }}</button>
       </div>
     </div>
     <p v-if="showTypingLabel" class="text-xs text-brand-600 mb-1 italic">{{ showTypingLabel }}</p>
     <form class="flex items-end gap-2" @submit.prevent="emit('send')">
-      <button type="button" class="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-gray-100 transition-colors" @click="showEmojiPicker = !showEmojiPicker">
+      <button type="button" class="p-2 rounded-md text-content-muted hover:text-brand-600 hover:bg-surface-hover transition-colors" @click="showEmojiPicker = !showEmojiPicker">
         <UIcon name="i-lucide-smile" class="w-5 h-5" />
       </button>
-      <button type="button" class="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-gray-100 transition-colors" :disabled="uploading" @click="triggerFileUpload">
+      <button type="button" class="p-2 rounded-md text-content-muted hover:text-brand-600 hover:bg-surface-hover transition-colors" :disabled="uploading" @click="triggerFileUpload">
         <UIcon :name="uploading ? 'i-lucide-loader' : 'i-lucide-paperclip'" class="w-5 h-5" :class="{ 'animate-spin': uploading }" />
       </button>
       <input ref="fileInput" type="file" class="hidden" @change="onFileChange" />
@@ -97,7 +97,7 @@ watch(() => props.modelValue, (val) => {
         rows="1"
         :placeholder="placeholder || '输入消息，回车发送...'"
         :disabled="disabled"
-        class="flex-1 resize-none px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+        class="flex-1 resize-none px-3 py-2 text-sm rounded-md border border-line focus-ring"
         @input="onInput"
         @keydown="onKeydown"
         @compositionstart="isComposing = true"

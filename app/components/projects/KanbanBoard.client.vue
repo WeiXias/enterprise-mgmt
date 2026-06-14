@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 const statusColumns = [
   { status: 'todo', label: '待办', color: 'bg-gray-300' },
-  { status: 'in_progress', label: '进行中', color: 'bg-amber-400' },
+  { status: 'in_progress', label: '进行中', color: 'bg-brand-400' },
   { status: 'completed', label: '已完成', color: 'bg-teal-400' },
 ]
 
@@ -28,8 +28,8 @@ const tasksByStatus = computed(() => {
 })
 
 function getPriorityColor(priority: string): string {
-  const map: Record<string, string> = { high: 'text-red-500', medium: 'text-amber-500', low: 'text-gray-400' }
-  return map[priority] || 'text-gray-400'
+  const map: Record<string, string> = { high: 'text-red-500', medium: 'text-brand-500', low: 'text-content-muted' }
+  return map[priority] || 'text-content-muted'
 }
 
 function onDragStart(e: DragEvent, task: any) {
@@ -61,12 +61,12 @@ function onDrop(e: DragEvent, toStatus: string) {
     <div v-for="col in statusColumns" :key="col.status" class="flex flex-col">
       <div class="flex items-center gap-2 mb-3 px-2">
         <div :class="['w-2 h-2 rounded-full', col.color]" />
-        <span class="text-sm text-gray-600">{{ col.label }}</span>
-        <span class="text-xs text-gray-400 ml-auto">{{ tasksByStatus[col.status]!.length }}</span>
+        <span class="text-sm text-content-secondary">{{ col.label }}</span>
+        <span class="text-xs text-content-muted ml-auto">{{ tasksByStatus[col.status]!.length }}</span>
       </div>
       <div
-        class="flex-1 overflow-y-auto space-y-2 p-1 rounded-lg min-h-[200px]"
-        :class="col.status === 'completed' ? '' : 'bg-gray-50/50'"
+        class="flex-1 overflow-y-auto space-y-2 p-1 rounded-xl min-h-[200px]"
+        :class="col.status === 'completed' ? '' : 'bg-surface-hover/50'"
         @dragover="onDragOver"
         @drop="(e) => onDrop(e, col.status)"
       >
@@ -74,19 +74,19 @@ function onDrop(e: DragEvent, toStatus: string) {
           v-for="task in tasksByStatus[col.status]!"
           :key="task.id"
           draggable="true"
-          class="warm-card p-3 cursor-pointer hover:shadow-sm transition-shadow"
+          class="em-card p-3 cursor-pointer hover:shadow-sm transition-shadow"
           :class="task.status === 'completed' ? 'opacity-60' : ''"
           @click="emit('click', task)"
           @dragstart="(e) => onDragStart(e, task)"
         >
-          <p class="text-sm text-gray-800 mb-1.5" :class="task.status === 'completed' ? 'line-through' : ''">{{ task.name }}</p>
-          <div class="flex items-center gap-2 text-xs text-gray-400">
+          <p class="text-sm text-content-primary mb-1.5" :class="task.status === 'completed' ? 'line-through' : ''">{{ task.name }}</p>
+          <div class="flex items-center gap-2 text-xs text-content-muted">
             <span v-if="task.assigneeName"><UIcon name="i-lucide-user" class="w-3 h-3 inline-block mr-0.5" />{{ task.assigneeName }}</span>
             <span v-if="task.priority" :class="getPriorityColor(task.priority)"><UIcon name="i-lucide-flag" class="w-3 h-3 inline-block mr-0.5" />{{ task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低' }}</span>
             <span v-if="task.endDate" class="ml-auto">{{ task.endDate?.slice(0, 10) }}</span>
           </div>
         </div>
-        <div v-if="tasksByStatus[col.status]!.length === 0" class="text-xs text-gray-300 text-center py-8">
+        <div v-if="tasksByStatus[col.status]!.length === 0" class="text-xs text-content-muted text-center py-8">
           拖任务到这里
         </div>
       </div>

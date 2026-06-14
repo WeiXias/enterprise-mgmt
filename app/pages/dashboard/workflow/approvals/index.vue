@@ -51,20 +51,20 @@ onMounted(() => { fetchPending() })
       </template>
     </CommonPageHeader>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-gray-400">
-      <UIcon name="i-lucide-check-check" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-check-check" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">没有待审批的事项</p>
     </div>
     <div v-else class="space-y-2">
-      <div v-for="item in items" :key="item.instanceId" class="warm-card flex items-center gap-4">
-        <div class="w-1 h-10 rounded-full flex-shrink-0 bg-amber-400" />
+      <div v-for="item in items" :key="item.instanceId" class="em-card flex items-center gap-4">
+        <div class="w-1 h-10 rounded-full flex-shrink-0 bg-brand-400" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800">{{ item.definitionName }}</span>
-            <span class="text-xs text-gray-400">{{ getLabel('ApprovalType', item.sourceType) || item.sourceType }}</span>
+            <span class="text-sm font-medium text-content-primary">{{ item.definitionName }}</span>
+            <span class="text-xs text-content-muted">{{ getLabel('ApprovalType', item.sourceType) || item.sourceType }}</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400">
+          <div class="flex items-center gap-3 text-xs text-content-muted">
             <span>当前节点：{{ item.nodeName }}</span>
             <span>提交 {{ item.submittedAt?.slice(0, 10) }}</span>
           </div>

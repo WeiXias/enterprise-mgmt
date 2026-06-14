@@ -60,29 +60,29 @@ onMounted(() => { fetchData() })
       </template>
     </CommonPageHeader>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="count" class="space-y-4">
-      <div class="warm-card p-6">
+      <div class="em-card p-6">
         <div class="flex items-center gap-3 mb-4">
-          <h2 class="text-lg font-medium text-gray-800">{{ count.code }}</h2>
+          <h2 class="text-lg font-medium text-content-primary">{{ count.code }}</h2>
           <StatusBadge :value="count.status" enum-type="countStatus" />
         </div>
         <div class="grid grid-cols-3 gap-4 text-sm">
-          <div><span class="text-gray-400">计划日期</span><p class="text-gray-700 mt-0.5">{{ count.plannedDate || '-' }}</p></div>
-          <div><span class="text-gray-400">创建时间</span><p class="text-gray-700 mt-0.5">{{ count.createdAt?.slice(0, 10) }}</p></div>
-          <div v-if="count.completedAt"><span class="text-gray-400">完成时间</span><p class="text-gray-700 mt-0.5">{{ count.completedAt?.slice(0, 10) }}</p></div>
+          <div><span class="text-content-muted">计划日期</span><p class="text-content-secondary mt-0.5">{{ count.plannedDate || '-' }}</p></div>
+          <div><span class="text-content-muted">创建时间</span><p class="text-content-secondary mt-0.5">{{ count.createdAt?.slice(0, 10) }}</p></div>
+          <div v-if="count.completedAt"><span class="text-content-muted">完成时间</span><p class="text-content-secondary mt-0.5">{{ count.completedAt?.slice(0, 10) }}</p></div>
         </div>
-        <div v-if="count.remark" class="mt-4 pt-4 border-t border-gray-100">
-          <span class="text-sm text-gray-400">备注</span>
-          <p class="text-sm text-gray-700 mt-1">{{ count.remark }}</p>
+        <div v-if="count.remark" class="mt-4 pt-4 border-t border-line-light">
+          <span class="text-sm text-content-muted">备注</span>
+          <p class="text-sm text-content-secondary mt-1">{{ count.remark }}</p>
         </div>
       </div>
 
-      <div class="warm-card p-6">
-        <h3 class="text-sm font-medium text-gray-600 mb-3">盘点产品 ({{ items.length }} 个)</h3>
+      <div class="em-card p-6">
+        <h3 class="text-sm font-medium text-content-secondary mb-3">盘点产品 ({{ items.length }} 个)</h3>
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-100 text-gray-400">
+            <tr class="border-b border-line-light text-content-muted">
               <th class="text-left py-2 font-normal">产品</th>
               <th class="text-right py-2 font-normal">系统库存</th>
               <th class="text-right py-2 font-normal">实盘数量</th>
@@ -91,12 +91,12 @@ onMounted(() => { fetchData() })
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in items" :key="item.id" class="border-b border-gray-50">
+            <tr v-for="item in items" :key="item.id" class="border-b border-line-light">
               <td class="py-2">
-                <span class="text-gray-700">{{ item.productName }}</span>
-                <span class="text-xs text-gray-400 ml-1">{{ item.productCode }}</span>
+                <span class="text-content-secondary">{{ item.productName }}</span>
+                <span class="text-xs text-content-muted ml-1">{{ item.productCode }}</span>
               </td>
-              <td class="text-right py-2 text-gray-700">{{ item.systemQuantity }}</td>
+              <td class="text-right py-2 text-content-secondary">{{ item.systemQuantity }}</td>
               <td class="text-right py-2">
                 <template v-if="count.status === 'counting' && item.status !== 'reviewed'">
                   <div class="flex items-center justify-end gap-1">
@@ -106,15 +106,15 @@ onMounted(() => { fetchData() })
                       min="0"
                       :value="item.actualQuantity ?? ''"
                       placeholder="-"
-                      class="w-20 px-2 py-1 text-sm text-right rounded border border-gray-200 focus:outline-none focus:border-brand-400"
+                      class="w-20 px-2 py-1 text-sm text-right rounded border border-line focus-ring"
                       @keydown.enter="updateItem(item.id, Number(($event.target as HTMLInputElement).value))"
                       @blur="updateItem(item.id, Number(($event.target as HTMLInputElement).value))"
                     />
                   </div>
                 </template>
-                <span v-else class="text-gray-700">{{ item.actualQuantity ?? '-' }}</span>
+                <span v-else class="text-content-secondary">{{ item.actualQuantity ?? '-' }}</span>
               </td>
-              <td class="text-right py-2" :class="item.difference && item.difference !== 0 ? 'text-red-500 font-medium' : 'text-gray-400'">
+              <td class="text-right py-2" :class="item.difference && item.difference !== 0 ? 'text-red-500 font-medium' : 'text-content-muted'">
                 {{ item.difference !== null && item.difference !== undefined ? (item.difference > 0 ? `+${item.difference}` : item.difference) : '-' }}
               </td>
               <td class="text-right py-2">

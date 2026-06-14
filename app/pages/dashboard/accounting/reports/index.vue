@@ -35,25 +35,25 @@ onMounted(() => { fetchData() })
       <UButton :variant="activeTab === 'balance' ? 'solid' : 'ghost'" :color="activeTab === 'balance' ? 'primary' : 'neutral'" size="sm" @click="activeTab = 'balance'">资产负债表</UButton>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
 
-    <div v-else-if="activeTab === 'income' && incomeData" class="warm-card p-6 max-w-md mx-auto">
-      <h2 class="text-lg font-medium text-gray-800 mb-4 text-center">利润表</h2>
+    <div v-else-if="activeTab === 'income' && incomeData" class="em-card p-6 max-w-md mx-auto">
+      <h2 class="text-lg font-medium text-content-primary mb-4 text-center">利润表</h2>
       <div class="space-y-2 text-sm">
-        <div class="flex justify-between py-1"><span class="text-gray-500">营业收入</span><span class="text-gray-700">{{ formatAmount(incomeData.totalIncome) }}</span></div>
-        <div class="flex justify-between py-1"><span class="text-gray-500">营业支出</span><span class="text-gray-700">{{ formatAmount(incomeData.totalExpense) }}</span></div>
-        <div class="border-t border-gray-100 pt-2 flex justify-between font-medium"><span class="text-gray-800">净利润</span><span :class="incomeData.netIncome >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatAmount(incomeData.netIncome) }}</span></div>
+        <div class="flex justify-between py-1"><span class="text-content-muted">营业收入</span><span class="text-content-secondary">{{ formatAmount(incomeData.totalIncome) }}</span></div>
+        <div class="flex justify-between py-1"><span class="text-content-muted">营业支出</span><span class="text-content-secondary">{{ formatAmount(incomeData.totalExpense) }}</span></div>
+        <div class="border-t border-line-light pt-2 flex justify-between font-medium"><span class="text-content-primary">净利润</span><span :class="incomeData.netIncome >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatAmount(incomeData.netIncome) }}</span></div>
       </div>
     </div>
 
-    <div v-else-if="activeTab === 'balance' && balanceData" class="warm-card p-6 max-w-md mx-auto">
-      <h2 class="text-lg font-medium text-gray-800 mb-4 text-center">资产负债表</h2>
+    <div v-else-if="activeTab === 'balance' && balanceData" class="em-card p-6 max-w-md mx-auto">
+      <h2 class="text-lg font-medium text-content-primary mb-4 text-center">资产负债表</h2>
       <div class="space-y-2 text-sm">
-        <div class="flex justify-between py-1"><span class="text-gray-500">资产</span><span class="text-blue-600">{{ formatAmount(balanceData.assets) }}</span></div>
-        <div class="flex justify-between py-1"><span class="text-gray-500">负债</span><span class="text-amber-600">{{ formatAmount(balanceData.liabilities) }}</span></div>
-        <div class="flex justify-between py-1"><span class="text-gray-500">所有者权益</span><span class="text-teal-600">{{ formatAmount(balanceData.equity) }}</span></div>
-        <div class="border-t border-gray-100 pt-2 flex justify-between text-xs">
-          <span class="text-gray-400">平衡校验</span>
+        <div class="flex justify-between py-1"><span class="text-content-muted">资产</span><span class="text-brand-600">{{ formatAmount(balanceData.assets) }}</span></div>
+        <div class="flex justify-between py-1"><span class="text-content-muted">负债</span><span class="text-brand-600">{{ formatAmount(balanceData.liabilities) }}</span></div>
+        <div class="flex justify-between py-1"><span class="text-content-muted">所有者权益</span><span class="text-teal-600">{{ formatAmount(balanceData.equity) }}</span></div>
+        <div class="border-t border-line-light pt-2 flex justify-between text-xs">
+          <span class="text-content-muted">平衡校验</span>
           <span :class="balanceData.check ? 'text-teal-500' : 'text-red-500'">{{ balanceData.check ? '资产 = 负债 + 权益 ✓' : '不平！' }}</span>
         </div>
       </div>

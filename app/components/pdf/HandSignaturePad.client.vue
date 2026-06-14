@@ -79,15 +79,15 @@ onUnmounted(() => {
   <UModal :open="open" @update:open="emit('update:open', $event)">
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span class="text-sm font-medium text-gray-700">手写签名</span>
-        <span class="text-[11px] text-gray-400">在下方框内签名</span>
+        <span class="text-sm font-medium text-content-secondary">手写签名</span>
+        <span class="text-[11px] text-content-muted">在下方框内签名</span>
       </div>
     </template>
 
     <template #body>
       <div class="space-y-3">
         <!-- 签名画布 -->
-        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
+        <div class="border border-line rounded-md overflow-hidden bg-surface-card">
           <canvas
             ref="canvasRef"
             class="w-full h-40 cursor-crosshair"
@@ -103,7 +103,7 @@ onUnmounted(() => {
               v-for="color in ['#000000', '#dc2626', '#2563eb']"
               :key="color"
               class="w-4 h-4 rounded-full border transition-transform"
-              :class="penColor === color ? 'border-brand-400 scale-110 ring-1 ring-brand-400/30' : 'border-gray-300'"
+              :class="penColor === color ? 'border-brand-400 scale-110 ring-1 ring-brand-400/30' : 'border-line'"
               :style="{ backgroundColor: color }"
               title="选择颜色"
               @click="handleColorChange(color)"
@@ -111,7 +111,7 @@ onUnmounted(() => {
           </div>
 
           <!-- 分隔 -->
-          <div class="w-px h-4 bg-gray-200" />
+          <div class="w-px h-4 bg-line" />
 
           <!-- 粗细 -->
           <div class="flex items-center gap-1">
@@ -119,7 +119,7 @@ onUnmounted(() => {
               v-for="size in [1, 2, 4]"
               :key="size"
               class="w-5 h-5 flex items-center justify-center rounded text-xs transition-colors"
-              :class="penSize === size ? 'bg-brand-100 text-brand-700' : 'text-gray-400 hover:bg-gray-100'"
+              :class="penSize === size ? 'bg-brand-100 text-brand-700' : 'text-content-muted hover:bg-surface-hover'"
               @click="handleSizeChange(size)"
             >
               <div class="rounded-full bg-current" :style="{ width: size * 2 + 'px', height: size * 2 + 'px' }" />
@@ -127,10 +127,10 @@ onUnmounted(() => {
           </div>
 
           <!-- 分隔 -->
-          <div class="w-px h-4 bg-gray-200" />
+          <div class="w-px h-4 bg-line" />
 
           <UButton icon="i-lucide-undo-2" variant="ghost" color="neutral" size="xs" title="撤销" :disabled="isEmpty" @click="handleUndo" />
-          <UButton variant="ghost" color="neutral" size="xs" class="text-[11px] text-gray-400" @click="handleClear">重签</UButton>
+          <UButton variant="ghost" color="neutral" size="xs" class="text-[11px] text-content-muted" @click="handleClear">重签</UButton>
         </div>
       </div>
     </template>

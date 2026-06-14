@@ -43,38 +43,38 @@ onMounted(() => { fetchEntry() })
 
     <div v-if="loading" class="text-center py-12">加载中...</div>
     <div v-else-if="entry" class="space-y-4">
-      <div class="warm-card p-6">
+      <div class="em-card p-6">
         <div class="flex items-center gap-3 mb-4">
-          <h2 class="text-lg font-medium text-gray-800">{{ entry.voucherNo }}</h2>
+          <h2 class="text-lg font-medium text-content-primary">{{ entry.voucherNo }}</h2>
           <StatusBadge :value="entry.status" enum-type="journalEntryStatus" />
         </div>
         <div class="grid grid-cols-3 gap-4 text-sm">
-          <div><span class="text-gray-400">日期</span><p class="text-gray-700 mt-0.5">{{ entry.date }}</p></div>
-          <div><span class="text-gray-400">摘要</span><p class="text-gray-700 mt-0.5">{{ entry.description }}</p></div>
-          <div><span class="text-gray-400">期间</span><p class="text-gray-700 mt-0.5">{{ entry.period }}</p></div>
+          <div><span class="text-content-muted">日期</span><p class="text-content-secondary mt-0.5">{{ entry.date }}</p></div>
+          <div><span class="text-content-muted">摘要</span><p class="text-content-secondary mt-0.5">{{ entry.description }}</p></div>
+          <div><span class="text-content-muted">期间</span><p class="text-content-secondary mt-0.5">{{ entry.period }}</p></div>
         </div>
       </div>
 
-      <div class="warm-card p-6">
+      <div class="em-card p-6">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-100 text-gray-400">
+            <tr class="border-b border-line-light text-content-muted">
               <th class="text-left py-2 font-normal">科目</th>
               <th class="text-right py-2 font-normal">借方</th>
               <th class="text-right py-2 font-normal">贷方</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="line in entry.lines" :key="line.id" class="border-b border-gray-50">
-              <td class="py-2 text-gray-700">{{ line.accountCode }} {{ line.accountName }}</td>
-              <td class="text-right py-2" :class="line.debit > 0 ? 'text-blue-600' : 'text-gray-300'">{{ formatAmount(line.debit) }}</td>
-              <td class="text-right py-2" :class="line.credit > 0 ? 'text-red-500' : 'text-gray-300'">{{ formatAmount(line.credit) }}</td>
+            <tr v-for="line in entry.lines" :key="line.id" class="border-b border-line-light">
+              <td class="py-2 text-content-secondary">{{ line.accountCode }} {{ line.accountName }}</td>
+              <td class="text-right py-2" :class="line.debit > 0 ? 'text-brand-600' : 'text-content-muted'">{{ formatAmount(line.debit) }}</td>
+              <td class="text-right py-2" :class="line.credit > 0 ? 'text-red-500' : 'text-content-muted'">{{ formatAmount(line.credit) }}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr class="font-medium">
-              <td class="py-2 text-gray-700">合计</td>
-              <td class="text-right py-2 text-blue-600">{{ formatAmount(totalDebit) }}</td>
+              <td class="py-2 text-content-secondary">合计</td>
+              <td class="text-right py-2 text-brand-600">{{ formatAmount(totalDebit) }}</td>
               <td class="text-right py-2 text-red-500">{{ formatAmount(totalCredit) }}</td>
             </tr>
           </tfoot>

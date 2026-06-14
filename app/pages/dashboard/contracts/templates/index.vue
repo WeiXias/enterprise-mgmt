@@ -213,8 +213,8 @@ onMounted(fetchTemplates)
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">合同模板</h1>
-        <p class="text-sm text-gray-400 mt-0.5">管理合同正文模板，创建合同时可快速套用</p>
+        <h1 class="text-lg font-medium text-content-primary">合同模板</h1>
+        <p class="text-sm text-content-muted mt-0.5">管理合同正文模板，创建合同时可快速套用</p>
       </div>
       <div class="flex items-center gap-2">
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/contracts')">返回合同</UButton>
@@ -225,19 +225,19 @@ onMounted(fetchTemplates)
 
     <input ref="fileInputRef" type="file" accept=".docx" class="hidden" @change="handleFileChange" />
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
-    <div v-else-if="templates.length === 0" class="text-center py-12 text-gray-400">还没有模板，创建一个？</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-else-if="templates.length === 0" class="text-center py-12 text-content-muted">还没有模板，创建一个？</div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="t in templates" :key="t.id" class="warm-card group">
+      <div v-for="t in templates" :key="t.id" class="em-card group">
         <div class="flex items-start justify-between mb-3">
           <div>
-            <h3 class="text-sm font-medium text-gray-800">{{ t.name }}</h3>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full border bg-gray-50 text-gray-500 border-gray-200 mt-1 inline-block">
+            <h3 class="text-sm font-medium text-content-primary">{{ t.name }}</h3>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full border bg-surface-hover text-content-muted border-line mt-1 inline-block">
               {{ categoryConfig[t.category] || t.category }}
             </span>
           </div>
         </div>
-        <p v-if="t.description" class="text-xs text-gray-400 mb-3">{{ t.description }}</p>
+        <p v-if="t.description" class="text-xs text-content-muted mb-3">{{ t.description }}</p>
         <div class="flex items-center gap-1 flex-wrap mb-3">
           <span
             v-for="ph in (() => { try { return JSON.parse(t.placeholders || '[]') } catch { return [] } })()"
@@ -253,7 +253,7 @@ onMounted(fetchTemplates)
             {{ (() => { try { return JSON.parse(t.productItems || '[]') } catch { return [] } })().length }} 个产品
           </span>
         </div>
-        <div class="flex items-center gap-1 pt-2 border-t border-gray-100">
+        <div class="flex items-center gap-1 pt-2 border-t border-line-light">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(t)">编辑</UButton>
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(t)">删除</UButton>
         </div>
@@ -261,71 +261,73 @@ onMounted(fetchTemplates)
     </div>
 
     <!-- 新建/编辑弹窗 -->
-    <UModal v-model:open="showModal" class="max-w-3xl">
-      <template #header>
+    <CommonFormModal v-if="showModal" v-model:open="showModal" :title="editMode === 'create' ? '新建模板' : '编辑模板'" size="spacious" :loading="saving" @confirm="handleSave" @cancel="showModal = false">
+      <template #header="{ close }">
         <div class="flex items-center justify-between w-full">
-          <span>{{ editMode === 'create' ? '新建模板' : '编辑模板' }}</span>
-          <UButton icon="i-lucide-sparkles" variant="outline" color="warning" size="xs" @click="showAIDialog = true">AI 编写</UButton>
+          <div>
+            <h3 class="text-base font-medium text-content-primary">{{ editMode === 'create' ? '新建模板' : '编辑模板' }}</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <UButton icon="i-lucide-sparkles" variant="outline" color="warning" size="xs" @click="showAIDialog = true">AI 编写</UButton>
+            <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-md" @click="close" />
+          </div>
         </div>
       </template>
-      <template #body>
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">模板名称 <span class="text-red-400">*</span></label>
-              <input v-model="form.name" type="text" placeholder="如：技术服务合同V2" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">模板名称 <span class="text-red-400">*</span></label>
+              <input v-model="form.name" type="text" placeholder="如：技术服务合同V2" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">分类</label>
-              <select v-model="form.category" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-                <option v-for="(label, key) in categoryConfig" :key="key" :value="key">{{ label }}</option>
-              </select>
+              <label class="block text-sm text-content-secondary mb-1">分类</label>
+              <EnumSelect v-model="form.category" :options="Object.entries({ sales: '销售合同', procurement: '采购合同', service: '技术服务', other: '其他' }).map(([value, label]) => ({ value, label }))" placeholder="选择分类" />
             </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">描述</label>
-            <input v-model="form.description" type="text" placeholder="模板用途说明..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">描述</label>
+            <input v-model="form.description" type="text" placeholder="模板用途说明..." class="w-full input-base focus-ring" />
           </div>
 
           <!-- 产品清单 -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <label class="text-sm text-gray-600">
+              <label class="text-sm text-content-secondary">
                 产品清单
-                <span class="text-gray-400 font-normal ml-1">（选填，创建合同时自动带入）</span>
+                <span class="text-content-muted font-normal ml-1">（选填，创建合同时自动带入）</span>
               </label>
               <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addProductRow">添加产品</UButton>
             </div>
-            <div v-if="productItems.length === 0" class="text-xs text-gray-400 py-2 px-3 border border-dashed border-gray-200 rounded-lg">
+            <div v-if="productItems.length === 0" class="text-xs text-content-muted py-2 px-3 border border-dashed border-line rounded-md">
               还没有产品，点击"添加产品"开始配置
             </div>
             <div v-else class="space-y-2">
               <div
                 v-for="(item, i) in productItems" :key="i"
-                class="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2"
+                class="flex items-center gap-2 text-sm bg-surface-page rounded-md px-3 py-2"
               >
                 <ProductSelect v-model="item.productId" class="flex-1" />
                 <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-400">数量</span>
-                  <input v-model.number="item.quantity" type="number" min="1" class="w-16 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-center" />
+                  <span class="text-xs text-content-muted">数量</span>
+                  <input v-model.number="item.quantity" type="number" min="1" class="w-16 px-2 py-1.5 text-sm rounded-md border border-line bg-surface-card focus-ring text-center" />
                 </div>
                 <div class="flex items-center gap-1">
-                  <span class="text-xs text-gray-400">单价</span>
-                  <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" class="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400 text-right" />
+                  <span class="text-xs text-content-muted">单价</span>
+                  <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" class="w-20 px-2 py-1.5 text-sm rounded-md border border-line bg-surface-card focus-ring text-right" />
                 </div>
                 <span class="text-xs text-brand-700 w-16 text-right">¥{{ getProductSubtotal(item).toLocaleString() }}</span>
                 <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeProductRow(i)" />
               </div>
-              <div class="text-xs text-gray-500 text-right">
+              <div class="text-xs text-content-secondary text-right">
                 产品合计：<span class="text-brand-700 font-medium">¥{{ getProductTotal().toLocaleString() }}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm text-gray-600 mb-2">
+            <label class="block text-sm text-content-secondary mb-2">
               正文内容
-              <span class="text-gray-400 font-normal ml-1">（用 <code v-pre>{{key}}</code> 表示占位符）</span>
+              <span class="text-content-muted font-normal ml-1">（用 <code v-pre>{{key}}</code> 表示占位符）</span>
             </label>
             <ContractEditor
               v-model="editorContent"
@@ -333,7 +335,7 @@ onMounted(fetchTemplates)
             />
           </div>
           <div v-if="editorPlaceholders.length > 0">
-            <span class="text-xs text-gray-400">
+            <span class="text-xs text-content-muted">
               检测到 {{ editorPlaceholders.length }} 个占位符：
             </span>
             <span
@@ -343,41 +345,25 @@ onMounted(fetchTemplates)
               {{ ph.key }}
             </span>
           </div>
-          <div class="text-xs text-gray-400 bg-brand-50 rounded-lg p-2">
+          <div class="text-xs text-content-muted bg-brand-50 rounded-md p-2">
             提示：正文中可用 <code v-pre>{{productList}}</code> 插入产品名称列表，<code v-pre>{{productTable}}</code> 插入产品明细表格，<code v-pre>{{productTotal}}</code> 插入产品总价
           </div>
         </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton>
-          <UButton color="primary" :loading="saving" @click="handleSave">保存</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- AI 编写弹窗 -->
-    <UModal v-model:open="showAIDialog" class="max-w-lg">
-      <template #header>AI 帮你写合同模板</template>
-      <template #body>
+    <CommonFormModal v-if="showAIDialog" v-model:open="showAIDialog" title="AI 帮你写合同模板" size="compact" :loading="aiGenerating" @confirm="handleAIGenerate" @cancel="showAIDialog = false">
         <div>
-          <label class="block text-sm text-gray-600 mb-2">描述一下你想要什么样的合同</label>
+          <label class="block text-sm text-content-secondary mb-2">描述一下你想要什么样的合同</label>
           <textarea
             v-model="aiPrompt"
             rows="4"
             placeholder="比如：我需要一份软件开发外包合同，包含知识产权归属、保密条款、验收标准和付款节点..."
-            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none"
+            class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none"
             maxlength="1000"
           ></textarea>
-          <p class="text-xs text-gray-400 mt-1">越详细效果越好，最长 1000 字</p>
+          <p class="text-xs text-content-muted mt-1">越详细效果越好，最长 1000 字</p>
         </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" :disabled="aiGenerating" @click="showAIDialog = false">取消</UButton>
-          <UButton color="primary" :loading="aiGenerating" @click="handleAIGenerate">开始生成</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
   </div>
 </template>

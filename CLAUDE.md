@@ -130,10 +130,42 @@ enterprise-mgmt/              # 主应用目录
 - 加载状态用骨架屏，不用转圈动画
 - 表单默认聚焦第一个输入框，回车提交
 
+### 弹窗规范
+
+**组件选择规则**（禁止直接使用 `<UModal>`，必须用以下通用组件）：
+
+| 场景 | 组件 | 说明 |
+|------|------|------|
+| 新建/编辑表单 | `FormModal` | 用 `size` 区分宽度 |
+| 删除/危险确认 | `ConfirmDialog` | 传 `danger` |
+| 状态变更确认 | `ConfirmDialog` | 不传 `danger` |
+| 查看详情+标签页 | `DetailModal` | — |
+| 搜索选择人员 | `SelectModal` | 通过 `list` 插槽自定义列表 |
+| 转交/指派 | `TransferModal` | 内置用户搜索+API 调用 |
+| 全屏操作（签章等） | 直接用 `<UModal>` | 仅全屏场景可绕过通用组件 |
+
+**弹窗尺寸体系**：
+
+| 尺寸 | FormModal class | 实际宽度 | 典型场景 |
+|------|----------------|----------|----------|
+| `compact` | `sm:max-w-lg` | 512px | 快速创建（1-3 个字段） |
+| `standard` | `sm:max-w-2xl` | 672px | 常规编辑表单 |
+| `spacious` | `sm:max-w-4xl` | 896px | 复杂多段表单 |
+
+其他弹窗固定宽度：ConfirmDialog `sm:max-w-xl`(576px)、SelectModal `sm:max-w-xl`(576px)、DetailModal `sm:max-w-3xl`(768px)
+
+**弹窗开发约定**：
+
+- 开关状态统一用 `v-model:open`（不用 `v-model`/`modelValue`）
+- 所有弹窗组件的 `ui.content` 必须包含 `rounded-2xl bg-surface-card shadow-elevated`
+- 颜色禁止硬编码 `gray-*` / `red-*`，必须用语义令牌：`text-content-secondary`、`border-line`、`bg-surface-page`、`text-danger-500` 等
+- 关闭按钮只调 `close()`，不要重复 emit `cancel` 和 `update:open`
+- 取消按钮文案用"算了"（非危险确认）或"再想想"（危险确认），确认按钮文案按业务场景用动词
+
 ### 组件规范
 
 1. **公共组件优先**：新建组件前先检查 `app/components/common/` 是否已有可复用的组件。如果有，必须复用；如果没有，且该组件可能被其他模块使用，则应放在 `common/` 目录
-2. **必须复用的公共组件**：StatusBadge、ConfirmDialog、FormModal、PageHeader、CommonPagination、SearchBar、UserSelect、EmptyState、DataTable
+2. **必须复用的公共组件**：StatusBadge、ConfirmDialog、FormModal、DetailModal、SelectModal、TransferModal、PageHeader、CommonPagination、SearchBar、UserSelect、EmptyState、DataTable
 3. **2 模块规则**：当一个组件被 2 个及以上模块使用时，必须从业务目录提升到 `common/`。例如 FollowUpList 最初在 customers/ 下，现已提升到 common/
 4. **新组件放置规则**：
    - 通用 UI 组件（选择器、表单项、展示组件）→ `common/`

@@ -36,7 +36,7 @@ const emit = defineEmits<{
 <template>
   <UModal
     :open="open"
-    :ui="{ content: 'sm:max-w-3xl rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--color-shadow-elevated)]' }"
+    :ui="{ content: 'sm:max-w-3xl rounded-2xl bg-surface-card shadow-elevated' }"
     @update:open="emit('update:open', $event)"
   >
     <!-- 头部 -->
@@ -45,26 +45,26 @@ const emit = defineEmits<{
         <div class="flex items-center gap-3">
           <div
             v-if="iconLetter"
-            class="w-9 h-9 rounded-xl bg-[var(--color-brand-50)] text-[var(--color-brand-600)] flex items-center justify-center text-base font-medium shrink-0"
+            class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-base font-medium shrink-0"
           >
             {{ iconLetter }}
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h3 class="text-base font-medium text-[var(--color-content-primary)]">{{ title }}</h3>
+              <h3 class="text-base font-medium text-content-primary">{{ title }}</h3>
               <span
                 v-if="statusLabel"
-                class="inline-flex items-center px-1.5 py-px rounded-md text-xs bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+                class="inline-flex items-center px-1.5 py-px rounded-md text-xs bg-brand-50 text-brand-700"
               >
                 {{ statusLabel }}
               </span>
             </div>
-            <p v-if="metaLine" class="text-sm text-[var(--color-content-muted)] mt-0.5">{{ metaLine }}</p>
+            <p v-if="metaLine" class="text-sm text-content-muted mt-0.5">{{ metaLine }}</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-lg" @click="$emit('edit')" />
-          <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-lg" @click="close(); $emit('close'); emit('update:open', false)" />
+          <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-md" @click="$emit('edit')" />
+          <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-md" @click="close(); $emit('close')" />
         </div>
       </div>
     </template>
@@ -77,10 +77,10 @@ const emit = defineEmits<{
           v-for="tab in tabs"
           :key="tab.key"
           :class="[
-            'px-3 py-1.5 text-sm rounded-lg transition-colors',
+            'px-3 py-1.5 text-sm rounded-md transition-colors',
             (activeTab || tabs[0]?.key) === tab.key
-              ? 'bg-[var(--color-brand-50)] text-[var(--color-brand-700)] font-medium'
-              : 'text-[var(--color-content-secondary)] hover:bg-[var(--color-line-light)]'
+              ? 'bg-brand-50 text-brand-700 font-medium'
+              : 'text-content-secondary hover:bg-line-light'
           ]"
           @click="$emit('update:activeTab', tab.key)"
         >

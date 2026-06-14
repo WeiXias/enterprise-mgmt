@@ -127,33 +127,33 @@ onMounted(() => { fetchSuppliers() })
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-content-secondary)]" />
-        <input v-model="keyword" type="text" placeholder="搜供应商名称、编码..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 transition-colors" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-secondary" />
+        <input v-model="keyword" type="text" placeholder="搜供应商名称、编码..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
       </div>
-      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
+      <select v-model="statusFilter" class="input-base focus-ring">
         <option value="">全部状态</option>
         <option value="active">合作中</option>
         <option value="inactive">已停用</option>
       </select>
-      <span class="text-xs text-[var(--color-content-secondary)]">共 {{ total }} 个供应商</span>
+      <span class="text-xs text-content-secondary">共 {{ total }} 个供应商</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-[var(--color-content-secondary)]">加载中...</div>
-    <div v-else-if="supplierList.length === 0" class="text-center py-12 text-[var(--color-content-secondary)]">
-      <UIcon name="i-lucide-building-2" class="w-10 h-10 mx-auto mb-2 text-[var(--color-line)]" />
+    <div v-if="loading" class="text-center py-12 text-content-secondary">加载中...</div>
+    <div v-else-if="supplierList.length === 0" class="text-center py-12 text-content-secondary">
+      <UIcon name="i-lucide-building-2" class="w-10 h-10 mx-auto mb-2 text-line" />
       <p class="text-sm">还没有供应商，先加一个？</p>
       <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm()">添加供应商</UButton>
     </div>
     <div v-else class="space-y-2">
-      <div v-for="supplier in supplierList" :key="supplier.id" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', supplier.status === 'active' ? 'bg-teal-400' : 'bg-[var(--color-line)]']" />
+      <div v-for="supplier in supplierList" :key="supplier.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', supplier.status === 'active' ? 'bg-teal-400' : 'bg-line']" />
         <div class="flex-1 min-w-0 cursor-pointer" @click="$router.push(`/dashboard/suppliers/${supplier.id}`)">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-[var(--color-content-primary)] truncate">{{ supplier.name }}</span>
-            <span class="text-xs text-[var(--color-content-secondary)]">{{ supplier.code }}</span>
+            <span class="text-sm font-medium text-content-primary truncate">{{ supplier.name }}</span>
+            <span class="text-xs text-content-secondary">{{ supplier.code }}</span>
             <StatusBadge :value="supplier.status" enum-type="supplierStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-[var(--color-content-secondary)]">
+          <div class="flex items-center gap-3 text-xs text-content-secondary">
             <span v-if="supplier.contactPerson">
               <UIcon name="i-lucide-user" class="w-3 h-3 inline-block mr-0.5" />{{ supplier.contactPerson }}
             </span>
@@ -173,150 +173,151 @@ onMounted(() => { fetchSuppliers() })
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchSuppliers" @next="fetchSuppliers" />
 
     <!-- 新增弹窗 -->
-    <CommonFormModal v-model="showCreateModal" title="添加供应商" subtitle="记一个供应商，进货不迷路" size="standard" :loading="createLoading" @confirm="handleCreate">
-      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加供应商" subtitle="记一个供应商，进货不迷路" size="standard" :loading="createLoading" @confirm="handleCreate">
+      <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
-          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-          <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+          <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+          <span class="text-sm font-medium text-brand-700">基本信息</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">供应商名称 <span class="text-[var(--color-danger-600)]">*</span></label>
-            <input v-model="createForm.name" type="text" placeholder="供应商名称" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">供应商名称 <span class="text-danger-600">*</span></label>
+            <input v-model="createForm.name" type="text" placeholder="供应商名称" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">编码 <span class="text-xs text-[var(--color-content-secondary)]">(自动生成)</span></label>
-            <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">编码 <span class="text-xs text-content-secondary">(自动生成)</span></label>
+            <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full input-base focus-ring" />
           </div>
         </div>
       </div>
-      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+      <div class="rounded-xl border border-line-light bg-line-light/40 p-4 mt-3">
         <div class="flex items-center gap-1.5 mb-3">
-          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-          <span class="text-sm font-medium text-[var(--color-brand-700)]">联系方式</span>
+          <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+          <span class="text-sm font-medium text-brand-700">联系方式</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">联系人</label>
-            <input v-model="createForm.contactPerson" type="text" placeholder="联系人" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">联系人</label>
+            <input v-model="createForm.contactPerson" type="text" placeholder="联系人" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">手机</label>
-            <input v-model="createForm.phone" type="text" placeholder="手机号" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">手机</label>
+            <input v-model="createForm.phone" type="text" placeholder="手机号" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div class="mt-3">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">邮箱</label>
-          <input v-model="createForm.email" type="email" placeholder="邮箱" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">邮箱</label>
+          <input v-model="createForm.email" type="email" placeholder="邮箱" class="w-full input-base focus-ring" />
         </div>
         <div class="mt-3">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">地址</label>
-          <input v-model="createForm.address" type="text" placeholder="地址" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">地址</label>
+          <input v-model="createForm.address" type="text" placeholder="地址" class="w-full input-base focus-ring" />
         </div>
       </div>
-      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+      <div class="rounded-xl border border-line-light bg-line-light/40 p-4 mt-3">
         <div class="flex items-center gap-1.5 mb-3">
-          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-          <span class="text-sm font-medium text-[var(--color-brand-700)]">财务信息</span>
+          <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+          <span class="text-sm font-medium text-brand-700">财务信息</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">开户行</label>
-            <input v-model="createForm.bankName" type="text" placeholder="开户行" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">开户行</label>
+            <input v-model="createForm.bankName" type="text" placeholder="开户行" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">银行账号</label>
-            <input v-model="createForm.bankAccount" type="text" placeholder="银行账号" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">银行账号</label>
+            <input v-model="createForm.bankAccount" type="text" placeholder="银行账号" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div class="mt-3">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">税号</label>
-          <input v-model="createForm.taxId" type="text" placeholder="纳税人识别号" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">税号</label>
+          <input v-model="createForm.taxId" type="text" placeholder="纳税人识别号" class="w-full input-base focus-ring" />
         </div>
       </div>
       <div class="mt-3">
-        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label>
-        <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+        <label class="block text-sm text-content-secondary mb-1">备注</label>
+        <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
       </div>
     </CommonFormModal>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal v-model="showEditModal" title="编辑供应商" size="standard" :loading="editLoading" @confirm="handleEdit">
-      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑供应商" size="standard" :loading="editLoading" @confirm="handleEdit">
+      <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
         <div class="flex items-center gap-1.5 mb-3">
-          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-          <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+          <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+          <span class="text-sm font-medium text-brand-700">基本信息</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">供应商名称 <span class="text-[var(--color-danger-600)]">*</span></label>
-            <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">供应商名称 <span class="text-danger-600">*</span></label>
+            <input v-model="editForm.name" type="text" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">编码</label>
-            <input v-model="editForm.code" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">编码</label>
+            <input v-model="editForm.code" type="text" class="w-full input-base focus-ring" />
           </div>
         </div>
       </div>
-      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+      <div class="rounded-xl border border-line-light bg-line-light/40 p-4 mt-3">
         <div class="flex items-center gap-1.5 mb-3">
-          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-          <span class="text-sm font-medium text-[var(--color-brand-700)]">联系方式</span>
+          <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+          <span class="text-sm font-medium text-brand-700">联系方式</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">联系人</label>
-            <input v-model="editForm.contactPerson" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">联系人</label>
+            <input v-model="editForm.contactPerson" type="text" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">手机</label>
-            <input v-model="editForm.phone" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">手机</label>
+            <input v-model="editForm.phone" type="text" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div class="mt-3">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">邮箱</label>
-          <input v-model="editForm.email" type="email" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">邮箱</label>
+          <input v-model="editForm.email" type="email" class="w-full input-base focus-ring" />
         </div>
         <div class="mt-3">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">地址</label>
-          <input v-model="editForm.address" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">地址</label>
+          <input v-model="editForm.address" type="text" class="w-full input-base focus-ring" />
         </div>
       </div>
-      <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4 mt-3">
+      <div class="rounded-xl border border-line-light bg-line-light/40 p-4 mt-3">
         <div class="flex items-center gap-1.5 mb-3">
-          <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-          <span class="text-sm font-medium text-[var(--color-brand-700)]">财务信息</span>
+          <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+          <span class="text-sm font-medium text-brand-700">财务信息</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">开户行</label>
-            <input v-model="editForm.bankName" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">开户行</label>
+            <input v-model="editForm.bankName" type="text" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">银行账号</label>
-            <input v-model="editForm.bankAccount" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <label class="block text-sm text-content-secondary mb-1">银行账号</label>
+            <input v-model="editForm.bankAccount" type="text" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div class="mt-3">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">税号</label>
-          <input v-model="editForm.taxId" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <label class="block text-sm text-content-secondary mb-1">税号</label>
+          <input v-model="editForm.taxId" type="text" class="w-full input-base focus-ring" />
         </div>
       </div>
       <div class="mt-3">
-        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">状态</label>
-        <select v-model="editForm.status" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
-          <option value="active">合作中</option>
-          <option value="inactive">已停用</option>
-        </select>
+        <label class="block text-sm text-content-secondary mb-1">状态</label>
+        <select v-model="editForm.status" class="w-full input-base focus-ring">
+        <option value="active">合作中</option>
+        <option value="inactive">已停用</option>
+      </select>
       </div>
       <div class="mt-3">
-        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label>
-        <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+        <label class="block text-sm text-content-secondary mb-1">备注</label>
+        <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
       </div>
     </CommonFormModal>
 
     <!-- 删除确认 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除供应商「${deleteTarget?.name}」吗？删了就找不回来了。`"

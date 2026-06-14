@@ -100,7 +100,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="pdf-viewer flex flex-col h-full bg-gray-100">
+  <div ref="containerRef" class="pdf-viewer flex flex-col h-full bg-surface-hover">
     <PdfToolbar
       v-if="showToolbar !== false"
       :current-page="currentPage"
@@ -133,7 +133,7 @@ onUnmounted(() => {
           <div class="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style="animation-delay: 150ms" />
           <div class="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style="animation-delay: 300ms" />
         </div>
-        <p class="mt-2 text-xs text-gray-400">
+        <p class="mt-2 text-xs text-content-muted">
           {{ progress.total ? `加载中 ${Math.round(progress.loaded / progress.total * 100)}%` : '加载中...' }}
         </p>
       </div>
@@ -141,14 +141,14 @@ onUnmounted(() => {
 
     <div v-else-if="error" class="flex-1 flex items-center justify-center">
       <div class="text-center">
-        <UIcon name="i-lucide-file-x" class="w-12 h-12 text-gray-300 mx-auto mb-3" />
-        <p class="text-sm text-gray-500">{{ error }}</p>
+        <UIcon name="i-lucide-file-x" class="w-12 h-12 text-content-muted mx-auto mb-3" />
+        <p class="text-sm text-content-muted">{{ error }}</p>
       </div>
     </div>
 
     <div v-else ref="canvasContainerRef" class="flex-1 overflow-auto px-4 py-6 flex flex-col items-center relative">
       <div class="relative inline-block">
-        <canvas ref="canvasRef" class="shadow-md rounded-sm bg-white" />
+        <canvas ref="canvasRef" class="shadow-md rounded-sm bg-surface-card" />
         <div v-if="signOverlayVisible" class="absolute inset-0 pointer-events-none">
           <slot name="sign-overlay" />
         </div>

@@ -98,22 +98,22 @@ onMounted(() => fetchCategories())
 <template>
   <div>
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-medium text-gray-700">产品分类</h3>
+      <h3 class="text-sm font-medium text-content-secondary">产品分类</h3>
       <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="openCreate">添加分类</UButton>
     </div>
 
-    <div v-if="loading" class="text-xs text-gray-400 py-2">加载中...</div>
-    <div v-else-if="categories.length === 0" class="text-xs text-gray-400 py-2">还没有分类</div>
+    <div v-if="loading" class="text-xs text-content-muted py-2">加载中...</div>
+    <div v-else-if="categories.length === 0" class="text-xs text-content-muted py-2">还没有分类</div>
     <div v-else class="space-y-0.5">
       <div
         v-for="cat in categories"
         :key="cat.id"
-        class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group"
+        class="flex items-center justify-between px-3 py-2 rounded-md hover:bg-surface-hover transition-colors group"
       >
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-folder" class="w-4 h-4 text-gray-400" />
-          <span class="text-sm text-gray-700">{{ cat.name }}</span>
-          <span class="text-[10px] text-gray-400">{{ cat.productCount || 0 }} 个产品</span>
+          <UIcon name="i-lucide-folder" class="w-4 h-4 text-content-muted" />
+          <span class="text-sm text-content-secondary">{{ cat.name }}</span>
+          <span class="text-[10px] text-content-muted">{{ cat.productCount || 0 }} 个产品</span>
         </div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(cat)" />
@@ -123,40 +123,35 @@ onMounted(() => fetchCategories())
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <UModal v-model:open="showModal">
-      <template #header>{{ editTarget ? '编辑分类' : '添加分类' }}</template>
-      <template #body>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">名称</label>
-            <input v-model="form.name" type="text" placeholder="分类名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">排序</label>
-            <input v-model.number="form.sort" type="number" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
-          </div>
+    <CommonFormModal
+      v-model:open="showModal"
+      :title="editTarget ? '编辑分类' : '添加分类'"
+      size="compact"
+      :loading="saving"
+      @confirm="handleSave"
+    >
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">名称</label>
+          <input v-model="form.name" type="text" placeholder="分类名称" class="w-full input-base focus-ring" />
         </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton>
-          <UButton color="primary" :loading="saving" @click="handleSave">保存</UButton>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">排序</label>
+          <input v-model.number="form.sort" type="number" class="w-full input-base focus-ring" />
         </div>
-      </template>
-    </UModal>
+      </div>
+    </CommonFormModal>
 
     <!-- 删除确认 -->
-    <UModal v-model:open="showDeleteModal">
-      <template #header>确认删除</template>
-      <template #body>
-        <p class="text-sm text-gray-600">确定要删除分类「{{ deleteTarget?.name }}」吗？</p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showDeleteModal = false">再想想</UButton>
-          <UButton color="error" :loading="deleting" @click="handleDelete">确认删除</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonConfirmDialog
+      v-model:open="showDeleteModal"
+      title="确认删除"
+      :message="`确定要删除分类「${deleteTarget?.name}」吗？`"
+      confirm-text="确认删除"
+      cancel-text="再想想"
+      :loading="deleting"
+      danger
+      @confirm="handleDelete"
+    />
   </div>
 </template>

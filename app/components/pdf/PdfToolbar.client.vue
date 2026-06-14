@@ -52,7 +52,7 @@ const scalePercent = computed(() => Math.round(props.scale * 100) + '%')
 </script>
 
 <template>
-  <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-100">
+  <div class="flex items-center gap-2 px-3 py-2 bg-surface-hover border-b border-line-light">
     <!-- 翻页 -->
     <div class="flex items-center gap-0.5">
       <UButton
@@ -65,11 +65,11 @@ const scalePercent = computed(() => Math.round(props.scale * 100) + '%')
         title="上一页"
         @click="emit('prevPage')"
       />
-      <span class="flex items-center gap-1 text-xs text-gray-500">
+      <span class="flex items-center gap-1 text-xs text-content-muted">
         <input
           v-model="pageInput"
-          class="w-8 text-center text-xs border border-gray-200 rounded-md bg-white text-gray-700
-                 focus:outline-none focus:border-brand-400 py-0.5"
+          class="w-8 text-center text-xs border border-line rounded-md bg-surface-card text-content-secondary
+                 focus-ring py-0.5"
           @keydown="handlePageInput"
         />
         / {{ totalPages }}
@@ -87,7 +87,7 @@ const scalePercent = computed(() => Math.round(props.scale * 100) + '%')
     </div>
 
     <!-- 分隔 -->
-    <div class="w-px h-4 bg-gray-200" />
+    <div class="w-px h-4 bg-line" />
 
     <!-- 缩放 -->
     <div class="flex items-center gap-0.5">
@@ -100,7 +100,7 @@ const scalePercent = computed(() => Math.round(props.scale * 100) + '%')
         title="缩小"
         @click="emit('zoomOut')"
       />
-      <span class="text-xs text-gray-500 min-w-[36px] text-center">{{ scalePercent }}</span>
+      <span class="text-xs text-content-muted min-w-[36px] text-center">{{ scalePercent }}</span>
       <UButton
         icon="i-lucide-zoom-in"
         variant="ghost"
@@ -114,7 +114,7 @@ const scalePercent = computed(() => Math.round(props.scale * 100) + '%')
         variant="ghost"
         color="neutral"
         size="xs"
-        class="text-[11px] text-gray-400 px-1"
+        class="text-[11px] text-content-muted px-1"
         title="适应宽度"
         @click="emit('fitWidth')"
       >
@@ -123,7 +123,7 @@ const scalePercent = computed(() => Math.round(props.scale * 100) + '%')
     </div>
 
     <!-- 分隔 -->
-    <div class="w-px h-4 bg-gray-200" />
+    <div class="w-px h-4 bg-line" />
 
     <!-- 搜索 -->
     <PdfSearchBar

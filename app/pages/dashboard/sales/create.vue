@@ -6,8 +6,6 @@ const { $api } = useNuxtApp()
 const router = useRouter()
 
 const saving = ref(false)
-const customerOptions = ref<any[]>([])
-const productOptions = ref<any[]>([])
 
 const form = ref({
   customerId: '',
@@ -16,20 +14,6 @@ const form = ref({
 })
 
 const items = ref<any[]>([{ productId: '', quantity: 1, unitPrice: 0, discount: 1, amount: 0 }])
-
-async function fetchCustomers() {
-  try {
-    const res = await $api('/api/customers', { params: { pageSize: 200 } }) as any
-    if (res?.code === 0) customerOptions.value = res.data?.items || []
-  } catch { /* 静默 */ }
-}
-
-async function fetchProducts() {
-  try {
-    const res = await $api('/api/products', { params: { pageSize: 200 } }) as any
-    if (res?.code === 0) productOptions.value = res.data?.items || []
-  } catch { /* 静默 */ }
-}
 
 function updateItemAmount(idx: number) {
   const item = items.value[idx]
@@ -63,8 +47,6 @@ async function handleSubmit() {
   } catch (err: any) { toast.add({ title: err?.data?.message || '创建失败', color: 'error' }) }
   finally { saving.value = false }
 }
-
-onMounted(() => { fetchCustomers(); fetchProducts() })
 </script>
 
 <template>
@@ -75,44 +57,38 @@ onMounted(() => { fetchCustomers(); fetchProducts() })
       </template>
     </CommonPageHeader>
 
-    <div class="warm-card p-6">
+    <div class="em-card p-6">
       <form class="space-y-6" @submit.prevent="handleSubmit">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">客户 <span class="text-red-400">*</span></label>
-            <select v-model="form.customerId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-              <option value="">选择客户</option>
-              <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
+            <label class="block text-sm text-content-secondary mb-1">客户 <span class="text-red-400">*</span></label>
+            <CustomerSelect v-model="form.customerId" placeholder="选择客户" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">关联合同（可选）</label>
-            <input v-model="form.contractId" type="text" placeholder="合同 ID" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">关联合同（可选）</label>
+            <input v-model="form.contractId" type="text" placeholder="合同 ID" class="w-full input-base focus-ring" />
           </div>
         </div>
 
         <!-- 产品明细 -->
         <div>
           <div class="flex items-center justify-between mb-2">
-            <label class="text-sm text-gray-600">销售产品</label>
+            <label class="text-sm text-content-secondary">销售产品</label>
             <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addItem">添加行</UButton>
           </div>
           <div class="space-y-2">
             <div v-for="(item, idx) in items" :key="idx" class="grid grid-cols-12 gap-2 items-end">
               <div class="col-span-4">
-                <select v-model="item.productId" class="w-full px-2 py-1.5 text-sm rounded border border-gray-200 focus:outline-none focus:border-brand-400 bg-white" @change="updateItemAmount(idx)">
-                  <option value="">选产品</option>
-                  <option v-for="p in productOptions" :key="p.id" :value="p.id">{{ p.name }} ({{ p.code }})</option>
-                </select>
+                <ProductSelect v-model="item.productId" placeholder="选产品" @select="updateItemAmount(idx)" />
               </div>
               <div class="col-span-2">
-                <input v-model.number="item.quantity" type="number" min="1" placeholder="数量" class="w-full px-2 py-1.5 text-sm rounded border border-gray-200 focus:outline-none focus:border-brand-400" @input="updateItemAmount(idx)" />
+                <input v-model.number="item.quantity" type="number" min="1" placeholder="数量" class="w-full px-2 py-1.5 text-sm rounded border border-line focus-ring" @input="updateItemAmount(idx)" />
               </div>
               <div class="col-span-2">
-                <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" placeholder="单价" class="w-full px-2 py-1.5 text-sm rounded border border-gray-200 focus:outline-none focus:border-brand-400" @input="updateItemAmount(idx)" />
+                <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" placeholder="单价" class="w-full px-2 py-1.5 text-sm rounded border border-line focus-ring" @input="updateItemAmount(idx)" />
               </div>
               <div class="col-span-2">
-                <input v-model.number="item.amount" type="number" min="0" step="0.01" placeholder="金额" class="w-full px-2 py-1.5 text-sm rounded border border-gray-100 bg-gray-50 text-gray-600" readonly />
+                <input v-model.number="item.amount" type="number" min="0" step="0.01" placeholder="金额" class="w-full px-2 py-1.5 text-sm rounded border border-line-light bg-surface-hover text-content-secondary" readonly />
               </div>
               <div class="col-span-2 flex justify-end">
                 <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeItem(idx)" :disabled="items.length <= 1" />
@@ -122,8 +98,8 @@ onMounted(() => { fetchCustomers(); fetchProducts() })
         </div>
 
         <div>
-          <label class="block text-sm text-gray-600 mb-1">备注</label>
-          <textarea v-model="form.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
+          <label class="block text-sm text-content-secondary mb-1">备注</label>
+          <textarea v-model="form.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
         </div>
 
         <div class="flex justify-end gap-2 pt-2">

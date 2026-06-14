@@ -108,52 +108,52 @@ onMounted(() => loadSystemInfo())
 <template>
   <div class="min-h-screen flex">
     <!-- 左侧品牌区 -->
-    <div class="hidden lg:flex w-5/12 xl:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 flex-col items-center justify-center relative overflow-hidden">
+    <div class="hidden lg:flex w-5/12 xl:w-1/2 bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 flex-col items-center justify-center relative overflow-hidden">
       <!-- 装饰背景 -->
       <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl" />
-        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-400 rounded-full blur-3xl" />
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-surface-card rounded-full blur-3xl" />
+        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-brand-400 rounded-full blur-3xl" />
       </div>
 
       <div class="relative z-10 text-center px-12">
         <!-- Logo -->
-        <div v-if="logoUrl" class="w-20 h-20 rounded-2xl overflow-hidden bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
+        <div v-if="logoUrl" class="w-20 h-20 rounded-2xl overflow-hidden bg-surface-card/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
           <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
         </div>
-        <div v-else class="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
+        <div v-else class="w-20 h-20 rounded-2xl bg-surface-card/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
           <span class="text-white text-3xl font-medium">E</span>
         </div>
 
         <h1 class="text-3xl text-white font-medium tracking-tight mb-3">{{ systemName }}</h1>
-        <p class="text-blue-200 text-base">{{ systemSubtitle }}</p>
+        <p class="text-brand-200 text-base">{{ systemSubtitle }}</p>
 
         <!-- 底部特性点 -->
         <div class="mt-16 grid grid-cols-1 gap-6 text-left">
           <div class="flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
-              <UIcon name="i-lucide-layout-dashboard" class="w-5 h-5 text-blue-200" />
+            <div class="w-10 h-10 rounded-xl bg-surface-card/15 flex items-center justify-center shrink-0 mt-0.5">
+              <UIcon name="i-lucide-layout-dashboard" class="w-5 h-5 text-brand-200" />
             </div>
             <div>
               <p class="text-white text-sm font-medium">一站式管理</p>
-              <p class="text-blue-300 text-xs mt-0.5">客户、商机、合同、项目，一个平台全搞定</p>
+              <p class="text-brand-300 text-xs mt-0.5">客户、商机、合同、项目，一个平台全搞定</p>
             </div>
           </div>
           <div class="flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
-              <UIcon name="i-lucide-shield-check" class="w-5 h-5 text-blue-200" />
+            <div class="w-10 h-10 rounded-xl bg-surface-card/15 flex items-center justify-center shrink-0 mt-0.5">
+              <UIcon name="i-lucide-shield-check" class="w-5 h-5 text-brand-200" />
             </div>
             <div>
               <p class="text-white text-sm font-medium">安全可靠</p>
-              <p class="text-blue-300 text-xs mt-0.5">数据加密存储，权限分级管理，用得放心</p>
+              <p class="text-brand-300 text-xs mt-0.5">数据加密存储，权限分级管理，用得放心</p>
             </div>
           </div>
           <div class="flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
-              <UIcon name="i-lucide-zap" class="w-5 h-5 text-blue-200" />
+            <div class="w-10 h-10 rounded-xl bg-surface-card/15 flex items-center justify-center shrink-0 mt-0.5">
+              <UIcon name="i-lucide-zap" class="w-5 h-5 text-brand-200" />
             </div>
             <div>
               <p class="text-white text-sm font-medium">轻快高效</p>
-              <p class="text-blue-300 text-xs mt-0.5">极简操作，秒级响应，不浪费一点时间</p>
+              <p class="text-brand-300 text-xs mt-0.5">极简操作，秒级响应，不浪费一点时间</p>
             </div>
           </div>
         </div>
@@ -161,53 +161,53 @@ onMounted(() => loadSystemInfo())
     </div>
 
     <!-- 右侧表单区 -->
-    <div class="flex-1 flex items-center justify-center bg-white px-6 sm:px-12">
+    <div class="flex-1 flex items-center justify-center bg-surface-card px-6 sm:px-12">
       <div class="w-full max-w-sm">
         <!-- 移动端 logo（仅小屏显示） -->
         <div class="lg:hidden text-center mb-8">
           <div v-if="logoUrl" class="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center mx-auto mb-4">
             <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
           </div>
-          <div v-else class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-4">
+          <div v-else class="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center mx-auto mb-4">
             <span class="text-white text-lg font-medium">E</span>
           </div>
-          <h1 class="text-lg font-medium text-gray-900">{{ systemName }}</h1>
-          <p class="text-sm text-gray-500 mt-1">{{ systemSubtitle }}</p>
+          <h1 class="text-lg font-medium text-content-primary">{{ systemName }}</h1>
+          <p class="text-sm text-content-muted mt-1">{{ systemSubtitle }}</p>
         </div>
 
         <!-- 注册表单 -->
         <template v-if="showRegister">
           <div class="mb-6">
-            <h2 class="text-xl font-medium text-gray-900">创建账号</h2>
-            <p class="text-sm text-gray-500 mt-1">填写信息加入团队</p>
+            <h2 class="text-xl font-medium text-content-primary">创建账号</h2>
+            <p class="text-sm text-content-muted mt-1">填写信息加入团队</p>
           </div>
           <form class="space-y-4" @submit.prevent="handleRegister">
             <div v-if="registerError" class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{{ registerError }}</div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">用户名 <span class="text-red-400">*</span></label>
-              <input v-model="registerForm.username" type="text" placeholder="用于登录" class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400" />
+              <label class="block text-sm font-medium text-content-secondary mb-1.5">用户名 <span class="text-red-400">*</span></label>
+              <input v-model="registerForm.username" type="text" placeholder="用于登录" class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">姓名 <span class="text-red-400">*</span></label>
-              <input v-model="registerForm.name" type="text" placeholder="真实姓名" class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400" />
+              <label class="block text-sm font-medium text-content-secondary mb-1.5">姓名 <span class="text-red-400">*</span></label>
+              <input v-model="registerForm.name" type="text" placeholder="真实姓名" class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">密码 <span class="text-red-400">*</span></label>
-              <input v-model="registerForm.password" type="password" placeholder="至少8位" class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400" />
+              <label class="block text-sm font-medium text-content-secondary mb-1.5">密码 <span class="text-red-400">*</span></label>
+              <input v-model="registerForm.password" type="password" placeholder="至少8位" class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">确认密码 <span class="text-red-400">*</span></label>
-              <input v-model="registerForm.confirmPassword" type="password" placeholder="再输一遍密码" class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400" />
+              <label class="block text-sm font-medium text-content-secondary mb-1.5">确认密码 <span class="text-red-400">*</span></label>
+              <input v-model="registerForm.confirmPassword" type="password" placeholder="再输一遍密码" class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted" />
             </div>
             <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">手机</label><input v-model="registerForm.phone" type="text" class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400" /></div>
-              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">邮箱</label><input v-model="registerForm.email" type="email" class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400" /></div>
+              <div><label class="block text-sm font-medium text-content-secondary mb-1.5">手机</label><input v-model="registerForm.phone" type="text" class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted" /></div>
+              <div><label class="block text-sm font-medium text-content-secondary mb-1.5">邮箱</label><input v-model="registerForm.email" type="email" class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted" /></div>
             </div>
             <UButton type="submit" block color="primary" size="md" :loading="registerLoading" class="mt-2">
               提交注册
             </UButton>
-            <p class="text-center text-sm text-gray-500">
-              已有账号？<a href="#" class="text-blue-600 hover:text-blue-700 font-medium" @click.prevent="showRegister = false">返回登录</a>
+            <p class="text-center text-sm text-content-muted">
+              已有账号？<a href="#" class="text-brand-600 hover:text-brand-700 font-medium" @click.prevent="showRegister = false">返回登录</a>
             </p>
           </form>
         </template>
@@ -215,32 +215,32 @@ onMounted(() => loadSystemInfo())
         <!-- 登录表单 -->
         <template v-else>
           <div class="mb-8">
-            <h2 class="text-xl font-medium text-gray-900">欢迎回来</h2>
-            <p class="text-sm text-gray-500 mt-1">登录你的账号继续工作</p>
+            <h2 class="text-xl font-medium text-content-primary">欢迎回来</h2>
+            <p class="text-sm text-content-muted mt-1">登录你的账号继续工作</p>
           </div>
 
           <form class="space-y-5" @submit.prevent="handleLogin">
             <div v-if="errorMsg" class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{{ errorMsg }}</div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">用户名</label>
+              <label class="block text-sm font-medium text-content-secondary mb-1.5">用户名</label>
               <input
                 v-model="username"
                 type="text"
                 autocomplete="username"
                 placeholder="输入用户名"
-                class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400"
+                class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">密码</label>
+              <label class="block text-sm font-medium text-content-secondary mb-1.5">密码</label>
               <input
                 v-model="password"
                 type="password"
                 autocomplete="current-password"
                 placeholder="输入密码"
-                class="w-full px-4 h-9.5 text-sm rounded-xl border border-gray-200 bg-gray-50/50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all placeholder:text-gray-400"
+                class="w-full px-4 h-9.5 text-sm rounded-xl border border-line bg-surface-hover/50 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:bg-surface-card transition-all placeholder:text-content-muted"
               />
             </div>
 
@@ -249,9 +249,9 @@ onMounted(() => loadSystemInfo())
             </UButton>
           </form>
 
-          <p class="text-center text-sm text-gray-500 mt-6">
-            没有账号？<a href="#" class="text-blue-600 hover:text-blue-700 font-medium" @click.prevent="showRegister = true; registerError = ''">注册新账号</a>
-            <span class="mx-2 text-gray-300">|</span>
+          <p class="text-center text-sm text-content-muted mt-6">
+            没有账号？<a href="#" class="text-brand-600 hover:text-brand-700 font-medium" @click.prevent="showRegister = true; registerError = ''">注册新账号</a>
+            <span class="mx-2 text-content-muted">|</span>
             忘记密码？联系管理员重置
           </p>
         </template>

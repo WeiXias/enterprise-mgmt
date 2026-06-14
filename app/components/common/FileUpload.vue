@@ -158,7 +158,7 @@ function openPreviewUrl() {
         'relative border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer',
         dragOver
           ? 'border-brand-400 bg-brand-50'
-          : 'border-gray-200 hover:border-brand-300 hover:bg-gray-50'
+          : 'border-line hover:border-brand-300 hover:bg-surface-hover'
       ]"
       @click="triggerFileInput"
       @dragover="onDragOver"
@@ -176,31 +176,31 @@ function openPreviewUrl() {
 
       <div v-if="props.uploading" class="space-y-2">
         <UIcon name="i-lucide-loader-2" class="w-6 h-6 text-brand-500 mx-auto animate-spin" />
-        <p class="text-sm text-gray-500">上传中...</p>
+        <p class="text-sm text-content-muted">上传中...</p>
       </div>
       <div v-else>
-        <UIcon name="i-lucide-upload-cloud" class="w-8 h-8 text-gray-300 mx-auto mb-2" />
-        <p class="text-sm text-gray-500">拖拽文件到此处，或点击选择</p>
-        <p class="text-xs text-gray-400 mt-1">支持 {{ accept?.replace(/\./g, '').replace(/,/g, ', ') }} (最大 {{ maxSize }}MB)</p>
+        <UIcon name="i-lucide-upload-cloud" class="w-8 h-8 text-content-muted mx-auto mb-2" />
+        <p class="text-sm text-content-muted">拖拽文件到此处，或点击选择</p>
+        <p class="text-xs text-content-muted mt-1">支持 {{ accept?.replace(/\./g, '').replace(/,/g, ', ') }} (最大 {{ maxSize }}MB)</p>
       </div>
     </div>
 
     <!-- 已上传文件列表 -->
     <div v-if="props.files && props.files.length > 0" class="mt-3 space-y-1">
-      <p class="text-xs text-gray-400 mb-1">已上传 {{ props.files.length }} 个文件</p>
+      <p class="text-xs text-content-muted mb-1">已上传 {{ props.files.length }} 个文件</p>
       <div
         v-for="file in props.files"
         :key="file.id"
-        class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group"
+        class="flex items-center justify-between px-3 py-2 rounded-md bg-surface-hover hover:bg-surface-hover transition-colors group"
       >
         <div class="flex items-center gap-2 min-w-0">
-          <UIcon :name="getFileIcon(file.fileName)" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <UIcon :name="getFileIcon(file.fileName)" class="w-4 h-4 text-content-muted flex-shrink-0" />
           <a
             href="#"
             class="text-sm text-brand-600 hover:text-brand-700 hover:underline truncate transition-colors"
             @click.prevent="openPreview(file)"
           >{{ file.fileName }}</a>
-          <span class="text-xs text-gray-400 flex-shrink-0">{{ formatFileSize(file.fileSize) }}</span>
+          <span class="text-xs text-content-muted flex-shrink-0">{{ formatFileSize(file.fileSize) }}</span>
         </div>
         <UButton
           icon="i-lucide-trash-2"
@@ -212,13 +212,13 @@ function openPreviewUrl() {
         />
       </div>
     </div>
-    <div v-else-if="loading" class="mt-3 text-center text-xs text-gray-400 py-4">加载中...</div>
+    <div v-else-if="loading" class="mt-3 text-center text-xs text-content-muted py-4">加载中...</div>
 
     <!-- 文件预览弹窗（全屏） -->
     <UModal v-model:open="showPreview" :ui="{ content: 'w-screen h-screen !max-w-none !max-h-none rounded-none' }">
       <template #header>
         <div class="flex items-center justify-between w-full">
-          <span class="text-sm font-medium truncate text-gray-700">{{ previewFile?.fileName }}</span>
+          <span class="text-sm font-medium truncate text-content-secondary">{{ previewFile?.fileName }}</span>
           <UButton
             icon="i-lucide-x"
             variant="solid"
@@ -232,7 +232,7 @@ function openPreviewUrl() {
       <template #body>
         <!-- 图片 -->
         <div v-if="previewFile && getFileTypeGroup(previewFile.fileName) === 'image'" class="flex items-center justify-center p-4">
-          <img :src="previewUrl" :alt="previewFile?.fileName" class="max-w-full max-h-[calc(100vh-180px)] object-contain rounded-lg" />
+          <img :src="previewUrl" :alt="previewFile?.fileName" class="max-w-full max-h-[calc(100vh-180px)] object-contain rounded-md" />
         </div>
         <!-- PDF -->
         <template v-else-if="previewFile && getFileTypeGroup(previewFile.fileName) === 'pdf'">
@@ -242,8 +242,8 @@ function openPreviewUrl() {
         <iframe v-else-if="previewFile && getFileTypeGroup(previewFile.fileName) === 'office'" :src="previewUrl" class="w-full border-0" style="height: calc(100vh - 180px)" />
         <!-- 不支持的类型 -->
         <div v-else-if="previewUrl" class="flex flex-col items-center justify-center" style="height: calc(100vh - 180px)">
-          <UIcon name="i-lucide-file" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <p class="text-sm text-gray-400">暂不支持预览此文件类型</p>
+          <UIcon name="i-lucide-file" class="w-16 h-16 mx-auto mb-4 text-content-muted" />
+          <p class="text-sm text-content-muted">暂不支持预览此文件类型</p>
           <UButton color="primary" size="sm" class="mt-4" @click="openPreviewUrl">下载文件</UButton>
         </div>
       </template>

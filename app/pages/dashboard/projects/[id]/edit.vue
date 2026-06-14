@@ -36,9 +36,9 @@ onMounted(fetchData)
 
 <template>
   <div class="max-w-lg mx-auto">
-    <div class="mb-6 flex items-center gap-3"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" /><h1 class="text-lg font-medium text-gray-800">编辑项目</h1></div>
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else class="warm-card">
+    <div class="mb-6 flex items-center gap-3"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" /><h1 class="text-lg font-medium text-content-primary">编辑项目</h1></div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else class="em-card">
       <ProjectForm v-model="form" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton><UButton color="primary" :loading="saving" @click="handleSubmit">保存</UButton></div>
     </div>

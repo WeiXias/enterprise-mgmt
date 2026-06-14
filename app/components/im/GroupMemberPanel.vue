@@ -78,38 +78,12 @@ onMounted(() => fetchMembers())
 </script>
 
 <template>
-  <UModal :model-value="true" @update:model-value="emit('close')">
-    <template #header>群成员 ({{ members.length }})</template>
-    <template #body>
-      <div v-if="loading" class="text-center py-8 text-xs text-gray-400">加载中...</div>
-      <div v-else class="space-y-1 max-h-64 overflow-y-auto">
-        <div v-for="m in members" :key="m.id" class="flex items-center justify-between px-2 py-1.5 rounded hover:bg-gray-50">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center">
-              <span class="text-brand-700 text-[10px] font-medium">{{ m.name?.charAt(0) || '?' }}</span>
-            </div>
-            <span class="text-sm text-gray-700">{{ m.name }}</span>
-            <span v-if="m.groupRole === 'owner'" class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-700">群主</span>
-          </div>
-          <UButton v-if="myRole === 'owner' && m.userId !== authStore.user?.id" icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="handleRemove(m.userId)" />
-        </div>
-      </div>
-
-      <!-- 添加成员 -->
-      <div v-if="myRole === 'owner'" class="mt-3 pt-3 border-t border-gray-100">
-        <div v-if="!showAddUser">
-          <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="sm" @click="openAddUser">添加成员</UButton>
-        </div>
-        <div v-else class="flex gap-2">
-          <select v-model="addUserId" class="flex-1 px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
-            <option value="">选择用户</option>
-            <option v-for="u in allUsers" :key="u.id" :value="u.id">{{ u.name }}</option>
-          </select>
-          <UButton color="primary" size="sm" :disabled="!addUserId" @click="doAddUser">确定</UButton>
-          <UButton variant="ghost" color="neutral" size="sm" @click="showAddUser = false">取消</UButton>
-        </div>
-      </div>
-    </template>
+  <CommonFormModal
+    :open="true"
+    :title="`群成员 (${members.length})`"
+    size="compact"
+    @update:open="emit('close')"
+  >
     <template #footer>
       <div class="flex justify-between">
         <UButton icon="i-lucide-log-out" variant="ghost" color="warning" size="sm" @click="handleLeave">
@@ -118,5 +92,30 @@ onMounted(() => fetchMembers())
         <UButton variant="ghost" color="neutral" @click="emit('close')">关闭</UButton>
       </div>
     </template>
-  </UModal>
+    <div v-if="loading" class="text-center py-8 text-xs text-content-muted">加载中...</div>
+    <div v-else class="space-y-1 max-h-64 overflow-y-auto">
+      <div v-for="m in members" :key="m.id" class="flex items-center justify-between px-2 py-1.5 rounded hover:bg-surface-hover">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center">
+            <span class="text-brand-700 text-[10px] font-medium">{{ m.name?.charAt(0) || '?' }}</span>
+          </div>
+          <span class="text-sm text-content-secondary">{{ m.name }}</span>
+          <span v-if="m.groupRole === 'owner'" class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-700">群主</span>
+        </div>
+        <UButton v-if="myRole === 'owner' && m.userId !== authStore.user?.id" icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="handleRemove(m.userId)" />
+      </div>
+    </div>
+
+    <!-- 添加成员 -->
+    <div v-if="myRole === 'owner'" class="mt-3 pt-3 border-t border-line-light">
+      <div v-if="!showAddUser">
+        <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="sm" @click="openAddUser">添加成员</UButton>
+      </div>
+      <div v-else class="flex gap-2">
+        <UserSelect v-model="addUserId" placeholder="选择用户" />
+        <UButton color="primary" size="sm" :disabled="!addUserId" @click="doAddUser">确定</UButton>
+        <UButton variant="ghost" color="neutral" size="sm" @click="showAddUser = false">取消</UButton>
+      </div>
+    </div>
+  </CommonFormModal>
 </template>

@@ -16,8 +16,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center py-16 text-gray-400">
-    <UIcon :name="icon" class="w-12 h-12 mb-3 text-gray-300" />
+  <div class="flex flex-col items-center justify-center py-16 text-content-muted">
+    <UIcon :name="icon" class="w-12 h-12 mb-3 text-content-muted" />
     <p class="text-sm">{{ message }}</p>
     <UButton
       v-if="actionLabel"

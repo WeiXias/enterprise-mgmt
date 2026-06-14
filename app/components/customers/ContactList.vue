@@ -30,21 +30,21 @@ const emit = defineEmits<{
 <template>
   <div>
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-medium text-gray-700">联系人 ({{ contacts.length }})</h3>
+      <h3 class="text-sm font-medium text-content-secondary">联系人 ({{ contacts.length }})</h3>
       <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="$emit('add')">
         添加联系人
       </UButton>
     </div>
 
-    <div v-if="loading" class="text-center py-6 text-gray-400">马上就好...</div>
-    <div v-else-if="contacts.length === 0" class="text-center py-6 text-gray-400">
+    <div v-if="loading" class="text-center py-6 text-content-muted">马上就好...</div>
+    <div v-else-if="contacts.length === 0" class="text-center py-6 text-content-muted">
       还没有联系人，加一个？
     </div>
     <div v-else class="space-y-2">
       <div
         v-for="contact in contacts"
         :key="contact.id"
-        class="warm-card flex items-center gap-3 !py-3 !px-4"
+        class="em-card flex items-center gap-3 !py-3 !px-4"
       >
         <!-- 头像 -->
         <div class="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
@@ -54,10 +54,10 @@ const emit = defineEmits<{
         <!-- 信息 -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-800">{{ contact.name }}</span>
+            <span class="text-sm text-content-primary">{{ contact.name }}</span>
             <span v-if="contact.isPrimary" class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-700">主要</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+          <div class="flex items-center gap-3 text-xs text-content-muted mt-0.5">
             <span v-if="contact.position">{{ contact.position }}</span>
             <span v-if="contact.phone">{{ contact.phone }}</span>
             <span v-if="contact.email">{{ contact.email }}</span>

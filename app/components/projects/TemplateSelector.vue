@@ -31,27 +31,27 @@ function parsePhases(phases?: string): any[] {
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-8 text-gray-400 text-xs">加载中...</div>
+    <div v-if="loading" class="text-center py-8 text-content-muted text-xs">加载中...</div>
     <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <div
         v-for="t in templates" :key="t.id"
-        class="warm-card p-4 cursor-pointer hover:shadow-sm transition-all border-2 border-transparent hover:border-brand-200"
+        class="em-card p-4 cursor-pointer hover:shadow-sm transition-all border-2 border-transparent hover:border-brand-200"
         @click="$emit('select', t.id)"
       >
         <div class="flex items-center gap-2 mb-2">
-          <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-md bg-brand-50 flex items-center justify-center">
             <UIcon :name="categoryIcons[t.category] || 'i-lucide-box'" class="w-4 h-4 text-brand-600" />
           </div>
           <div>
-            <p class="text-sm font-medium text-gray-700">{{ t.name }}</p>
-            <p class="text-[10px] text-gray-400">{{ getLabel('ProjectTemplateCategory', t.category) || t.category }}</p>
+            <p class="text-sm font-medium text-content-secondary">{{ t.name }}</p>
+            <p class="text-[10px] text-content-muted">{{ getLabel('ProjectTemplateCategory', t.category) || t.category }}</p>
           </div>
         </div>
-        <p v-if="t.description" class="text-xs text-gray-400 mb-2">{{ t.description }}</p>
+        <p v-if="t.description" class="text-xs text-content-muted mb-2">{{ t.description }}</p>
         <div v-if="parsePhases(t.phases).length" class="flex flex-wrap gap-1">
           <span
             v-for="(p, i) in parsePhases(t.phases)" :key="i"
-            class="text-[10px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-500"
+            class="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-content-muted"
           >{{ p.name }} ({{ p.tasks?.length || 0 }})</span>
         </div>
       </div>

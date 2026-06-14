@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :id="containerId" class="univer-container w-full h-full rounded-lg overflow-hidden" />
+  <div :id="containerId" class="univer-container w-full h-full rounded-xl overflow-hidden" />
 </template>
 
 <style scoped>

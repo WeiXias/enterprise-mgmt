@@ -51,7 +51,7 @@ export function useEnum() {
 
   function getOptionMap(enumType: string): Record<string, string> {
     if (!data.value) return {}
-    const options = data.value[enumType] || []
+    const options = getOptions(enumType)
     const map: Record<string, string> = {}
     for (const opt of options) {
       map[opt.value] = opt.label
@@ -65,9 +65,20 @@ export function useEnum() {
     return map[value] || value
   }
 
+  /** case-insensitive 查找 enum key */
+  function findKey(target: string): string | undefined {
+    if (!data.value) return undefined
+    // 精确匹配
+    if (data.value[target]) return target
+    // 忽略大小写和尾 s 匹配
+    const t = target.toLowerCase().replace(/s$/, '')
+    return Object.keys(data.value).find(k => k.toLowerCase().replace(/s$/, '') === t)
+  }
+
   function getOptions(enumType: string): { label: string; value: string }[] {
     if (!data.value) return []
-    return data.value[enumType] || []
+    const key = findKey(enumType)
+    return key ? (data.value[key] || []) : []
   }
 
   async function fetchDictOptions(enumType: string): Promise<{ label: string; value: string }[]> {

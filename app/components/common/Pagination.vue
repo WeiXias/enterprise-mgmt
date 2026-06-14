@@ -28,7 +28,7 @@ function onNext() {
 
 <template>
   <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-    <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
+    <span class="text-xs text-content-muted">第 {{ page }} / {{ totalPages }} 页</span>
     <div class="flex gap-1">
       <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="onPrev">上一页</UButton>
       <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="onNext">下一页</UButton>

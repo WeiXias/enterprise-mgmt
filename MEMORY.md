@@ -47,3 +47,59 @@
   - 删除独立待办页面 `app/pages/dashboard/todos/` 和组件 `app/components/todos/`
   - 取消侧边栏「待办」入口（`app/layouts/dashboard.vue`）
   - 保留 KPI 卡片、最近客户、今日提醒、销售漏斗、快捷入口
+
+## 2026-06-14
+
+- **选择器规范 A 批次落地** — 完成纯机械替换：
+  - `.warm-card` → `.em-card`（88 文件 / 213 处）
+  - `.card` → `.em-card`（4 处）
+  - `.form-group` → `mb-4`/`mb-3`/`mb-0`（43 处）
+  - `.warm-badge-*` → `.em-badge-*`（0 处使用，仅删 CSS 定义）
+  - 删除 `main.css` 中旧类名别名块（`.card`、`.warm-card`、`.warm-badge-*`、`.skeleton`）
+  - Phase 2 令牌统一已在之前全部完成
+  - Phase 3 部分完成：旧 class 替换、旧 CSS 删除；`rounded-lg` 迁移和 `blue-*/stone-*/amber-*` 别名移除待后续批次
+
+- **选择器规范 B1 批次 — rounded-lg 迁移** — 将 584 处 `rounded-lg` 统一迁移为规范圆角值：
+  - 全量 `rounded-lg` → `rounded-md`（6px，表单输入框、按钮、菜单项、列表项、小元素）
+  - 卡片/面板/弹出层 → `rounded-xl`（12px）：CustomerSelect/UserSelect/ProductSelect 下拉面板、emoji 选择器、mention 弹出层、看板列、合同编辑器、电子表格编辑器、报价卡片、设置模块卡片、模板选择器卡片等
+  - `rounded-lg` 0 残留，typecheck 错误均为既有问题（dict-seed.ts、mention.ts），与本次修改无关
+
+- **选择器规范 B2 批次 — border-gray-* 迁移** — 将 367 处 `border-gray-*` 统一迁移为语义令牌：
+  - `border-gray-200`（267处）→ `border-line`
+  - `border-gray-100`（63处）→ `border-line-light`
+  - `border-gray-300`（18处）→ `border-line`
+  - `border-gray-50`（19处）→ `border-line-light`
+  - Vue 文件中 `border-gray-*` 0 残留；constants.ts 中 `stone` 主题的 `border-gray-200` 保留（语义化颜色配置）
+  - `divide-gray-*` 早已清理完毕
+  - typecheck 错误均为既有问题，与本次无关
+
+- **选择器规范 B3 批次 — text-gray-* 迁移** — 将 1562 处 `text-gray-*` 统一迁移为语义令牌：
+  - `text-gray-400`(656处) / `text-gray-500`(110处) / `text-gray-300`(55处) / `text-gray-200`(3处) → `text-content-muted`
+  - `text-gray-600`(397处) / `text-gray-700`(231处) → `text-content-secondary`
+  - `text-gray-800`(100处) / `text-gray-900`(10处) → `text-content-primary`
+  - Vue 文件中 `text-gray-*` 0 残留；constants.ts 中状态标签色配置保留
+  - typecheck 错误均为既有问题，与本次无关
+
+- **选择器规范 B4 批次 — bg-gray-* 迁移** — 将 232 处 `bg-gray-*` 统一迁移为语义令牌：
+  - `hover:bg-gray-50/100/200` → `hover:bg-surface-hover`
+  - `bg-gray-50`（54处）→ `bg-surface-hover`
+  - `bg-gray-50/50` → `bg-surface-hover/50`
+  - `bg-gray-100`（57处）→ `bg-surface-hover`
+  - `bg-gray-200`（10处）→ `bg-line`（骨架屏/分割线）
+  - `bg-gray-300`（25处）、`bg-gray-400`（6处）保留——语义化装饰色（状态点、漏斗图、看板列色），不属于表面色系统
+  - constants.ts 中状态标签色配置保留
+  - typecheck 错误均为既有问题，与本次无关
+
+- **选择器规范 B5 批次 — 旧令牌别名移除** — 清理所有旧兼容层残留：
+  - `accent-amber-500`（1处，settings 页面 range 输入）→ `accent-brand-500`
+  - `main.css` 删除"旧名称 (blue-*, stone-*) 全部保留做过渡兼容"过时注释
+  - `blue-*/stone-*/amber-*` 在代码中 0 引用
+
+- **选择器规范 B6 批次 — input-base 工具类推广** — 将 349 处表单输入框冗余 class 组合替换为 `input-base` + `focus-ring`：
+  - 标准模式 `px-3 h-9 text-sm rounded-md border border-line bg-surface-card focus-ring` → `input-base focus-ring`
+  - 搜索框模式 `pl-8/pl-9 h-9 text-sm rounded-md border border-line focus-ring` → `pl-8/pl-9 input-base focus-ring`
+  - select 模式 `px-3 h-9 text-sm rounded-md border border-line bg-surface-card` → `input-base`
+  - 自定义 focus 模式（settings 页面）保留 `focus:outline-none focus:border-brand-400`
+  - textarea 保持 `px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none` 不变（`input-base` 有固定 `h-9`）
+  - 清理了 `input-base` 旁冗余的 `bg-surface-card`
+  - `h-9 text-sm rounded-md border border-line` 0 残留

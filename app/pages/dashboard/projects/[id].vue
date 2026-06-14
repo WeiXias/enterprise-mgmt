@@ -101,20 +101,20 @@ function onMentionKeydown(e: KeyboardEvent) {
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  not_started: { label: '未开始', color: 'bg-gray-100 text-gray-600' },
-  in_progress: { label: '进行中', color: 'bg-blue-50 text-blue-600' },
+  not_started: { label: '未开始', color: 'bg-surface-hover text-content-secondary' },
+  in_progress: { label: '进行中', color: 'bg-brand-50 text-brand-600' },
   completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
   delayed: { label: '已延期', color: 'bg-red-50 text-red-600' },
 }
 
 const taskStatusConfig: Record<string, { label: string; color: string }> = {
-  todo: { label: '待办', color: 'bg-gray-100 text-gray-600' },
-  in_progress: { label: '进行中', color: 'bg-blue-50 text-blue-600' },
+  todo: { label: '待办', color: 'bg-surface-hover text-content-secondary' },
+  in_progress: { label: '进行中', color: 'bg-brand-50 text-brand-600' },
   completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
 }
 
 const priorityConfig: Record<string, { label: string; color: string }> = {
-  low: { label: '低', color: 'bg-gray-50 text-gray-500' },
+  low: { label: '低', color: 'bg-surface-hover text-content-muted' },
   medium: { label: '中', color: 'bg-brand-50 text-brand-700' },
   high: { label: '高', color: 'bg-red-50 text-red-600' },
 }
@@ -339,15 +339,15 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
-  <div v-else-if="!project" class="text-center py-12 text-gray-400">项目不存在</div>
+  <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+  <div v-else-if="!project" class="text-center py-12 text-content-muted">项目不存在</div>
   <div v-else>
     <!-- 面包屑 + 操作 -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2 text-sm">
-        <NuxtLink to="/dashboard/projects" class="text-gray-400 hover:text-brand-600 transition-colors">项目</NuxtLink>
-        <span class="text-gray-300">/</span>
-        <span class="text-gray-700">{{ project.name }}</span>
+        <NuxtLink to="/dashboard/projects" class="text-content-muted hover:text-brand-600 transition-colors">项目</NuxtLink>
+        <span class="text-content-muted">/</span>
+        <span class="text-content-secondary">{{ project.name }}</span>
       </div>
       <div class="flex gap-2">
         <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="sm" @click="openEditModal">编辑</UButton>
@@ -357,29 +357,29 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
     </div>
 
     <!-- 项目信息卡片 -->
-    <div class="warm-card mb-6">
+    <div class="em-card mb-6">
       <div class="flex items-start gap-4">
-        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-          <UIcon name="i-lucide-folder-open" class="w-6 h-6 text-blue-600" />
+        <div class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-folder-open" class="w-6 h-6 text-brand-600" />
         </div>
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-1">
-            <h2 class="text-base font-medium text-gray-800">{{ project.name }}</h2>
+            <h2 class="text-base font-medium text-content-primary">{{ project.name }}</h2>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[project.status]?.color || '']">{{ statusConfig[project.status]?.label || project.status }}</span>
           </div>
-          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-content-muted">
             <span v-if="project.owner?.name"><UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ project.owner.name }}</span>
             <span v-if="project.budget">预算 {{ formatMoney(project.budget) }}</span>
             <span><UIcon name="i-lucide-calendar" class="w-3 h-3 inline mr-0.5" />{{ project.startDate || '-' }} ~ {{ project.endDate || '-' }}</span>
             <NuxtLink v-if="project.contract?.name" :to="`/dashboard/contracts/${project.contract.id}`" class="text-brand-600 hover:underline">← {{ project.contract.name }}</NuxtLink>
           </div>
-          <p v-if="project.remark" class="text-sm text-gray-500 mt-2">{{ project.remark }}</p>
-          <div class="mt-3 pt-3 border-t border-gray-100">
+          <p v-if="project.remark" class="text-sm text-content-muted mt-2">{{ project.remark }}</p>
+          <div class="mt-3 pt-3 border-t border-line-light">
             <div class="flex items-center gap-4 text-xs">
-              <span class="text-gray-500">任务：{{ taskStats.total }} 个</span>
-              <span class="text-blue-500">进行中 {{ taskStats.inProgress }}</span>
+              <span class="text-content-muted">任务：{{ taskStats.total }} 个</span>
+              <span class="text-brand-500">进行中 {{ taskStats.inProgress }}</span>
               <span class="text-teal-500">已完成 {{ taskStats.completed }}</span>
-              <span class="text-gray-400">待办 {{ taskStats.todo }}</span>
+              <span class="text-content-muted">待办 {{ taskStats.todo }}</span>
             </div>
           </div>
         </div>
@@ -390,17 +390,17 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
       <!-- 左：成员 + 里程碑 + 交付物 -->
       <div class="space-y-6">
         <!-- 成员 -->
-        <div class="warm-card">
+        <div class="em-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-700">项目成员</h3>
+            <h3 class="text-sm font-medium text-content-secondary">项目成员</h3>
             <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" @click="memberForm = { userId: '', role: 'member' }; showMemberModal = true">添加</UButton>
           </div>
           <div class="space-y-2">
-            <div v-for="m in project.members" :key="m.userId" class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <div v-for="m in project.members" :key="m.userId" class="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover transition-colors">
               <div class="flex items-center gap-2">
                 <div class="w-7 h-7 rounded-full bg-brand-50 flex items-center justify-center"><span class="text-brand-700 text-xs">{{ m.name?.charAt(0) || '?' }}</span></div>
                 <div>
-                  <span class="text-sm text-gray-700">{{ m.name }}</span>
+                  <span class="text-sm text-content-secondary">{{ m.name }}</span>
                   <span v-if="m.role === 'leader'" class="text-[10px] px-1 py-0.5 rounded bg-brand-50 text-brand-600 ml-1">负责人</span>
                 </div>
               </div>
@@ -410,9 +410,9 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
         </div>
 
         <!-- 里程碑 -->
-        <div class="warm-card">
+        <div class="em-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-700">里程碑</h3>
+            <h3 class="text-sm font-medium text-content-secondary">里程碑</h3>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="mlForm = { name: '', targetDate: '', description: '' }; showMilestoneModal = true">添加</UButton>
           </div>
           <MilestoneTimeline
@@ -425,22 +425,22 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
         </div>
 
         <!-- 交付物 -->
-        <div class="warm-card">
+        <div class="em-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-700">交付物</h3>
+            <h3 class="text-sm font-medium text-content-secondary">交付物</h3>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="deliverableForm = { name: '', description: '' }; showDeliverableModal = true">添加</UButton>
           </div>
           <div v-if="project.deliverables?.length" class="space-y-2">
-            <div v-for="d in project.deliverables" :key="d.id" class="p-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <div v-for="d in project.deliverables" :key="d.id" class="p-2 rounded-md hover:bg-surface-hover transition-colors">
               <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-700">{{ d.name }}</span>
-                <span :class="['text-[10px] px-1 py-0.5 rounded-full', { 'bg-gray-100 text-gray-500': d.status === 'pending', 'bg-blue-50 text-blue-600': d.status === 'submitted', 'bg-teal-50 text-teal-600': d.status === 'accepted', 'bg-red-50 text-red-500': d.status === 'rejected' }]">
+                <span class="text-sm text-content-secondary">{{ d.name }}</span>
+                <span :class="['text-[10px] px-1 py-0.5 rounded-full', { 'bg-surface-hover text-content-muted': d.status === 'pending', 'bg-brand-50 text-brand-600': d.status === 'submitted', 'bg-teal-50 text-teal-600': d.status === 'accepted', 'bg-red-50 text-red-500': d.status === 'rejected' }]">
                   {{ ({ pending: '待提交', submitted: '已提交', accepted: '已验收', rejected: '已驳回' } as Record<string, string>)[d.status] || d.status }}
                 </span>
               </div>
             </div>
           </div>
-          <div v-else class="text-xs text-gray-400 py-3 text-center">暂无交付物</div>
+          <div v-else class="text-xs text-content-muted py-3 text-center">暂无交付物</div>
         </div>
       </div>
 
@@ -455,30 +455,30 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
           <template #tasks>
             <div class="mt-4">
               <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-medium text-gray-700">任务看板</h3>
+                <h3 class="text-sm font-medium text-content-secondary">任务看板</h3>
                 <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openTaskModal()">添加任务</UButton>
               </div>
               <div class="grid grid-cols-3 gap-4">
                 <div v-for="col in [{s:'todo', l:'待办'}, {s:'in_progress', l:'进行中'}, {s:'completed', l:'已完成'}]" :key="col.s">
-                  <div class="text-xs text-gray-400 mb-2 font-medium">{{ col.l }} ({{ tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length }})</div>
+                  <div class="text-xs text-content-muted mb-2 font-medium">{{ col.l }} ({{ tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length }})</div>
                   <div class="space-y-2">
-                    <div v-for="t in tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s]" :key="t.id" :class="['warm-card p-3 text-sm cursor-pointer hover:shadow-sm transition-shadow', col.s === 'in_progress' ? 'border-l-2 border-blue-400' : '']" @click="openTaskModal(t)">
+                    <div v-for="t in tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s]" :key="t.id" :class="['em-card p-3 text-sm cursor-pointer hover:shadow-sm transition-shadow', col.s === 'in_progress' ? 'border-l-2 border-brand-400' : '']" @click="openTaskModal(t)">
                       <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center gap-1">
-                          <UIcon v-if="t.parentId" name="i-lucide-link" class="w-3 h-3 text-gray-300" />
-                          <span :class="['font-medium text-gray-700', t.status === 'completed' ? 'line-through opacity-60' : '']">{{ t.name || t.title }}</span>
+                          <UIcon v-if="t.parentId" name="i-lucide-link" class="w-3 h-3 text-content-muted" />
+                          <span :class="['font-medium text-content-secondary', t.status === 'completed' ? 'line-through opacity-60' : '']">{{ t.name || t.title }}</span>
                         </div>
                         <span :class="['text-[10px] px-1 py-0.5 rounded-full', priorityConfig[t.priority]?.color || '']">{{ priorityConfig[t.priority]?.label || '中' }}</span>
                       </div>
-                      <div class="flex items-center justify-between text-xs text-gray-400">
+                      <div class="flex items-center justify-between text-xs text-content-muted">
                         <span v-if="t.assigneeId">{{ project.members?.find((m: any) => m.userId === t.assigneeId)?.name || '-' }}</span>
-                        <span v-else class="text-gray-300">未分配</span>
+                        <span v-else class="text-content-muted">未分配</span>
                         <span v-if="t.endDate">{{ t.endDate }}</span>
                       </div>
-                      <div v-if="t.parentId && col.s === 'todo'" class="text-[10px] text-gray-400 mt-1 pt-1 border-t border-gray-50">
+                      <div v-if="t.parentId && col.s === 'todo'" class="text-[10px] text-content-muted mt-1 pt-1 border-t border-line-light">
                         <UIcon name="i-lucide-link" class="w-3 h-3 inline mr-0.5" />依赖: {{ (project?.tasks || []).find((p:any) => p.id === t.parentId)?.name || t.parentId }} ({{ (project?.tasks || []).find((p:any) => p.id === t.parentId)?.status === 'completed' ? '已完成' : '未完成' }})
                       </div>
-                      <div class="flex gap-1 mt-2 pt-2 border-t border-gray-50">
+                      <div class="flex gap-1 mt-2 pt-2 border-t border-line-light">
                         <template v-if="col.s === 'todo'">
                           <UButton size="xs" variant="ghost" color="info" label="开始" @click.stop="handleTaskStatus(t.id, 'in_progress')" />
                         </template>
@@ -489,7 +489,7 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
                         <UButton size="xs" variant="ghost" color="error" label="删除" @click.stop="handleDeleteTask(t.id)" />
                       </div>
                     </div>
-                    <div v-if="tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length === 0" class="text-xs text-gray-300 text-center py-4">暂无</div>
+                    <div v-if="tasksByStatus[col.s === 'in_progress' ? 'in_progress' : col.s].length === 0" class="text-xs text-content-muted text-center py-4">暂无</div>
                   </div>
                 </div>
               </div>
@@ -497,7 +497,7 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
           </template>
 
           <template #gantt>
-            <div class="mt-4 warm-card">
+            <div class="mt-4 em-card">
               <ProjectsGanttChart
                 :tasks="(project?.tasks || []).map((t: any) => ({ id: t.id, title: t.name || t.title, assigneeName: project.members?.find((m: any) => m.userId === t.assigneeId)?.name, startDate: t.startDate, endDate: t.endDate, parentId: t.parentId, progress: t.progress || (t.status === 'completed' ? 100 : t.status === 'in_progress' ? 50 : 0), status: t.status }))"
                 :milestones="milestones"
@@ -507,27 +507,27 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
 
           <template #comments>
             <div class="mt-4">
-              <div class="warm-card">
-                <h3 class="text-sm font-medium text-gray-700 mb-3">讨论</h3>
+              <div class="em-card">
+                <h3 class="text-sm font-medium text-content-secondary mb-3">讨论</h3>
                 <!-- 评论列表 -->
-                <div v-if="commentLoading" class="text-center py-4 text-gray-400 text-xs">加载中...</div>
-                <div v-else-if="comments.length === 0" class="text-center py-6 text-gray-300 text-xs">暂无讨论，来说点什么吧</div>
+                <div v-if="commentLoading" class="text-center py-4 text-content-muted text-xs">加载中...</div>
+                <div v-else-if="comments.length === 0" class="text-center py-6 text-content-muted text-xs">暂无讨论，来说点什么吧</div>
                 <div v-else class="space-y-3 mb-4">
-                  <div v-for="c in comments" :key="c.id" class="p-3 rounded-lg bg-gray-50">
+                  <div v-for="c in comments" :key="c.id" class="p-3 rounded-md bg-surface-hover">
                     <div class="flex items-center gap-2 mb-1">
                       <div class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center"><span class="text-brand-700 text-xs">{{ (c.userName || '?').charAt(0) }}</span></div>
-                      <span class="text-sm text-gray-700">{{ c.userName }}</span>
-                      <span class="text-xs text-gray-400">{{ c.createdAt?.slice(0, 10) }}</span>
+                      <span class="text-sm text-content-secondary">{{ c.userName }}</span>
+                      <span class="text-xs text-content-muted">{{ c.createdAt?.slice(0, 10) }}</span>
                     </div>
-                    <p class="text-sm text-gray-600 ml-8">{{ c.content }}</p>
+                    <p class="text-sm text-content-secondary ml-8">{{ c.content }}</p>
                   </div>
                 </div>
                 <!-- 发表评论 -->
-                <div class="flex gap-2 pt-3 border-t border-gray-100 relative">
+                <div class="flex gap-2 pt-3 border-t border-line-light relative">
                   <div class="flex-1 relative">
-                    <input v-model="newComment" type="text" placeholder="输入评论...（输入 @ 选择成员）" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" @keyup.enter="handlePostComment" @input="onCommentInput" @keydown="onMentionKeydown" />
+                    <input v-model="newComment" type="text" placeholder="输入评论...（输入 @ 选择成员）" class="w-full input-base focus-ring" @keyup.enter="handlePostComment" @input="onCommentInput" @keydown="onMentionKeydown" />
                     <!-- 提及候选列表 -->
-                    <div v-if="showMentionList && mentionableMembers.length" class="absolute bottom-full left-0 mb-1 w-56 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden z-10">
+                    <div v-if="showMentionList && mentionableMembers.length" class="absolute bottom-full left-0 mb-1 w-56 bg-surface-card rounded-xl border border-line shadow-lg overflow-hidden z-10">
                       <div
                         v-for="(m, i) in mentionableMembers" :key="m.userId"
                         :class="['flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-brand-50 transition-colors', i === mentionIndex ? 'bg-brand-50' : '']"
@@ -536,7 +536,7 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
                         <div class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
                           <span class="text-brand-700 text-xs">{{ m.name?.charAt(0) || '?' }}</span>
                         </div>
-                        <span class="text-gray-700">{{ m.name }}</span>
+                        <span class="text-content-secondary">{{ m.name }}</span>
                       </div>
                     </div>
                   </div>
@@ -550,80 +550,61 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
     </div>
 
     <!-- 编辑弹窗 -->
-    <UModal v-model:open="showEditModal">
-      <template #header>编辑项目</template>
-      <template #body>
-        <form class="space-y-4" @submit.prevent="handleEdit">
-          <div><label class="block text-sm text-gray-600 mb-1">项目名称 <span class="text-red-400">*</span></label><input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">状态</label><select v-model="editForm.status" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="not_started">未开始</option><option value="in_progress">进行中</option><option value="completed">已完成</option><option value="delayed">已延期</option></select></div>
-          <div><label class="block text-sm text-gray-600 mb-1">预算</label><input v-model.number="editForm.budget" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-600 mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div><div><label class="block text-sm text-gray-600 mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div></div>
-          <div><label class="block text-sm text-gray-600 mb-1">备注</label><textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton><UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑项目" size="standard" :loading="editLoading" @confirm="handleEdit">
+      <form class="space-y-4" @submit.prevent="handleEdit">
+        <div><label class="block text-sm text-content-primary mb-1">项目名称 <span class="text-danger-500">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">状态</label><EnumSelect v-model="editForm.status" dict="projectStatus" placeholder="选择状态" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">预算</label><input v-model.number="editForm.budget" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+        <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-primary mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-primary mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full input-base focus-ring" /></div></div>
+        <div><label class="block text-sm text-content-primary mb-1">备注</label><textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 添加成员弹窗 -->
-    <UModal v-model:open="showMemberModal">
-      <template #header>添加成员</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleAddMember">
-          <div><label class="block text-sm text-gray-600 mb-1">选择成员</label><select v-model="memberForm.userId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="">选择...</option><option v-for="u in userOptions" :key="u.id" :value="u.id">{{ u.name }} ({{ u.role }})</option></select></div>
-          <div><label class="block text-sm text-gray-600 mb-1">角色</label><select v-model="memberForm.role" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="member">成员</option><option value="leader">负责人</option></select></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showMemberModal = false">取消</UButton><UButton color="primary" :loading="memberLoading" @click="handleAddMember">添加</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showMemberModal" v-model:open="showMemberModal" title="添加成员" size="compact" :loading="memberLoading" @confirm="handleAddMember">
+      <form class="space-y-3" @submit.prevent="handleAddMember">
+        <div><label class="block text-sm text-content-primary mb-1">选择成员</label><UserSelect v-model="memberForm.userId" placeholder="选择..." /></div>
+        <div><label class="block text-sm text-content-primary mb-1">角色</label><EnumSelect v-model="memberForm.role" dict="projectMemberRole" placeholder="选择角色" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 任务弹窗 -->
-    <UModal v-model:open="showTaskModal">
-      <template #header>{{ editingTaskId ? '编辑任务' : '添加任务' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleSaveTask">
-          <div><label class="block text-sm text-gray-600 mb-1">任务名称 <span class="text-red-400">*</span></label><input v-model="taskForm.name" type="text" placeholder="要做什么..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-gray-600 mb-1">负责人</label><select v-model="taskForm.assigneeId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="">未分配</option><option v-for="m in project.members" :key="m.userId" :value="m.userId">{{ m.name }}</option></select></div>
-            <div><label class="block text-sm text-gray-600 mb-1">优先级</label><select v-model="taskForm.priority" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="low">低</option><option value="medium">中</option><option value="high">高</option></select></div>
-          </div>
-          <div><label class="block text-sm text-gray-600 mb-1">前置任务</label><select v-model="taskForm.parentId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"><option value="">无前置</option><option v-for="t in (project?.tasks || []).filter((t:any) => t.id !== editingTaskId)" :key="t.id" :value="t.id">{{ t.name || t.title }}</option></select></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-gray-600 mb-1">开始日期</label><input v-model="taskForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-            <div><label class="block text-sm text-gray-600 mb-1">截止日期</label><input v-model="taskForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          </div>
-          <div><label class="block text-sm text-gray-600 mb-1">备注</label><textarea v-model="taskForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showTaskModal = false">取消</UButton><UButton color="primary" :loading="taskLoading" @click="handleSaveTask">{{ editingTaskId ? '保存' : '添加' }}</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showTaskModal" v-model:open="showTaskModal" :title="editingTaskId ? '编辑任务' : '添加任务'" size="standard" :loading="taskLoading" @confirm="handleSaveTask">
+      <form class="space-y-3" @submit.prevent="handleSaveTask">
+        <div><label class="block text-sm text-content-primary mb-1">任务名称 <span class="text-danger-500">*</span></label><input v-model="taskForm.name" type="text" placeholder="要做什么..." class="w-full input-base focus-ring" /></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-sm text-content-primary mb-1">负责人</label><EnumSelect v-model="taskForm.assigneeId" :options="(project?.members || []).map(m => ({ value: m.userId, label: m.name }))" placeholder="未分配" /></div>
+          <div><label class="block text-sm text-content-primary mb-1">优先级</label><EnumSelect v-model="taskForm.priority" dict="taskPriority" placeholder="选择优先级" /></div>
+        </div>
+        <div><label class="block text-sm text-content-primary mb-1">前置任务</label><EnumSelect v-model="taskForm.parentId" :options="(project?.tasks || []).filter((t:any) => t.id !== editingTaskId).map(t => ({ value: t.id, label: t.name || t.title }))" placeholder="无前置" /></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-sm text-content-primary mb-1">开始日期</label><input v-model="taskForm.startDate" type="date" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-primary mb-1">截止日期</label><input v-model="taskForm.endDate" type="date" class="w-full input-base focus-ring" /></div>
+        </div>
+        <div><label class="block text-sm text-content-primary mb-1">备注</label><textarea v-model="taskForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 里程碑弹窗 -->
-    <UModal v-model:open="showMilestoneModal">
-      <template #header>添加里程碑</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleAddMilestone">
-          <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="mlForm.name" type="text" placeholder="里程碑名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">目标日期 <span class="text-red-400">*</span></label><input v-model="mlForm.targetDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">描述</label><textarea v-model="mlForm.description" rows="2" placeholder="里程碑说明..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showMilestoneModal = false">取消</UButton><UButton color="primary" :loading="mlLoading" @click="handleAddMilestone">添加</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showMilestoneModal" v-model:open="showMilestoneModal" title="添加里程碑" size="compact" :loading="mlLoading" @confirm="handleAddMilestone">
+      <form class="space-y-3" @submit.prevent="handleAddMilestone">
+        <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="mlForm.name" type="text" placeholder="里程碑名称" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">目标日期 <span class="text-danger-500">*</span></label><input v-model="mlForm.targetDate" type="date" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="mlForm.description" rows="2" placeholder="里程碑说明..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 交付物弹窗 -->
-    <UModal v-model:open="showDeliverableModal">
-      <template #header>添加交付物</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleAddDeliverable">
-          <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="deliverableForm.name" type="text" placeholder="交付物名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">描述</label><textarea v-model="deliverableForm.description" rows="2" placeholder="交付物说明..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeliverableModal = false">取消</UButton><UButton color="primary" :loading="deliverableLoading" @click="handleAddDeliverable">添加</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showDeliverableModal" v-model:open="showDeliverableModal" title="添加交付物" size="compact" :loading="deliverableLoading" @confirm="handleAddDeliverable">
+      <form class="space-y-3" @submit.prevent="handleAddDeliverable">
+        <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="deliverableForm.name" type="text" placeholder="交付物名称" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="deliverableForm.description" rows="2" placeholder="交付物说明..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 删除弹窗 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除项目「${project.name}」吗？删了就找不回来。`"

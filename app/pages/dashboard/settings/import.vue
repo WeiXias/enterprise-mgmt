@@ -60,37 +60,35 @@ async function doImport() {
   <div class="max-w-3xl mx-auto">
     <CommonPageHeader title="数据导入" description="从 CSV 文件批量导入数据" />
 
-    <div class="warm-card p-6 space-y-4">
+    <div class="em-card p-6 space-y-4">
       <div>
-        <label class="block text-sm text-gray-600 mb-1">导入目标</label>
-        <select v-model="sourceType" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-          <option v-for="opt in getOptions('ImportSource')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-        </select>
+        <label class="block text-sm text-content-secondary mb-1">导入目标</label>
+        <EnumSelect v-model="sourceType" dict="ImportSource" placeholder="选择导入目标" />
       </div>
 
       <div>
-        <label class="block text-sm text-gray-600 mb-1">CSV 文件</label>
+        <label class="block text-sm text-content-secondary mb-1">CSV 文件</label>
         <input type="file" accept=".csv" @change="handleFile" class="w-full text-sm" />
       </div>
 
       <div v-if="preview.length > 0" class="space-y-3">
-        <label class="block text-sm text-gray-600">字段映射</label>
+        <label class="block text-sm text-content-secondary">字段映射</label>
         <div class="grid grid-cols-2 gap-2">
           <div v-for="(_, key) in mapping" :key="key" class="flex items-center gap-2">
-            <span class="text-xs text-gray-500 w-20 truncate">{{ key }}</span>
-            <span class="text-gray-300">→</span>
-            <select v-model="mapping[key]" class="flex-1 px-2 py-1 text-xs rounded border border-gray-200 bg-white">
+            <span class="text-xs text-content-muted w-20 truncate">{{ key }}</span>
+            <span class="text-content-muted">→</span>
+            <select v-model="mapping[key]" class="flex-1 px-2 py-1 text-xs rounded border border-line bg-surface-card">
               <option value="">忽略</option>
               <option v-for="f in allowedFields[sourceType]" :key="f" :value="f">{{ f }}</option>
             </select>
           </div>
         </div>
 
-        <label class="block text-sm text-gray-600">预览 (前 {{ preview.length }} 行)</label>
+        <label class="block text-sm text-content-secondary">预览 (前 {{ preview.length }} 行)</label>
         <div class="overflow-x-auto">
           <table class="w-full text-xs">
-            <thead><tr><th v-for="(_, key) in preview[0]" :key="key" class="text-left py-1 px-2 text-gray-400 font-normal">{{ key }}</th></tr></thead>
-            <tbody><tr v-for="(row, i) in preview" :key="i"><td v-for="(val, key) in row" :key="key" class="py-1 px-2 text-gray-600">{{ val }}</td></tr></tbody>
+            <thead><tr><th v-for="(_, key) in preview[0]" :key="key" class="text-left py-1 px-2 text-content-muted font-normal">{{ key }}</th></tr></thead>
+            <tbody><tr v-for="(row, i) in preview" :key="i"><td v-for="(val, key) in row" :key="key" class="py-1 px-2 text-content-secondary">{{ val }}</td></tr></tbody>
           </table>
         </div>
 

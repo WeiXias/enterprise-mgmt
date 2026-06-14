@@ -20,7 +20,7 @@ async function fetchData() {
 
 function loadClass(rate: number): string {
   if (rate > 100) return 'bg-red-100 text-red-700'
-  if (rate > 80) return 'bg-amber-100 text-amber-700'
+  if (rate > 80) return 'bg-brand-100 text-brand-700'
   return 'bg-teal-100 text-teal-700'
 }
 
@@ -31,34 +31,34 @@ onMounted(() => { fetchData() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">资源负载</h1>
-        <p class="text-sm text-gray-400 mt-0.5">看看大家的工作排得满不满</p>
+        <h1 class="text-lg font-medium text-content-primary">资源负载</h1>
+        <p class="text-sm text-content-muted mt-0.5">看看大家的工作排得满不满</p>
       </div>
       <div class="flex items-center gap-2">
-        <input v-model="startDate" type="date" class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" @change="fetchData" />
-        <span class="text-gray-400 text-sm">至</span>
-        <input v-model="endDate" type="date" class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" @change="fetchData" />
+        <input v-model="startDate" type="date" class="input-base focus-ring" @change="fetchData" />
+        <span class="text-content-muted text-sm">至</span>
+        <input v-model="endDate" type="date" class="input-base focus-ring" @change="fetchData" />
         <UButton icon="i-lucide-refresh-cw" variant="ghost" color="neutral" size="sm" @click="fetchData">刷新</UButton>
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="data && data.members.length === 0" class="text-center py-12 text-gray-400">
-      <UIcon name="i-lucide-bar-chart-3" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="data && data.members.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-bar-chart-3" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">暂无工时数据</p>
     </div>
     <div v-else-if="data" class="space-y-3">
-      <div v-for="m in data.members" :key="m.userId" class="warm-card p-4">
+      <div v-for="m in data.members" :key="m.userId" class="em-card p-4">
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-3">
-            <span class="text-sm font-medium text-gray-800">{{ m.userName }}</span>
-            <span class="text-xs text-gray-400">{{ m.totalHours }}h</span>
+            <span class="text-sm font-medium text-content-primary">{{ m.userName }}</span>
+            <span class="text-xs text-content-muted">{{ m.totalHours }}h</span>
           </div>
           <span :class="['px-2 py-0.5 rounded-full text-xs font-medium', loadClass(m.loadRate)]">
             负载 {{ m.loadRate }}%
           </span>
         </div>
-        <div class="flex gap-1 h-4 rounded-full overflow-hidden bg-gray-100">
+        <div class="flex gap-1 h-4 rounded-full overflow-hidden bg-surface-hover">
           <div
             v-for="p in m.projects"
             :key="p.projectId"
@@ -68,7 +68,7 @@ onMounted(() => { fetchData() })
           />
         </div>
         <div class="flex flex-wrap gap-2 mt-2">
-          <span v-for="p in m.projects" :key="p.projectId" class="text-xs text-gray-400">{{ p.projectName }} {{ p.hours }}h</span>
+          <span v-for="p in m.projects" :key="p.projectId" class="text-xs text-content-muted">{{ p.projectName }} {{ p.hours }}h</span>
         </div>
       </div>
     </div>

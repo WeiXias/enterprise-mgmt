@@ -63,8 +63,8 @@ const tooltip = computed(() => {
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-8 text-gray-400 text-xs">加载中...</div>
-    <div v-else-if="days.length === 0" class="text-center py-8 text-gray-300 text-xs">暂无数据</div>
+    <div v-if="loading" class="text-center py-8 text-content-muted text-xs">加载中...</div>
+    <div v-else-if="days.length === 0" class="text-center py-8 text-content-muted text-xs">暂无数据</div>
     <div v-else class="overflow-x-auto">
       <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="w-full max-w-lg mx-auto">
         <!-- Grid lines -->
@@ -108,10 +108,10 @@ const tooltip = computed(() => {
       <!-- Legend -->
       <div class="flex items-center justify-center gap-4 mt-2 text-xs">
         <div class="flex items-center gap-1">
-          <div class="w-4 h-0.5 bg-brand-400" /><span class="text-gray-500">实际</span>
+          <div class="w-4 h-0.5 bg-brand-400" /><span class="text-content-muted">实际</span>
         </div>
         <div class="flex items-center gap-1">
-          <div class="w-4 h-0.5 bg-gray-300 border-t border-dashed border-gray-300" /><span class="text-gray-500">理想</span>
+          <div class="w-4 h-0.5 bg-gray-300 border-t border-dashed border-line" /><span class="text-content-muted">理想</span>
         </div>
       </div>
     </div>

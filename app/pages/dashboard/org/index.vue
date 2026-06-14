@@ -151,8 +151,8 @@ onMounted(fetchTree)
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">组织架构</h1>
-        <p class="text-sm text-gray-400 mt-0.5">管理部门和团队</p>
+        <h1 class="text-lg font-medium text-content-primary">组织架构</h1>
+        <p class="text-sm text-content-muted mt-0.5">管理部门和团队</p>
       </div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate()">添加部门</UButton>
     </div>
@@ -160,28 +160,28 @@ onMounted(fetchTree)
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- 左侧：部门树 -->
       <div class="lg:col-span-1">
-        <div class="warm-card">
-          <h3 class="text-sm font-medium text-gray-700 mb-3">部门列表</h3>
-          <div v-if="loading" class="text-xs text-gray-400 py-4 text-center">加载中...</div>
-          <div v-else-if="tree.length === 0" class="text-xs text-gray-400 py-4 text-center">还没有部门，创建一个？</div>
+        <div class="em-card">
+          <h3 class="text-sm font-medium text-content-secondary mb-3">部门列表</h3>
+          <div v-if="loading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+          <div v-else-if="tree.length === 0" class="text-xs text-content-muted py-4 text-center">还没有部门，创建一个？</div>
           <div v-else class="space-y-0.5">
             <div
               v-for="node in flatTree.filter(n => isVisible(n))"
               :key="node.id"
               :class="[
-                'flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer text-sm transition-colors group',
-                'flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer text-sm transition-colors group',
-                selectedDept?.id === node.id ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
+                'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm transition-colors group',
+                'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm transition-colors group',
+                selectedDept?.id === node.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary hover:bg-surface-hover'
               ]"
               :style="{ paddingLeft: (node._level * 16 + 8) + 'px' }"
               @click="selectDept(node)"
             >
-              <button v-if="node.children?.length" class="w-4 h-4 flex items-center justify-center rounded hover:bg-gray-200 text-gray-400 flex-shrink-0" @click.stop="toggleCollapse(node.id)">
+              <button v-if="node.children?.length" class="w-4 h-4 flex items-center justify-center rounded hover:bg-surface-hover text-content-muted flex-shrink-0" @click.stop="toggleCollapse(node.id)">
                 <UIcon :name="collapsedDepts.has(node.id) ? 'i-lucide-chevron-right' : 'i-lucide-chevron-down'" class="w-3 h-3" />
               </button>
-              <UIcon v-else :name="node._level > 0 ? 'i-lucide-corner-down-right' : 'i-lucide-building-2'" class="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
+              <UIcon v-else :name="node._level > 0 ? 'i-lucide-corner-down-right' : 'i-lucide-building-2'" class="w-3.5 h-3.5 flex-shrink-0 text-content-muted" />
               <span class="flex-1 truncate">{{ node.name }}</span>
-              <span class="text-[10px] text-gray-400">{{ node.memberCount }}人</span>
+              <span class="text-[10px] text-content-muted">{{ node.memberCount }}人</span>
               <div class="hidden group-hover:flex items-center gap-0.5">
                 <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click.stop="openCreate(node.id)" />
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEdit(node)" />
@@ -194,37 +194,37 @@ onMounted(fetchTree)
 
       <!-- 右侧：详情 + 成员 -->
       <div class="lg:col-span-2">
-        <div v-if="!selectedDept" class="warm-card text-center py-12 text-gray-400 text-sm">
+        <div v-if="!selectedDept" class="em-card text-center py-12 text-content-muted text-sm">
           选择左侧部门查看详情
         </div>
         <template v-else>
-          <div class="warm-card mb-4">
+          <div class="em-card mb-4">
             <div class="flex items-start justify-between mb-3">
               <div>
-                <h3 class="text-sm font-medium text-gray-800">{{ selectedDept.name }}</h3>
-                <p v-if="selectedDept.description" class="text-xs text-gray-400 mt-0.5">{{ selectedDept.description }}</p>
+                <h3 class="text-sm font-medium text-content-primary">{{ selectedDept.name }}</h3>
+                <p v-if="selectedDept.description" class="text-xs text-content-muted mt-0.5">{{ selectedDept.description }}</p>
               </div>
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(selectedDept)" />
             </div>
-            <div class="flex gap-4 text-xs text-gray-400">
+            <div class="flex gap-4 text-xs text-content-muted">
               <span v-if="selectedDept.managerName">负责人：{{ selectedDept.managerName }}</span>
               <span>{{ selectedDept.memberCount }} 名成员</span>
             </div>
           </div>
 
-          <div class="warm-card">
+          <div class="em-card">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-medium text-gray-700">部门成员</h3>
+              <h3 class="text-sm font-medium text-content-secondary">部门成员</h3>
               <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" @click="openMemberModal(selectedDept)">管理成员</UButton>
             </div>
-            <div v-if="membersLoading" class="text-xs text-gray-400 py-4 text-center">加载中...</div>
-            <div v-else-if="members.length === 0" class="text-xs text-gray-400 py-4 text-center">还没有成员</div>
+            <div v-if="membersLoading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+            <div v-else-if="members.length === 0" class="text-xs text-content-muted py-4 text-center">还没有成员</div>
             <div v-else class="space-y-2">
               <div v-for="m in members" :key="m.id" class="flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 text-[10px]">{{ m.name?.charAt(0) }}</span>
-                <span class="text-sm text-gray-700">{{ m.name }}</span>
-                <span class="text-xs text-gray-400">{{ m.username }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 ml-auto">{{ m.role === 'admin' ? '管理员' : m.role === 'sales_manager' ? '销售负责人' : m.role === 'sales_member' ? '销售成员' : '财务' }}</span>
+                <span class="text-sm text-content-secondary">{{ m.name }}</span>
+                <span class="text-xs text-content-muted">{{ m.username }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted ml-auto">{{ m.role === 'admin' ? '管理员' : m.role === 'sales_manager' ? '销售负责人' : m.role === 'sales_member' ? '销售成员' : '财务' }}</span>
               </div>
             </div>
           </div>
@@ -233,49 +233,41 @@ onMounted(fetchTree)
     </div>
 
     <!-- 部门弹窗 -->
-    <UModal v-model:open="showDeptModal">
-      <template #header>{{ editingDeptId ? '编辑部门' : '添加部门' }}</template>
-      <template #body>
+    <CommonFormModal v-if="showDeptModal" v-model:open="showDeptModal" :title="editingDeptId ? '编辑部门' : '添加部门'" size="compact" :loading="deptLoading" @confirm="handleDeptSave" @cancel="showDeptModal = false">
         <form class="space-y-3" @submit.prevent="handleDeptSave">
-          <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="deptForm.name" type="text" placeholder="部门名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="deptForm.name" type="text" placeholder="部门名称" class="w-full input-base focus-ring" /></div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">上级部门</label>
-            <select v-model="deptForm.parentId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
+            <label class="block text-sm text-content-secondary mb-1">上级部门</label>
+            <select v-model="deptForm.parentId" class="w-full input-base">
               <option value="">无（顶级部门）</option>
               <option v-for="n in flatTree" :key="n.id" :value="n.id" :disabled="n.id === editingDeptId">{{ '—'.repeat(n._level || 0) + ' ' + n.name }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">负责人</label>
-            <select v-model="deptForm.managerId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white">
+            <label class="block text-sm text-content-secondary mb-1">负责人</label>
+            <select v-model="deptForm.managerId" class="w-full input-base">
               <option value="">未指定</option>
               <option v-for="u in userOptions" :key="u.id" :value="u.id">{{ u.name }} ({{ u.username }})</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">描述</label>
-            <textarea v-model="deptForm.description" rows="2" placeholder="部门描述..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" />
+            <label class="block text-sm text-content-secondary mb-1">描述</label>
+            <textarea v-model="deptForm.description" rows="2" placeholder="部门描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeptModal = false">取消</UButton><UButton color="primary" :loading="deptLoading" @click="handleDeptSave">{{ editingDeptId ? '保存' : '创建' }}</UButton></div></template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 管理成员弹窗 -->
-    <UModal v-model:open="showMemberModal">
-      <template #header>管理成员 — {{ selectedDept?.name }}</template>
-      <template #body>
-        <div v-if="allUsers.length === 0" class="text-xs text-gray-400 py-4">加载中...</div>
+    <CommonFormModal v-if="showMemberModal" v-model:open="showMemberModal" :title="'管理成员 — ' + (selectedDept?.name || '')" size="compact" :loading="memberLoading" @confirm="saveMembers" @cancel="showMemberModal = false">
+        <div v-if="allUsers.length === 0" class="text-xs text-content-muted py-4">加载中...</div>
         <div v-else class="space-y-1 max-h-80 overflow-y-auto">
-          <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer">
-            <input type="checkbox" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500" :checked="selectedUserIds.has(u.id)" @change="toggleUser(u.id)" />
-            <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px]">{{ u.name?.charAt(0) }}</span>
-            <span class="text-sm text-gray-700">{{ u.name }}</span>
-            <span class="text-xs text-gray-400 ml-auto">{{ u.username }}</span>
+          <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-surface-page cursor-pointer">
+            <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500" :checked="selectedUserIds.has(u.id)" @change="toggleUser(u.id)" />
+            <span class="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center text-[10px]">{{ u.name?.charAt(0) }}</span>
+            <span class="text-sm text-content-primary">{{ u.name }}</span>
+            <span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
           </label>
         </div>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showMemberModal = false">取消</UButton><UButton color="primary" :loading="memberLoading" @click="saveMembers">保存</UButton></div></template>
-    </UModal>
+    </CommonFormModal>
   </div>
 </template>

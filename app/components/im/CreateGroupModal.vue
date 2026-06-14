@@ -48,35 +48,34 @@ watch(() => props.modelValue, (v) => { if (v) { title.value = ''; selectedIds.va
 </script>
 
 <template>
-  <UModal :model-value="modelValue" @update:model-value="(v: boolean) => !v && emit('close')">
-    <template #header>新建群聊</template>
-    <template #body>
-      <div class="space-y-3">
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">群聊名称 <span class="text-red-400">*</span></label>
-          <input v-model="title" type="text" placeholder="输入群聊名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
-        </div>
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">选择成员（至少2位）</label>
-          <div v-if="loading" class="text-xs text-gray-400 py-4 text-center">加载中...</div>
-          <div v-else class="max-h-48 overflow-y-auto space-y-1 border border-gray-100 rounded-lg p-2">
-            <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer">
-              <input type="checkbox" :checked="selectedIds.includes(u.id)" @change="toggleUser(u.id)" class="rounded border-gray-300 text-brand-500 focus:ring-brand-400" />
-              <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
-                <span class="text-brand-700 text-[10px] font-medium">{{ u.name?.charAt(0) || '?' }}</span>
-              </span>
-              <span class="text-sm text-gray-700">{{ u.name }}</span>
-            </label>
-          </div>
-          <p class="text-xs text-gray-400 mt-1">已选 {{ selectedIds.length }} 人</p>
-        </div>
+  <CommonFormModal
+    :open="modelValue"
+    title="新建群聊"
+    size="compact"
+    :loading="creating"
+    @update:open="(v: boolean) => !v && emit('close')"
+    @confirm="handleCreate"
+    @cancel="emit('close')"
+  >
+    <div class="space-y-3">
+      <div>
+        <label class="block text-sm text-content-secondary mb-1">群聊名称 <span class="text-red-400">*</span></label>
+        <input v-model="title" type="text" placeholder="输入群聊名称" class="w-full input-base focus-ring" />
       </div>
-    </template>
-    <template #footer>
-      <div class="flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="emit('close')">取消</UButton>
-        <UButton color="primary" :loading="creating" @click="handleCreate">创建群聊</UButton>
+      <div>
+        <label class="block text-sm text-content-secondary mb-1">选择成员（至少2位）</label>
+        <div v-if="loading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+        <div v-else class="max-h-48 overflow-y-auto space-y-1 border border-line-light rounded-xl p-2">
+          <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface-hover cursor-pointer">
+            <input type="checkbox" :checked="selectedIds.includes(u.id)" @change="toggleUser(u.id)" class="rounded border-line text-brand-500 focus:ring-brand-400" />
+            <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+              <span class="text-brand-700 text-[10px] font-medium">{{ u.name?.charAt(0) || '?' }}</span>
+            </span>
+            <span class="text-sm text-content-secondary">{{ u.name }}</span>
+          </label>
+        </div>
+        <p class="text-xs text-content-muted mt-1">已选 {{ selectedIds.length }} 人</p>
       </div>
-    </template>
-  </UModal>
+    </div>
+  </CommonFormModal>
 </template>

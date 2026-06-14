@@ -28,8 +28,8 @@ onMounted(fetchContracts)
 
 <template>
   <div class="max-w-lg mx-auto">
-    <div class="mb-6 flex items-center gap-3"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" /><div><h1 class="text-lg font-medium text-gray-800">新建项目</h1><p class="text-sm text-gray-400 mt-0.5">启动一个新的项目</p></div></div>
-    <div class="warm-card">
+    <div class="mb-6 flex items-center gap-3"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" /><div><h1 class="text-lg font-medium text-content-primary">新建项目</h1><p class="text-sm text-content-muted mt-0.5">启动一个新的项目</p></div></div>
+    <div class="em-card">
       <ProjectForm v-model="form" :contract-options="contractOptions" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton><UButton color="primary" :loading="saving" @click="handleSubmit">创建项目</UButton></div>
     </div>

@@ -25,12 +25,12 @@ function onInput(e: Event) {
 
 <template>
   <div class="relative">
-    <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+    <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
     <input
       :value="modelValue"
       type="text"
       :placeholder="placeholder"
-      class="w-full pl-9 pr-4 h-9 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors placeholder:text-gray-300"
+      class="w-full pl-9 input-base focus-ring transition-colors placeholder:text-content-muted"
       @input="onInput"
     />
   </div>

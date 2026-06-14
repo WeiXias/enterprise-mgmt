@@ -69,8 +69,8 @@ onMounted(fetchPage)
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">消息通知</h1>
-        <p class="text-sm text-gray-400 mt-0.5">
+        <h1 class="text-lg font-medium text-content-primary">消息通知</h1>
+        <p class="text-sm text-content-muted mt-0.5">
           这里有关于客户、合同、项目的重要提醒
         </p>
       </div>
@@ -90,7 +90,7 @@ onMounted(fetchPage)
       <button
         :class="[
           'px-3 py-1.5 text-xs rounded-full transition-colors',
-          isReadFilter === undefined ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          isReadFilter === undefined ? 'bg-brand-100 text-brand-700' : 'bg-surface-hover text-content-muted hover:bg-surface-hover'
         ]"
         @click="isReadFilter = undefined; onFilterChange()"
       >
@@ -99,7 +99,7 @@ onMounted(fetchPage)
       <button
         :class="[
           'px-3 py-1.5 text-xs rounded-full transition-colors',
-          isReadFilter === false ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          isReadFilter === false ? 'bg-brand-100 text-brand-700' : 'bg-surface-hover text-content-muted hover:bg-surface-hover'
         ]"
         @click="isReadFilter = false; onFilterChange()"
       >
@@ -108,7 +108,7 @@ onMounted(fetchPage)
       <button
         :class="[
           'px-3 py-1.5 text-xs rounded-full transition-colors',
-          isReadFilter === true ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          isReadFilter === true ? 'bg-brand-100 text-brand-700' : 'bg-surface-hover text-content-muted hover:bg-surface-hover'
         ]"
         @click="isReadFilter = true; onFilterChange()"
       >
@@ -117,41 +117,41 @@ onMounted(fetchPage)
     </div>
 
     <!-- 通知列表 -->
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="items.length === 0" class="warm-card text-center py-10">
-      <UIcon name="i-lucide-bell-off" class="w-8 h-8 text-gray-300 mx-auto mb-3" />
-      <p class="text-sm text-gray-400">暂时没有通知</p>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="items.length === 0" class="em-card text-center py-10">
+      <UIcon name="i-lucide-bell-off" class="w-8 h-8 text-content-muted mx-auto mb-3" />
+      <p class="text-sm text-content-muted">暂时没有通知</p>
     </div>
     <div v-else class="space-y-1.5">
       <div
         v-for="notif in items"
         :key="notif.id"
         :class="[
-          'warm-card !py-3 !px-4 cursor-pointer hover:bg-gray-50 transition-colors flex gap-3',
+          'em-card !py-3 !px-4 cursor-pointer hover:bg-surface-hover transition-colors flex gap-3',
           !notif.isRead ? 'border-brand-200' : ''
         ]"
         @click="handleNotificationClick(notif)"
       >
         <div :class="[
           'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0',
-          notif.isRead ? 'bg-gray-100' : 'bg-brand-100'
+          notif.isRead ? 'bg-surface-hover' : 'bg-brand-100'
         ]">
           <UIcon
             :name="getNotificationIcon(notif.type)"
             class="w-4 h-4"
-            :class="notif.isRead ? 'text-gray-400' : 'text-brand-600'"
+            :class="notif.isRead ? 'text-content-muted' : 'text-brand-600'"
           />
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <span :class="['text-sm', notif.isRead ? 'text-gray-500' : 'text-gray-800 font-medium']">
+            <span :class="['text-sm', notif.isRead ? 'text-content-muted' : 'text-content-primary font-medium']">
               {{ notif.title }}
             </span>
             <span v-if="!notif.isRead" class="w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0" />
           </div>
-          <p v-if="notif.content" class="text-xs text-gray-400 mt-0.5 line-clamp-1">{{ notif.content }}</p>
+          <p v-if="notif.content" class="text-xs text-content-muted mt-0.5 line-clamp-1">{{ notif.content }}</p>
         </div>
-        <div class="text-[10px] text-gray-400 flex-shrink-0 mt-0.5">
+        <div class="text-[10px] text-content-muted flex-shrink-0 mt-0.5">
           {{ formatTime(notif.createdAt) }}
         </div>
       </div>
@@ -159,7 +159,7 @@ onMounted(fetchPage)
 
     <!-- 分页 -->
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-content-muted">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1">
         <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchPage()">上一页</UButton>
         <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchPage()">下一页</UButton>

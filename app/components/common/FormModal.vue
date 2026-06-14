@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  modelValue: boolean
+  open: boolean
   title: string
   subtitle?: string
   size?: 'compact' | 'standard' | 'spacious'
@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
+  'update:open': [value: boolean]
   confirm: []
   cancel: []
 }>()
@@ -27,25 +27,25 @@ const widthClass = {
 }[props.size]
 
 function close() {
-  emit('update:modelValue', false)
+  emit('update:open', false)
   emit('cancel')
 }
 </script>
 
 <template>
   <UModal
-    :open="modelValue"
-    :ui="{ content: `${widthClass} rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--color-shadow-elevated)]` }"
-    @update:open="$emit('update:modelValue', $event)"
+    :open="open"
+    :ui="{ content: `${widthClass} rounded-2xl bg-surface-card shadow-elevated` }"
+    @update:open="emit('update:open', $event)"
   >
     <!-- 头部 -->
     <template #header="{ close }">
       <div class="flex items-center justify-between w-full">
         <div>
-          <h3 class="text-base font-medium text-[var(--color-content-primary)]">{{ title }}</h3>
-          <p v-if="subtitle" class="text-sm text-[var(--color-content-muted)] mt-0.5">{{ subtitle }}</p>
+          <h3 class="text-base font-medium text-content-primary">{{ title }}</h3>
+          <p v-if="subtitle" class="text-sm text-content-muted mt-0.5">{{ subtitle }}</p>
         </div>
-        <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-lg" @click="close(); emit('update:modelValue', false); emit('cancel')" />
+        <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-md" @click="close" />
       </div>
     </template>
 

@@ -20,7 +20,7 @@ const selectedIds = ref<Set<string>>(new Set())
 const periodMonth = ref('')
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: '草稿', color: 'bg-gray-100 text-gray-600' },
+  draft: { label: '草稿', color: 'bg-surface-hover text-content-secondary' },
   confirmed: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
   paid: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
 }
@@ -104,8 +104,8 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">提成发放</h1>
-        <p class="text-sm text-gray-400 mt-0.5">创建和管理提成发放单</p>
+        <h1 class="text-lg font-medium text-content-primary">提成发放</h1>
+        <p class="text-sm text-content-muted mt-0.5">创建和管理提成发放单</p>
       </div>
       <div class="flex gap-2">
         <NuxtLink to="/dashboard/commissions"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm">返回提成</UButton></NuxtLink>
@@ -114,18 +114,18 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
     </div>
 
     <!-- 发放单列表 -->
-    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
-    <div v-else-if="payouts.length === 0" class="text-center py-12 text-gray-400">还没有发放单，先创建一张？</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-else-if="payouts.length === 0" class="text-center py-12 text-content-muted">还没有发放单，先创建一张？</div>
     <div v-else class="space-y-2">
-      <div v-for="p in payouts" :key="p.id" class="warm-card flex items-center gap-4">
+      <div v-for="p in payouts" :key="p.id" class="em-card flex items-center gap-4">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', p.status === 'confirmed' ? 'bg-teal-400' : 'bg-gray-300']" />
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-700">{{ p.periodMonth }} 发放单</span>
+            <span class="text-sm font-medium text-content-secondary">{{ p.periodMonth }} 发放单</span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[p.status]?.color || '']">{{ statusConfig[p.status]?.label || p.status }}</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400">
-            <span class="font-medium text-gray-600">{{ formatMoney(p.totalAmount) }}</span>
+          <div class="flex items-center gap-3 text-xs text-content-muted">
+            <span class="font-medium text-content-secondary">{{ formatMoney(p.totalAmount) }}</span>
             <span v-if="p.creatorName">创建人：{{ p.creatorName }}</span>
             <span v-if="p.paidAt">发放时间：{{ p.paidAt }}</span>
           </div>
@@ -142,7 +142,7 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
     </div>
 
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-content-muted">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1">
         <UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchPayouts()">上一页</UButton>
         <UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchPayouts()">下一页</UButton>
@@ -150,41 +150,40 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
     </div>
 
     <!-- 创建发放单弹窗 -->
-    <UModal v-model:open="showCreateModal">
-      <template #header>创建发放单</template>
-      <template #body>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">发放月份 <span class="text-red-400">*</span></label>
-            <input v-model="periodMonth" type="month" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
-          </div>
+    <CommonFormModal
+      v-if="showCreateModal"
+      v-model:open="showCreateModal"
+      title="创建发放单"
+      size="standard"
+      :loading="createLoading"
+      @confirm="handleCreatePayout"
+      @cancel="showCreateModal = false"
+    >
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">发放月份 <span class="text-red-400">*</span></label>
+          <input v-model="periodMonth" type="month" class="w-full input-base focus-ring" />
+        </div>
 
-          <div v-if="approvedItems.length === 0" class="text-xs text-gray-400 bg-gray-50 p-3 rounded-lg">暂无可发放提成（需要审批通过后才会出现在这里）</div>
-          <div v-else>
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-sm text-gray-600">选择提成记录</label>
-              <button class="text-xs text-brand-600 hover:underline" @click="selectAll">{{ selectedIds.size === approvedItems.length ? '取消全选' : '全选' }}</button>
-            </div>
-            <div class="max-h-64 overflow-y-auto space-y-1">
-              <label v-for="item in approvedItems" :key="item.id" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer text-xs">
-                <input type="checkbox" :checked="selectedIds.has(item.id)" class="rounded border-gray-300 text-brand-500 focus:ring-brand-400" @change="toggleSelect(item.id)" />
-                <span class="text-gray-700">{{ item.user?.name }}</span>
-                <span class="text-gray-400">-</span>
-                <span class="text-gray-600">{{ formatMoney(Number(item.adjustAmount) || Number(item.amount)) }}</span>
-              </label>
-            </div>
-            <div class="mt-2 pt-2 border-t border-gray-100 text-sm text-gray-600">
-              已选 {{ selectedIds.size }} 条，合计 {{ formatMoney(selectedTotal) }}
-            </div>
+        <div v-if="approvedItems.length === 0" class="text-xs text-content-muted bg-surface-hover p-3 rounded-md">暂无可发放提成（需要审批通过后才会出现在这里）</div>
+        <div v-else>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-sm text-content-secondary">选择提成记录</label>
+            <button class="text-xs text-brand-600 hover:underline" @click="selectAll">{{ selectedIds.size === approvedItems.length ? '取消全选' : '全选' }}</button>
+          </div>
+          <div class="max-h-64 overflow-y-auto space-y-1">
+            <label v-for="item in approvedItems" :key="item.id" class="flex items-center gap-2 p-2 rounded-md hover:bg-surface-hover cursor-pointer text-xs">
+              <input type="checkbox" :checked="selectedIds.has(item.id)" class="rounded border-line text-brand-500 focus:ring-brand-400" @change="toggleSelect(item.id)" />
+              <span class="text-content-secondary">{{ item.user?.name }}</span>
+              <span class="text-content-muted">-</span>
+              <span class="text-content-secondary">{{ formatMoney(Number(item.adjustAmount) || Number(item.amount)) }}</span>
+            </label>
+          </div>
+          <div class="mt-2 pt-2 border-t border-line-light text-sm text-content-secondary">
+            已选 {{ selectedIds.size }} 条，合计 {{ formatMoney(selectedTotal) }}
           </div>
         </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">取消</UButton>
-          <UButton color="primary" :loading="createLoading" @click="handleCreatePayout">创建</UButton>
-        </div>
-      </template>
-    </UModal>
+      </div>
+    </CommonFormModal>
   </div>
 </template>

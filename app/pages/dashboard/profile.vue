@@ -116,38 +116,38 @@ const tabItems = [
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-lg font-medium text-gray-800">个人中心</h1>
-      <p class="text-sm text-gray-400 mt-0.5">管理你的账户信息</p>
+      <h1 class="text-lg font-medium text-content-primary">个人中心</h1>
+      <p class="text-sm text-content-muted mt-0.5">管理你的账户信息</p>
     </div>
 
     <div class="max-w-lg">
       <!-- 用户卡片 -->
-      <div class="warm-card mb-6 flex items-center gap-4">
+      <div class="em-card mb-6 flex items-center gap-4">
         <div class="relative">
           <div class="w-14 h-14 rounded-full bg-brand-100 flex items-center justify-center overflow-hidden">
             <img v-if="(authStore.user as any)?.avatar" :src="(authStore.user as any).avatar" class="w-full h-full object-cover" />
             <span v-else class="text-brand-700 text-lg font-medium">{{ authStore.user?.name?.charAt(0) || '?' }}</span>
           </div>
-          <label class="absolute bottom-0 right-0 w-5 h-5 bg-white rounded-full border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-50">
-            <UIcon name="i-lucide-camera" class="w-3 h-3 text-gray-400" />
+          <label class="absolute bottom-0 right-0 w-5 h-5 bg-surface-card rounded-full border border-line flex items-center justify-center cursor-pointer hover:bg-surface-hover">
+            <UIcon name="i-lucide-camera" class="w-3 h-3 text-content-muted" />
             <input type="file" accept="image/*" class="hidden" @change="handleAvatarUpload" />
           </label>
         </div>
         <div>
-          <p class="text-sm font-medium text-gray-800">{{ authStore.user?.name }}</p>
-          <p class="text-xs text-gray-400">{{ authStore.roleLabel }}</p>
-          <p class="text-xs text-gray-400">{{ authStore.user?.username }}</p>
+          <p class="text-sm font-medium text-content-primary">{{ authStore.user?.name }}</p>
+          <p class="text-xs text-content-muted">{{ authStore.roleLabel }}</p>
+          <p class="text-xs text-content-muted">{{ authStore.user?.username }}</p>
         </div>
       </div>
 
       <!-- Tab 切换 -->
-      <div class="flex gap-1 mb-4 border-b border-gray-100 pb-1">
+      <div class="flex gap-1 mb-4 border-b border-line-light pb-1">
         <button
           v-for="(tab, i) in tabItems"
           :key="i"
           :class="[
             'px-4 py-2 text-sm rounded-t-lg transition-colors',
-            activeTab === i ? 'text-brand-700 border-b-2 border-brand-400 font-medium' : 'text-gray-400 hover:text-gray-600'
+            activeTab === i ? 'text-brand-700 border-b-2 border-brand-400 font-medium' : 'text-content-muted hover:text-content-secondary'
           ]"
           @click="activeTab = i"
         >
@@ -159,29 +159,29 @@ const tabItems = [
       <div v-if="activeTab === 0">
         <form class="space-y-4" @submit.prevent="saveProfile">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">姓名</label>
+            <label class="block text-sm text-content-secondary mb-1">姓名</label>
             <input
               v-model="profileForm.name"
               type="text"
-              class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              class="w-full input-base focus-ring"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">手机号</label>
+            <label class="block text-sm text-content-secondary mb-1">手机号</label>
             <input
               v-model="profileForm.phone"
               type="tel"
               placeholder="手机号"
-              class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              class="w-full input-base focus-ring"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">邮箱</label>
+            <label class="block text-sm text-content-secondary mb-1">邮箱</label>
             <input
               v-model="profileForm.email"
               type="email"
               placeholder="邮箱"
-              class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              class="w-full input-base focus-ring"
             />
           </div>
           <div class="flex gap-2">
@@ -195,29 +195,29 @@ const tabItems = [
       <div v-if="activeTab === 1">
         <form class="space-y-4" @submit.prevent="changePassword">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">原密码</label>
+            <label class="block text-sm text-content-secondary mb-1">原密码</label>
             <input
               v-model="passwordForm.oldPassword"
               type="password"
-              class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              class="w-full input-base focus-ring"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">新密码</label>
+            <label class="block text-sm text-content-secondary mb-1">新密码</label>
             <input
               v-model="passwordForm.newPassword"
               type="password"
               placeholder="至少 8 位"
-              class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              class="w-full input-base focus-ring"
             />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">确认新密码</label>
+            <label class="block text-sm text-content-secondary mb-1">确认新密码</label>
             <input
               v-model="passwordForm.confirmPassword"
               type="password"
               placeholder="再输一遍"
-              class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+              class="w-full input-base focus-ring"
             />
           </div>
           <UButton color="primary" type="submit" :loading="savingPassword">修改密码</UButton>

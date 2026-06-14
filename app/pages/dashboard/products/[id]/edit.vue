@@ -36,15 +36,15 @@ onMounted(fetchData)
 
 <template>
   <div class="max-w-lg mx-auto">
-    <div class="mb-6 flex items-center gap-3"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" /><h1 class="text-lg font-medium text-gray-800">编辑产品</h1></div>
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else class="warm-card">
+    <div class="mb-6 flex items-center gap-3"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" /><h1 class="text-lg font-medium text-content-primary">编辑产品</h1></div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else class="em-card">
       <form class="space-y-4" @submit.prevent="handleSubmit">
-        <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-        <div><label class="block text-sm text-gray-600 mb-1">编码</label><input v-model="form.code" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-        <div><label class="block text-sm text-gray-600 mb-1">分类</label><select v-model="form.categoryId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="">无分类</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></div>
-        <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-gray-600 mb-1">标准售价</label><input v-model.number="form.standardPrice" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div><div><label class="block text-sm text-gray-600 mb-1">成本价</label><input v-model.number="form.costPrice" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div></div>
-        <div><label class="block text-sm text-gray-600 mb-1">描述</label><textarea v-model="form.description" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">编码</label><input v-model="form.code" type="text" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="无分类" /></div>
+        <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-secondary mb-1">标准售价</label><input v-model.number="form.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-secondary mb-1">成本价</label><input v-model.number="form.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div></div>
+        <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="form.description" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       </form>
       <div class="mt-6 flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton><UButton color="primary" :loading="saving" @click="handleSubmit">保存</UButton></div>
     </div>

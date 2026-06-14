@@ -46,52 +46,49 @@ onMounted(async () => {
 <template>
   <form class="space-y-4" @submit.prevent="$emit('submit')">
     <!-- 基本信息 -->
-    <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+    <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
       <div class="flex items-center gap-1.5 mb-3">
-        <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-        <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+        <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+        <span class="text-sm font-medium text-brand-700">基本信息</span>
       </div>
-      <div class="form-group mb-3">
-        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">商机名称 <span class="text-[var(--color-danger-600)]">*</span></label>
+      <div class="mb-3">
+        <label class="block text-sm text-content-secondary mb-1">商机名称 <span class="text-danger-600">*</span></label>
         <input
           :value="modelValue.name"
           type="text"
           placeholder="商机名称"
-          class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+          class="w-full input-base focus-ring"
           @input="$emit('update:modelValue', { ...modelValue, name: ($event.target as HTMLInputElement).value })"
         />
       </div>
 
-      <div v-if="!preselectedCustomer && customerOptions.length > 0" class="form-group mb-3">
-        <label class="block text-sm text-[var(--color-content-secondary)] mb-1">所属客户 <span class="text-[var(--color-danger-600)]">*</span></label>
-        <select
-          :value="modelValue.customerId"
-          class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]"
-          @change="$emit('update:modelValue', { ...modelValue, customerId: ($event.target as HTMLSelectElement).value })"
-        >
-          <option value="">选择客户</option>
-          <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-        </select>
+      <div v-if="!preselectedCustomer && customerOptions.length > 0" class="mb-3">
+        <label class="block text-sm text-content-secondary mb-1">所属客户 <span class="text-danger-600">*</span></label>
+        <CustomerSelect
+          :model-value="modelValue.customerId"
+          placeholder="选择客户"
+          @update:model-value="$emit('update:modelValue', { ...modelValue, customerId: $event })"
+        />
       </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <div class="form-group">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预估金额</label>
+        <div class="mb-4">
+          <label class="block text-sm text-content-secondary mb-1">预估金额</label>
           <input
             :value="modelValue.estimatedAmount"
             type="number"
             step="0.01"
             placeholder="0"
-            class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+            class="w-full input-base focus-ring"
             @input="$emit('update:modelValue', { ...modelValue, estimatedAmount: Number(($event.target as HTMLInputElement).value) })"
           />
         </div>
-        <div class="form-group">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预计成交日期</label>
+        <div class="mb-4">
+          <label class="block text-sm text-content-secondary mb-1">预计成交日期</label>
           <input
             :value="modelValue.estimatedCloseDate"
             type="date"
-            class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+            class="w-full input-base focus-ring"
             @input="$emit('update:modelValue', { ...modelValue, estimatedCloseDate: ($event.target as HTMLInputElement).value })"
           />
         </div>
@@ -99,30 +96,28 @@ onMounted(async () => {
     </div>
 
     <!-- 补充信息 -->
-    <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+    <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
       <div class="flex items-center gap-1.5 mb-3">
-        <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-        <span class="text-sm font-medium text-[var(--color-brand-700)]">补充信息</span>
+        <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+        <span class="text-sm font-medium text-brand-700">补充信息</span>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div class="form-group">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">来源</label>
-          <select
-            :value="modelValue.source"
-            class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]"
-            @change="$emit('update:modelValue', { ...modelValue, source: ($event.target as HTMLSelectElement).value })"
-          >
-            <option value="">选择来源</option>
-            <option v-for="src in SOURCE_OPTIONS" :key="src" :value="src">{{ src }}</option>
-          </select>
+        <div class="mb-4">
+          <label class="block text-sm text-content-secondary mb-1">来源</label>
+          <EnumSelect
+            :model-value="modelValue.source"
+            :options="SOURCE_OPTIONS"
+            placeholder="选择来源"
+            @update:model-value="$emit('update:modelValue', { ...modelValue, source: $event })"
+          />
         </div>
-        <div class="form-group">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">竞争对手</label>
+        <div class="mb-4">
+          <label class="block text-sm text-content-secondary mb-1">竞争对手</label>
           <input
             :value="modelValue.competitor"
             type="text"
             placeholder="竞争对手名称"
-            class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+            class="w-full input-base focus-ring"
             @input="$emit('update:modelValue', { ...modelValue, competitor: ($event.target as HTMLInputElement).value })"
           />
         </div>

@@ -51,22 +51,22 @@ const statusText = computed(() => {
 <template>
   <div class="flex items-center gap-1.5">
     <div class="relative flex items-center">
-      <UIcon name="i-lucide-search" class="absolute left-2.5 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+      <UIcon name="i-lucide-search" class="absolute left-2.5 w-3.5 h-3.5 text-content-muted pointer-events-none" />
       <input
         ref="searchInput"
         v-model="localQuery"
         type="text"
         placeholder="搜索关键词..."
-        class="w-44 pl-7.5 pr-1.5 py-1.5 text-xs border border-gray-200 rounded-md
-               bg-white text-gray-700 placeholder-gray-400
-               focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400/20"
+        class="w-44 pl-7.5 pr-1.5 py-1.5 text-xs border border-line rounded-md
+               bg-surface-card text-content-secondary placeholder-gray-400
+               focus-ring/20"
         @input="handleInput"
         @keydown="handleKeydown"
       />
     </div>
 
     <template v-if="totalMatches > 0">
-      <span class="text-[11px] text-gray-400 min-w-[40px] text-center">{{ statusText }}</span>
+      <span class="text-[11px] text-content-muted min-w-[40px] text-center">{{ statusText }}</span>
       <UButton
         icon="i-lucide-chevron-up"
         variant="ghost"
@@ -87,7 +87,7 @@ const statusText = computed(() => {
       />
     </template>
 
-    <span v-else-if="status === 'not_found'" class="text-[11px] text-gray-400 min-w-[40px]">{{ statusText }}</span>
+    <span v-else-if="status === 'not_found'" class="text-[11px] text-content-muted min-w-[40px]">{{ statusText }}</span>
 
     <UButton
       v-if="totalMatches > 0 || status === 'not_found'"

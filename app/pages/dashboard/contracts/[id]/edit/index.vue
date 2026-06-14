@@ -131,22 +131,22 @@ onMounted(() => { fetchData(); fetchTemplates() })
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div class="flex-1">
-        <h1 class="text-lg font-medium text-gray-800">编辑合同</h1>
+        <h1 class="text-lg font-medium text-content-primary">编辑合同</h1>
       </div>
       <UButton icon="i-lucide-file-down" variant="ghost" color="neutral" size="sm" @click="handleExportPdf">导出 PDF</UButton>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <template v-else>
       <!-- 元数据表单 -->
-      <div class="warm-card">
+      <div class="em-card">
         <ContractForm v-model="form" :customer-options="customerOptions" @submit="handleSubmit" />
       </div>
 
       <!-- 合同正文编辑区 -->
-      <div class="warm-card mt-4">
+      <div class="em-card mt-4">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-medium text-gray-700">合同正文</h3>
+          <h3 class="text-sm font-medium text-content-secondary">合同正文</h3>
           <div class="flex items-center gap-2">
             <UButton
               v-if="contractStatus === 'draft' && !selectedTemplate"
@@ -163,7 +163,7 @@ onMounted(() => { fetchData(); fetchTemplates() })
         </div>
 
         <!-- 已选模板提示 -->
-        <div v-if="selectedTemplate" class="mb-3 flex items-center gap-3 p-3 bg-brand-50 rounded-lg border border-brand-200">
+        <div v-if="selectedTemplate" class="mb-3 flex items-center gap-3 p-3 bg-brand-50 rounded-xl border border-brand-200">
           <UIcon name="i-lucide-file-check" class="w-4 h-4 text-brand-600 flex-shrink-0" />
           <div class="flex-1 min-w-0">
             <span class="text-sm text-brand-800 font-medium">{{ selectedTemplate.name }}</span>
@@ -182,22 +182,23 @@ onMounted(() => { fetchData(); fetchTemplates() })
       </div>
 
       <!-- 模板选择弹窗 -->
-      <UModal v-model:open="showTemplateModal">
-        <template #header>选择合同模板</template>
-        <template #body>
-          <TemplateSelector
-            :templates="templates"
-            :selected-id="selectedTemplate?.id"
-            @select="onSelectTemplate"
-          />
-        </template>
+      <CommonFormModal
+        v-if="showTemplateModal"
+        v-model:open="showTemplateModal"
+        title="选择合同模板"
+        size="standard"
+        @cancel="showTemplateModal = false"
+      >
+        <TemplateSelector
+          :templates="templates"
+          :selected-id="selectedTemplate?.id"
+          @select="onSelectTemplate"
+        />
         <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">取消</UButton>
-            <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
-          </div>
+          <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
+          <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
         </template>
-      </UModal>
+      </CommonFormModal>
 
       <!-- 操作按钮 -->
       <div class="mt-6 flex justify-end gap-2">

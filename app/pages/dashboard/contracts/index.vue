@@ -276,53 +276,47 @@ onMounted(() => {
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
         <input
           v-model="keyword"
           type="text"
           placeholder="搜合同名称..."
-          class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors"
+          class="w-full pl-9 input-base focus-ring transition-colors"
           @input="onSearchInput"
         />
       </div>
-      <select
+      <EnumSelect
         v-model="statusFilter"
-        class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
-      >
-        <option value="">全部状态</option>
-        <option value="draft">草稿</option>
-        <option value="approved">已审批</option>
-        <option value="in_progress">执行中</option>
-        <option value="completed">已完成</option>
-        <option value="terminated">已终止</option>
-      </select>
-      <span class="text-xs text-gray-400">共 {{ total }} 个合同</span>
-      <label v-if="isAdminOrManager()" class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none ml-auto">
-        <input type="checkbox" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-400" :checked="selectedIds.size === contractsList.length && contractsList.length > 0" @change="toggleSelectAll" />
+        :options="[{value:'draft',label:'草稿'},{value:'approved',label:'已审批'},{value:'in_progress',label:'执行中'},{value:'completed',label:'已完成'},{value:'terminated',label:'已终止'}]"
+        placeholder="全部状态"
+      />
+      <span class="text-xs text-content-muted">共 {{ total }} 个合同</span>
+      <label v-if="isAdminOrManager()" class="flex items-center gap-1 text-xs text-content-muted cursor-pointer select-none ml-auto">
+        <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500 focus:ring-brand-400" :checked="selectedIds.size === contractsList.length && contractsList.length > 0" @change="toggleSelectAll" />
         全选
       </label>
     </div>
 
     <!-- 合同列表 -->
-    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
-    <div v-else-if="contractsList.length === 0" class="text-center py-12 text-gray-400">还没有合同，加一个？</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-else-if="contractsList.length === 0" class="text-center py-12 text-content-muted">还没有合同，加一个？</div>
     <div v-else class="space-y-2">
       <div
         v-for="ct in contractsList"
         :key="ct.id"
-        class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group"
+        class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group"
         @click="$router.push(`/dashboard/contracts/${ct.id}`)"
       >
         <!-- 复选框 -->
         <div v-if="isAdminOrManager()" class="flex-shrink-0" @click.stop>
-          <input type="checkbox" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500 focus:ring-brand-400" :checked="selectedIds.has(ct.id)" @change="toggleSelect(ct.id)" />
+          <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500 focus:ring-brand-400" :checked="selectedIds.has(ct.id)" @change="toggleSelect(ct.id)" />
         </div>
 
         <!-- 状态色条 -->
         <div
           :class="['w-1 h-10 rounded-full flex-shrink-0', {
             'bg-gray-400': ct.status === 'draft',
-            'bg-blue-400': ct.status === 'approved',
+            'bg-brand-400': ct.status === 'approved',
             'bg-brand-400': ct.status === 'in_progress',
             'bg-teal-400': ct.status === 'completed',
             'bg-red-400': ct.status === 'terminated',
@@ -332,11 +326,11 @@ onMounted(() => {
         <!-- 主体 -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800 truncate">{{ ct.name }}</span>
+            <span class="text-sm font-medium text-content-primary truncate">{{ ct.name }}</span>
             <StatusBadge :value="ct.status" enum-type="contractStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400">
-            <span v-if="ct.code" class="text-gray-500 font-mono text-[11px]">{{ ct.code }}</span>
+          <div class="flex items-center gap-3 text-xs text-content-muted">
+            <span v-if="ct.code" class="text-content-muted font-mono text-[11px]">{{ ct.code }}</span>
             <span v-if="ct.customer?.name">
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline mr-0.5" />
               {{ ct.customer.name }}
@@ -354,11 +348,11 @@ onMounted(() => {
 
         <!-- 进度条（执行中/已完成显示） -->
         <div v-if="ct.status === 'in_progress' || ct.status === 'completed'" class="w-24">
-          <div class="flex items-center justify-between text-[10px] text-gray-400 mb-0.5">
+          <div class="flex items-center justify-between text-[10px] text-content-muted mb-0.5">
             <span>回款</span>
             <span>{{ ct.paymentProgress ?? 0 }}%</span>
           </div>
-          <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div class="h-1 bg-surface-hover rounded-full overflow-hidden">
             <div
               :class="['h-full rounded-full transition-all', ct.status === 'completed' ? 'bg-teal-400' : 'bg-brand-400']"
               :style="{ width: (ct.paymentProgress ?? 0) + '%' }"
@@ -426,164 +420,108 @@ onMounted(() => {
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchContracts" @next="fetchContracts" />
 
     <!-- 新增合同弹窗 -->
-    <UModal v-model:open="showCreateModal">
-      <template #header>添加合同</template>
-      <template #body>
+    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加合同" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
         <form class="space-y-4" @submit.prevent="handleCreate">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">合同名称 <span class="text-red-400">*</span></label>
-            <input v-model="createForm.name" type="text" placeholder="给合同起个名字" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-red-400">*</span></label>
+            <input v-model="createForm.name" type="text" placeholder="给合同起个名字" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">客户 <span class="text-red-400">*</span></label>
-            <select v-model="createForm.customerId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-              <option value="">选择客户</option>
-              <option v-for="c in customerOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
+            <label class="block text-sm text-content-secondary mb-1">客户 <span class="text-red-400">*</span></label>
+            <CustomerSelect v-model="createForm.customerId" placeholder="选择客户" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">合同金额</label>
-              <input v-model.number="createForm.totalAmount" type="number" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">合同金额</label>
+              <input v-model.number="createForm.totalAmount" type="number" step="0.01" placeholder="0.00" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">付款方式</label>
-              <select v-model="createForm.paymentMethod" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-                <option value="">选择方式</option>
-                <option v-for="opt in getOptions('PaymentMethod')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
+              <label class="block text-sm text-content-secondary mb-1">付款方式</label>
+              <EnumSelect v-model="createForm.paymentMethod" dict="PaymentMethod" placeholder="选择方式" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">甲方</label>
-              <input v-model="createForm.partyA" type="text" placeholder="甲方名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">甲方</label>
+              <input v-model="createForm.partyA" type="text" placeholder="甲方名称" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">乙方</label>
-              <input v-model="createForm.partyB" type="text" placeholder="乙方名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">乙方</label>
+              <input v-model="createForm.partyB" type="text" placeholder="乙方名称" class="w-full input-base focus-ring" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">开始日期</label>
-              <input v-model="createForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">开始日期</label>
+              <input v-model="createForm.startDate" type="date" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">结束日期</label>
-              <input v-model="createForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">结束日期</label>
+              <input v-model="createForm.endDate" type="date" class="w-full input-base focus-ring" />
             </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">备注</label>
-            <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
+            <label class="block text-sm text-content-secondary mb-1">备注</label>
+            <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">取消</UButton>
-          <UButton color="primary" :loading="createLoading" @click="handleCreate">添加</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 编辑合同弹窗 -->
-    <UModal v-model:open="showEditModal">
-      <template #header>编辑合同</template>
-      <template #body>
+    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑合同" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
         <form class="space-y-4" @submit.prevent="handleEdit">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">合同名称 <span class="text-red-400">*</span></label>
-            <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-red-400">*</span></label>
+            <input v-model="editForm.name" type="text" class="w-full input-base focus-ring" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">合同金额</label>
-              <input v-model.number="editForm.totalAmount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">合同金额</label>
+              <input v-model.number="editForm.totalAmount" type="number" step="0.01" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">付款方式</label>
-              <select v-model="editForm.paymentMethod" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-                <option value="">选择方式</option>
-                <option v-for="opt in getOptions('PaymentMethod')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm text-gray-600 mb-1">甲方</label>
-              <input v-model="editForm.partyA" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
-            </div>
-            <div>
-              <label class="block text-sm text-gray-600 mb-1">乙方</label>
-              <input v-model="editForm.partyB" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">付款方式</label>
+              <EnumSelect v-model="editForm.paymentMethod" dict="PaymentMethod" placeholder="选择方式" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">开始日期</label>
-              <input v-model="editForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">甲方</label>
+              <input v-model="editForm.partyA" type="text" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">结束日期</label>
-              <input v-model="editForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">乙方</label>
+              <input v-model="editForm.partyB" type="text" class="w-full input-base focus-ring" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-content-secondary mb-1">开始日期</label>
+              <input v-model="editForm.startDate" type="date" class="w-full input-base focus-ring" />
+            </div>
+            <div>
+              <label class="block text-sm text-content-secondary mb-1">结束日期</label>
+              <input v-model="editForm.endDate" type="date" class="w-full input-base focus-ring" />
             </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">备注</label>
-            <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
+            <label class="block text-sm text-content-secondary mb-1">备注</label>
+            <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton>
-          <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 审批确认弹窗 -->
-    <UModal v-model:open="showApproveModal">
-      <template #header>确认审批</template>
-      <template #body>
-        <p class="text-sm text-gray-600">
-          确定要审批通过合同「{{ approveTarget?.name }}」吗？审批后将进入执行状态。
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showApproveModal = false; approveTarget = null">再想想</UButton>
-          <UButton color="primary" :loading="approveLoading" @click="handleApprove">确认审批</UButton>
-        </div>
-      </template>
-    </UModal>
-
+    <CommonConfirmDialog v-if="showApproveModal" v-model:open="showApproveModal" title="确认审批" :message="`确定要审批通过合同「${approveTarget?.name}」吗？审批后将进入执行状态。`" :loading="approveLoading" @confirm="handleApprove" @cancel="showApproveModal = false; approveTarget = null" />
     <!-- 驳回弹窗 -->
-    <UModal v-model:open="showRejectModal">
-      <template #header>驳回合同</template>
-      <template #body>
-        <div class="space-y-3">
-          <p class="text-sm text-gray-600">确定要驳回「{{ rejectTarget?.name }}」吗？请填写驳回原因。</p>
-          <textarea
-            v-model="rejectReason"
-            rows="2"
-            placeholder="写明驳回原因..."
-            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none"
-          />
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showRejectModal = false; rejectTarget = null">取消</UButton>
-          <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
-        </div>
-      </template>
-    </UModal>
+    <CommonFormModal v-if="showRejectModal" v-model:open="showRejectModal" title="驳回合同" size="compact" :loading="rejectLoading" @confirm="handleReject" @cancel="showRejectModal = false; rejectTarget = null">
+      <p class="text-sm text-content-secondary mb-3">确定要驳回「{{ rejectTarget?.name }}」吗？请填写驳回原因。</p>
+      <textarea v-model="rejectReason" rows="2" placeholder="写明驳回原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-page focus-ring resize-none" />
+    </CommonFormModal>
 
     <!-- 删除确认弹窗 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="deleteMessage"
@@ -597,6 +535,7 @@ onMounted(() => {
 
     <!-- 转交弹窗 -->
     <CommonTransferModal
+      v-if="showTransferModal"
       v-model:open="showTransferModal"
       title="转交合同"
       api-path="/api/contracts/batch-transfer"

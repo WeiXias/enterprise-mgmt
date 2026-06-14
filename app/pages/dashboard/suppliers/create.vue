@@ -39,53 +39,53 @@ async function handleSubmit() {
       </template>
     </CommonPageHeader>
 
-    <div class="warm-card p-6">
+    <div class="em-card p-6">
       <form class="space-y-4" @submit.prevent="handleSubmit">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">供应商名称 <span class="text-red-400">*</span></label>
-            <input v-model="form.name" type="text" placeholder="供应商名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">供应商名称 <span class="text-red-400">*</span></label>
+            <input v-model="form.name" type="text" placeholder="供应商名称" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">编码 <span class="text-gray-400 text-xs">(自动生成)</span></label>
-            <input v-model="form.code" type="text" placeholder="留空自动生成" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">编码 <span class="text-content-muted text-xs">(自动生成)</span></label>
+            <input v-model="form.code" type="text" placeholder="留空自动生成" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">联系人</label>
-            <input v-model="form.contactPerson" type="text" placeholder="联系人" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">联系人</label>
+            <input v-model="form.contactPerson" type="text" placeholder="联系人" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">手机</label>
-            <input v-model="form.phone" type="text" placeholder="手机号" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">手机</label>
+            <input v-model="form.phone" type="text" placeholder="手机号" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div>
-          <label class="block text-sm text-gray-600 mb-1">邮箱</label>
-          <input v-model="form.email" type="email" placeholder="邮箱" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+          <label class="block text-sm text-content-secondary mb-1">邮箱</label>
+          <input v-model="form.email" type="email" placeholder="邮箱" class="w-full input-base focus-ring" />
         </div>
         <div>
-          <label class="block text-sm text-gray-600 mb-1">地址</label>
-          <input v-model="form.address" type="text" placeholder="地址" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+          <label class="block text-sm text-content-secondary mb-1">地址</label>
+          <input v-model="form.address" type="text" placeholder="地址" class="w-full input-base focus-ring" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">开户行</label>
-            <input v-model="form.bankName" type="text" placeholder="开户行" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">开户行</label>
+            <input v-model="form.bankName" type="text" placeholder="开户行" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">银行账号</label>
-            <input v-model="form.bankAccount" type="text" placeholder="银行账号" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">银行账号</label>
+            <input v-model="form.bankAccount" type="text" placeholder="银行账号" class="w-full input-base focus-ring" />
           </div>
         </div>
         <div>
-          <label class="block text-sm text-gray-600 mb-1">税号</label>
-          <input v-model="form.taxId" type="text" placeholder="纳税人识别号" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+          <label class="block text-sm text-content-secondary mb-1">税号</label>
+          <input v-model="form.taxId" type="text" placeholder="纳税人识别号" class="w-full input-base focus-ring" />
         </div>
         <div>
-          <label class="block text-sm text-gray-600 mb-1">备注</label>
-          <textarea v-model="form.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
+          <label class="block text-sm text-content-secondary mb-1">备注</label>
+          <textarea v-model="form.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <UButton variant="ghost" color="neutral" @click="router.push('/dashboard/suppliers')">取消</UButton>

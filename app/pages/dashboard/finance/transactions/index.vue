@@ -123,8 +123,8 @@ onMounted(() => { fetchItems(); fetchCategories() })
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">收支明细</h1>
-        <p class="text-sm text-gray-400 mt-0.5">所有收入和支出都在这里</p>
+        <h1 class="text-lg font-medium text-content-primary">收支明细</h1>
+        <p class="text-sm text-content-muted mt-0.5">所有收入和支出都在这里</p>
       </div>
       <div class="flex gap-2">
         <UButton icon="i-lucide-download" variant="outline" color="neutral" size="sm" @click="handleExport">导出</UButton>
@@ -136,33 +136,31 @@ onMounted(() => { fetchItems(); fetchCategories() })
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input v-model="keyword" type="text" placeholder="搜索..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
+        <input v-model="keyword" type="text" placeholder="搜索..." class="w-full pl-9 input-base focus-ring" @input="onSearchInput" />
       </div>
-      <select v-model="typeFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white" @change="page=1; fetchItems()">
-        <option value="">全部类型</option><option value="income">收入</option><option value="expense">支出</option>
-      </select>
-      <input v-model="startDate" type="date" class="px-3 h-9 text-sm rounded-lg border border-gray-200" @change="page=1; fetchItems()" />
-      <span class="text-gray-300">~</span>
-      <input v-model="endDate" type="date" class="px-3 h-9 text-sm rounded-lg border border-gray-200" @change="page=1; fetchItems()" />
-      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
+      <EnumSelect v-model="typeFilter" dict="transactionType" placeholder="全部类型" @update:model-value="page=1; fetchItems()" />
+      <input v-model="startDate" type="date" class="input-base" @change="page=1; fetchItems()" />
+      <span class="text-content-muted">~</span>
+      <input v-model="endDate" type="date" class="input-base" @change="page=1; fetchItems()" />
+      <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-gray-400">还没有收支记录，记一笔？</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">还没有收支记录，记一笔？</div>
     <div v-else class="space-y-2">
-      <div v-for="t in items" :key="t.id" class="warm-card flex items-center gap-3 group">
+      <div v-for="t in items" :key="t.id" class="em-card flex items-center gap-3 group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', t.type === 'income' ? 'bg-teal-400' : 'bg-red-400']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm text-gray-700">{{ t.description || t.category }}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{{ getLabel('TransactionSourceType', t.sourceType) || t.sourceType }}</span>
+            <span class="text-sm text-content-secondary">{{ t.description || t.category }}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted">{{ getLabel('TransactionSourceType', t.sourceType) || t.sourceType }}</span>
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400">
+          <div class="flex items-center gap-3 text-xs text-content-muted">
             <span>{{ t.category }}</span>
             <span>{{ t.transactionDate }}</span>
-            <span v-if="t.paymentMethod">{{ paymentMethods[t.paymentMethod] || t.paymentMethod }}</span>
+            <span v-if="t.paymentMethod">{{ getLabel('paymentMethod', t.paymentMethod) }}</span>
             <NuxtLink v-if="t.contractId" :to="`/dashboard/contracts/${t.contractId}`" class="text-brand-600 hover:underline">← {{ t.contractName || t.contractCode }}</NuxtLink>
           </div>
         </div>
@@ -176,31 +174,36 @@ onMounted(() => { fetchItems(); fetchCategories() })
 
     <!-- 分页 -->
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
-      <span class="text-xs text-gray-400">第 {{ page }} / {{ totalPages }} 页</span>
+      <span class="text-xs text-content-muted">第 {{ page }} / {{ totalPages }} 页</span>
       <div class="flex gap-1"><UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上一页</UButton><UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下一页</UButton></div>
     </div>
 
     <!-- 弹窗 -->
-    <UModal v-model:open="showModal">
-      <template #header>{{ editTarget ? '编辑' : '登记' }}{{ form.type === 'income' ? '收入' : '支出' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleSave">
-          <div class="flex gap-2">
-            <UButton :color="form.type === 'income' ? 'primary' : 'neutral'" :variant="form.type === 'income' ? 'solid' : 'outline'" size="sm" @click="form.type = 'income'; form.category = ''">收入</UButton>
-            <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'; form.category = ''">支出</UButton>
-          </div>
-          <div><label class="block text-sm text-gray-600 mb-1">分类</label><select v-model="form.category" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="">选择</option><option v-for="c in getCategories()" :key="c" :value="c">{{ c }}</option></select></div>
-          <div><label class="block text-sm text-gray-600 mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">日期</label><input v-model="form.transactionDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">说明</label><input v-model="form.description" type="text" placeholder="简单描述..." class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">支付方式</label><select v-model="form.paymentMethod" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 bg-white"><option value="">选择</option><option v-for="(label, key) in paymentMethods" :key="key" :value="key">{{ label }}</option></select></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton><UButton color="primary" :loading="saving" @click="handleSave">保存</UButton></div></template>
-    </UModal>
+    <CommonFormModal
+      v-if="showModal"
+      v-model:open="showModal"
+      :title="`${editTarget ? '编辑' : '登记'}${form.type === 'income' ? '收入' : '支出'}`"
+      size="standard"
+      :loading="saving"
+      @confirm="handleSave"
+      @cancel="showModal = false"
+    >
+      <form class="space-y-3" @submit.prevent="handleSave">
+        <div class="flex gap-2">
+          <UButton :color="form.type === 'income' ? 'primary' : 'neutral'" :variant="form.type === 'income' ? 'solid' : 'outline'" size="sm" @click="form.type = 'income'; form.category = ''">收入</UButton>
+          <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'; form.category = ''">支出</UButton>
+        </div>
+        <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.category" :options="getCategories()" placeholder="选择" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">日期</label><input v-model="form.transactionDate" type="date" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">说明</label><input v-model="form.description" type="text" placeholder="简单描述..." class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">支付方式</label><EnumSelect v-model="form.paymentMethod" dict="paymentMethod" placeholder="选择" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 删除弹窗 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除这条记录吗？删了就找不回来。`"

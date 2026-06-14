@@ -38,13 +38,13 @@ const duplicateLoading = ref(false)
 // 状态颜色条映射（用于列表左侧色条，与 StatusBadge 无关）
 const statusDotColor: Record<string, string> = {
   not_started: 'bg-gray-300',
-  in_progress: 'bg-blue-400',
+  in_progress: 'bg-brand-400',
   completed: 'bg-teal-400',
   delayed: 'bg-red-400',
 }
 
 const statCards = [
-  { key: 'in_progress', label: '进行中', color: 'border-blue-400', bg: 'bg-blue-50', icon: 'i-lucide-play', val: () => stats.value.inProgress, filterVal: 'in_progress' },
+  { key: 'in_progress', label: '进行中', color: 'border-brand-400', bg: 'bg-brand-50', icon: 'i-lucide-play', val: () => stats.value.inProgress, filterVal: 'in_progress' },
   { key: 'delayed', label: '已延期', color: 'border-red-400', bg: 'bg-red-50', icon: 'i-lucide-alert-triangle', val: () => stats.value.delayed, filterVal: 'delayed' },
   { key: 'completed', label: '已完成', color: 'border-teal-400', bg: 'bg-teal-50', icon: 'i-lucide-check-circle', val: () => stats.value.completed, filterVal: 'completed' },
   { key: 'budget', label: '总预算', color: 'border-brand-400', bg: 'bg-brand-50', icon: 'i-lucide-coins', val: () => formatMoney(stats.value.totalBudget), filterVal: '' },
@@ -151,49 +151,43 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
     <div class="grid grid-cols-4 gap-3 mb-5">
       <div
         v-for="card in statCards" :key="card.key"
-        :class="['warm-card p-3 cursor-pointer hover:shadow-sm transition-shadow border-l-2', card.color, card.filterVal ? '' : 'cursor-default']"
+        :class="['em-card p-3 cursor-pointer hover:shadow-sm transition-shadow border-l-2', card.color, card.filterVal ? '' : 'cursor-default']"
         @click="onStatCardClick(card)"
       >
         <div class="flex items-center gap-2 mb-1">
-          <div :class="['w-7 h-7 rounded-lg flex items-center justify-center', card.bg]">
-            <UIcon :name="card.icon" class="w-4 h-4 text-[var(--color-content-secondary)]" />
+          <div :class="['w-7 h-7 rounded-md flex items-center justify-center', card.bg]">
+            <UIcon :name="card.icon" class="w-4 h-4 text-content-secondary" />
           </div>
-          <span class="text-xs text-[var(--color-content-secondary)]">{{ card.label }}</span>
+          <span class="text-xs text-content-secondary">{{ card.label }}</span>
         </div>
-        <p class="text-lg font-medium text-[var(--color-content-primary)] ml-9">{{ card.val() }}</p>
+        <p class="text-lg font-medium text-content-primary ml-9">{{ card.val() }}</p>
       </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-content-secondary)]" />
-        <input v-model="keyword" type="text" placeholder="搜项目名称..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 transition-colors" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-secondary" />
+        <input v-model="keyword" type="text" placeholder="搜项目名称..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
       </div>
-      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15">
-        <option value="">全部状态</option>
-        <option value="not_started">未开始</option>
-        <option value="in_progress">进行中</option>
-        <option value="completed">已完成</option>
-        <option value="delayed">已延期</option>
-      </select>
-      <span class="text-xs text-[var(--color-content-secondary)]">共 {{ total }} 个项目</span>
+      <EnumSelect v-model="statusFilter" dict="projectStatus" placeholder="全部状态" />
+      <span class="text-xs text-content-secondary">共 {{ total }} 个项目</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-[var(--color-content-secondary)]">马上就好...</div>
-    <div v-else-if="projectsList.length === 0" class="text-center py-12 text-[var(--color-content-secondary)]">还没有项目，创建第一个？</div>
+    <div v-if="loading" class="text-center py-12 text-content-secondary">马上就好...</div>
+    <div v-else-if="projectsList.length === 0" class="text-center py-12 text-content-secondary">还没有项目，创建第一个？</div>
     <div v-else class="space-y-2">
-      <div v-for="p in projectsList" :key="p.id" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/projects/${p.id}`)">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', statusDotColor[p.status] || 'bg-[var(--color-line)]']" />
+      <div v-for="p in projectsList" :key="p.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/projects/${p.id}`)">
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', statusDotColor[p.status] || 'bg-line']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-[var(--color-content-primary)] truncate">{{ p.name }}</span>
+            <span class="text-sm font-medium text-content-primary truncate">{{ p.name }}</span>
             <StatusBadge :value="p.status" enum-type="ProjectStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-[var(--color-content-secondary)]">
+          <div class="flex items-center gap-3 text-xs text-content-secondary">
             <span v-if="p.owner?.name"><UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ p.owner.name }}</span>
             <span v-if="p.budget">{{ formatMoney(p.budget) }}</span>
             <span v-if="p.startDate || p.endDate"><UIcon name="i-lucide-calendar" class="w-3 h-3 inline mr-0.5" />{{ p.startDate || '-' }} ~ {{ p.endDate || '-' }}</span>
-            <span v-if="p.contract?.name" class="text-[var(--color-brand-600)]">← {{ p.contract.name }}</span>
+            <span v-if="p.contract?.name" class="text-brand-600">← {{ p.contract.name }}</span>
           </div>
         </div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
@@ -207,65 +201,66 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchProjects" @next="fetchProjects" />
 
     <!-- 新增弹窗 -->
-    <CommonFormModal v-model="showCreateModal" title="添加项目" subtitle="填写项目的基本信息和时间安排" :loading="createLoading" @confirm="handleCreate">
+    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加项目" subtitle="填写项目的基本信息和时间安排" :loading="createLoading" @confirm="handleCreate">
       <div class="space-y-4">
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">基本信息</span>
           </div>
           <div class="space-y-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">项目名称 <span class="text-[var(--color-danger-600)]">*</span></label><input v-model="createForm.name" type="text" placeholder="给项目起个名字" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">关联合同</label><select v-model="createForm.contractId" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"><option value="">不关联</option><option v-for="c in contractOptions" :key="c.id" :value="c.id">{{ c.name }} ({{ c.code }})</option></select></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">预算</label><input v-model.number="createForm.budget" type="number" step="0.01" placeholder="0.00" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">项目名称 <span class="text-danger-600">*</span></label><input v-model="createForm.name" type="text" placeholder="给项目起个名字" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">关联合同</label><EnumSelect v-model="createForm.contractId" :options="contractOptions.map(c => ({ value: c.id, label: `${c.name} (${c.code})` }))" placeholder="不关联" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">预算</label><input v-model.number="createForm.budget" type="number" step="0.01" placeholder="0.00" class="w-full input-base focus-ring" /></div>
           </div>
         </div>
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">时间安排</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">时间安排</span>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">开始日期</label><input v-model="createForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">结束日期</label><input v-model="createForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">开始日期</label><input v-model="createForm.startDate" type="date" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">结束日期</label><input v-model="createForm.endDate" type="date" class="w-full input-base focus-ring" /></div>
           </div>
         </div>
-        <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label><textarea v-model="createForm.remark" rows="2" placeholder="备注..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">备注</label><textarea v-model="createForm.remark" rows="2" placeholder="备注..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </div>
     </CommonFormModal>
 
     <!-- 编辑弹窗 -->
-    <CommonFormModal v-model="showEditModal" title="编辑项目" subtitle="修改项目基本信息和时间安排" :loading="editLoading" @confirm="handleEdit">
+    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑项目" subtitle="修改项目基本信息和时间安排" :loading="editLoading" @confirm="handleEdit">
       <div class="space-y-4">
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">基本信息</span>
           </div>
           <div class="space-y-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">项目名称 <span class="text-[var(--color-danger-600)]">*</span></label><input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">状态</label><select v-model="editForm.status" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"><option value="not_started">未开始</option><option value="in_progress">进行中</option><option value="completed">已完成</option><option value="delayed">已延期</option></select></div>
+            <div><label class="block text-sm text-content-secondary mb-1">项目名称 <span class="text-danger-600">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">状态</label><EnumSelect v-model="editForm.status" dict="projectStatus" placeholder="选择状态" /></div>
           </div>
         </div>
-        <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+        <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-            <span class="text-sm font-medium text-[var(--color-brand-700)]">预算与时间</span>
+            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+            <span class="text-sm font-medium text-brand-700">预算与时间</span>
           </div>
           <div class="space-y-3">
-            <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">预算</label><input v-model.number="editForm.budget" type="number" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">预算</label><input v-model.number="editForm.budget" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
             <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
-              <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full input-base focus-ring" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full input-base focus-ring" /></div>
             </div>
           </div>
         </div>
-        <div><label class="block text-sm text-[var(--color-content-secondary)] mb-1">备注</label><textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">备注</label><textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
       </div>
     </CommonFormModal>
 
     <!-- 删除确认弹窗 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除项目「${deleteTarget?.name}」吗？删了就找不回来了。`"

@@ -91,20 +91,20 @@ onMounted(() => { fetchReports() })
       </template>
     </CommonPageHeader>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="reports.length === 0" class="text-center py-12 text-gray-400">
-      <UIcon name="i-lucide-bar-chart-3" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="reports.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-bar-chart-3" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">还没有自定义报表，建一个？</p>
     </div>
     <div v-else class="space-y-2">
-      <div v-for="r in reports" :key="r.id" class="warm-card flex items-center gap-4">
-        <div class="w-1 h-10 rounded-full flex-shrink-0 bg-blue-400" />
+      <div v-for="r in reports" :key="r.id" class="em-card flex items-center gap-4">
+        <div class="w-1 h-10 rounded-full flex-shrink-0 bg-brand-400" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800">{{ r.name }}</span>
-            <span class="text-xs text-gray-400">{{ getLabel('ReportSource', r.sourceType) || r.sourceType }}</span>
+            <span class="text-sm font-medium text-content-primary">{{ r.name }}</span>
+            <span class="text-xs text-content-muted">{{ getLabel('ReportSource', r.sourceType) || r.sourceType }}</span>
           </div>
-          <div class="text-xs text-gray-400">{{ r.description }}</div>
+          <div class="text-xs text-content-muted">{{ r.description }}</div>
         </div>
         <div class="flex items-center gap-1">
           <UButton icon="i-lucide-play" variant="ghost" color="primary" size="xs" @click="executeReport(r.id)">导出</UButton>
@@ -114,44 +114,43 @@ onMounted(() => { fetchReports() })
     </div>
 
     <!-- 报表设计器弹窗 -->
-    <UModal v-model:open="showBuilder">
-      <template #header>{{ editingId ? '编辑报表' : '新建报表' }}</template>
-      <template #body>
-        <form class="space-y-4" @submit.prevent="handleSave">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">报表名称</label>
-            <input v-model="builderForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">数据源</label>
-            <select v-model="builderForm.sourceType" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-              <option value="">选择数据源</option>
-              <option v-for="(ds, key) in datasources" :key="key" :value="key">{{ getLabel('ReportSource', key) || key }}</option>
-            </select>
-          </div>
-          <div v-if="builderForm.sourceType && datasources[builderForm.sourceType]" class="space-y-1">
-            <label class="block text-sm text-gray-600">可选字段</label>
-            <div class="flex flex-wrap gap-1">
-              <span v-for="f in datasources[builderForm.sourceType].fields" :key="f.key" class="px-2 py-0.5 text-xs rounded bg-gray-100 text-gray-600">{{ f.label }}({{ f.key }})</span>
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">描述</label>
-            <input v-model="builderForm.description" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">字段配置 (JSON)</label>
-            <textarea v-model="builderForm.fieldConfig" rows="3" class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" />
-            <p class="text-xs text-gray-400 mt-0.5">格式：[{"key":"name","label":"名称","type":"text"}]</p>
-          </div>
-        </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showBuilder = false">取消</UButton>
-          <UButton color="primary" :loading="saving" @click="handleSave">保存</UButton>
+    <CommonFormModal
+      v-if="showBuilder"
+      v-model:open="showBuilder"
+      :title="editingId ? '编辑报表' : '新建报表'"
+      size="standard"
+      :loading="saving"
+      @confirm="handleSave"
+      @cancel="showBuilder = false"
+    >
+      <form class="space-y-4" @submit.prevent="handleSave">
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">报表名称</label>
+          <input v-model="builderForm.name" type="text" class="w-full input-base focus-ring" />
         </div>
-      </template>
-    </UModal>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">数据源</label>
+          <select v-model="builderForm.sourceType" class="w-full input-base focus-ring">
+            <option value="">选择数据源</option>
+            <option v-for="(ds, key) in datasources" :key="key" :value="key">{{ getLabel('ReportSource', key) || key }}</option>
+          </select>
+        </div>
+        <div v-if="builderForm.sourceType && datasources[builderForm.sourceType]" class="space-y-1">
+          <label class="block text-sm text-content-secondary">可选字段</label>
+          <div class="flex flex-wrap gap-1">
+            <span v-for="f in datasources[builderForm.sourceType].fields" :key="f.key" class="px-2 py-0.5 text-xs rounded bg-surface-page text-content-secondary">{{ f.label }}({{ f.key }})</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">描述</label>
+          <input v-model="builderForm.description" type="text" class="w-full input-base focus-ring" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">字段配置 (JSON)</label>
+          <textarea v-model="builderForm.fieldConfig" rows="3" class="w-full px-3 py-2 text-xs font-mono rounded-md border border-line focus-ring" />
+          <p class="text-xs text-content-muted mt-0.5">格式：[{"key":"name","label":"名称","type":"text"}]</p>
+        </div>
+      </form>
+    </CommonFormModal>
   </div>
 </template>

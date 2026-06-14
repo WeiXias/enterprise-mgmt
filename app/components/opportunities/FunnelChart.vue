@@ -29,7 +29,7 @@ const emit = defineEmits<{ 'stage-click': [stage: FunnelStage] }>()
 
 const DEFAULT_COLORS: Record<string, string> = {
   initial_contact: 'bg-gray-400',
-  requirement_confirmed: 'bg-blue-400',
+  requirement_confirmed: 'bg-brand-400',
   proposal_submitted: 'bg-brand-400',
   business_negotiation: 'bg-orange-400',
   closed_won: 'bg-teal-400',
@@ -68,21 +68,21 @@ const props = defineProps<Props>()
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-8 text-gray-400">马上就好...</div>
-    <div v-else-if="stages.length === 0" class="text-center py-8 text-gray-400">暂无数据</div>
+    <div v-if="loading" class="text-center py-8 text-content-muted">马上就好...</div>
+    <div v-else-if="stages.length === 0" class="text-center py-8 text-content-muted">暂无数据</div>
     <div v-else class="space-y-2">
       <div
         v-for="stage in stages"
         :key="stage.status"
-        class="flex items-center gap-3 rounded-lg p-2 -mx-1 transition-colors"
-        :class="stage.status === 'closed_lost' ? 'opacity-40' : 'hover:bg-gray-50 cursor-pointer'"
+        class="flex items-center gap-3 rounded-md p-2 -mx-1 transition-colors"
+        :class="stage.status === 'closed_lost' ? 'opacity-40' : 'hover:bg-surface-hover cursor-pointer'"
         @click="emit('stage-click', stage)"
       >
         <!-- 标签 -->
-        <span class="w-[5.5rem] flex-shrink-0 text-xs text-gray-600">{{ getLabel(stage.status) }}</span>
+        <span class="w-[5.5rem] flex-shrink-0 text-xs text-content-secondary">{{ getLabel(stage.status) }}</span>
 
         <!-- 进度条 -->
-        <div class="flex-1 h-7 bg-gray-100 rounded-full overflow-hidden">
+        <div class="flex-1 h-7 bg-surface-hover rounded-full overflow-hidden">
           <div
             :class="[getColor(stage.status), 'h-full rounded-full transition-all flex items-center justify-end pr-2.5']"
             :style="{ width: stageWidth(stage.count, total) }"
@@ -92,7 +92,7 @@ const props = defineProps<Props>()
         </div>
 
         <!-- 金额 -->
-        <span class="w-[6rem] flex-shrink-0 text-xs text-gray-500 text-right truncate">{{ formatMoney(stage.totalAmount) }}</span>
+        <span class="w-[6rem] flex-shrink-0 text-xs text-content-muted text-right truncate">{{ formatMoney(stage.totalAmount) }}</span>
       </div>
     </div>
   </div>

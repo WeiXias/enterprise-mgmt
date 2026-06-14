@@ -134,8 +134,8 @@ onMounted(fetchRoles)
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">角色权限</h1>
-        <p class="text-sm text-gray-400 mt-0.5">管理角色和对应的权限</p>
+        <h1 class="text-lg font-medium text-content-primary">角色权限</h1>
+        <p class="text-sm text-content-muted mt-0.5">管理角色和对应的权限</p>
       </div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">添加角色</UButton>
     </div>
@@ -143,25 +143,25 @@ onMounted(fetchRoles)
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- 左侧：角色列表 -->
       <div>
-        <div class="warm-card">
-          <h3 class="text-sm font-medium text-gray-700 mb-3">角色列表</h3>
-          <div v-if="loading" class="text-xs text-gray-400 py-4 text-center">加载中...</div>
+        <div class="em-card">
+          <h3 class="text-sm font-medium text-content-secondary mb-3">角色列表</h3>
+          <div v-if="loading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
           <div v-else class="space-y-1">
             <div
               v-for="r in roleList"
               :key="r.id"
               :class="[
-                'flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors group',
-                selectedRole?.id === r.id ? 'bg-brand-50' : 'hover:bg-gray-50'
+                'flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer text-sm transition-colors group',
+                selectedRole?.id === r.id ? 'bg-brand-50' : 'hover:bg-surface-hover'
               ]"
               @click="selectRole(r)"
             >
-              <UIcon :name="r.isSystem ? 'i-lucide-lock' : 'i-lucide-shield'" class="w-3.5 h-3.5 flex-shrink-0" :class="r.isSystem ? 'text-gray-400' : 'text-brand-500'" />
+              <UIcon :name="r.isSystem ? 'i-lucide-lock' : 'i-lucide-shield'" class="w-3.5 h-3.5 flex-shrink-0" :class="r.isSystem ? 'text-content-muted' : 'text-brand-500'" />
               <div class="flex-1 min-w-0">
-                <span class="text-gray-700">{{ r.name }}</span>
-                <span class="text-[10px] text-gray-400 ml-1 font-mono">{{ r.code }}</span>
+                <span class="text-content-secondary">{{ r.name }}</span>
+                <span class="text-[10px] text-content-muted ml-1 font-mono">{{ r.code }}</span>
               </div>
-              <span class="text-[10px] text-gray-400">{{ r.memberCount }}人</span>
+              <span class="text-[10px] text-content-muted">{{ r.memberCount }}人</span>
               <div class="hidden group-hover:flex items-center gap-0.5">
                 <UButton icon="i-lucide-users" variant="ghost" color="primary" size="xs" @click.stop="navigateTo(`/dashboard/users?roleId=${r.id}`)" title="查看成员" />
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEdit(r)" />
@@ -175,30 +175,30 @@ onMounted(fetchRoles)
 
       <!-- 右侧：权限矩阵 -->
       <div>
-        <div v-if="!selectedRole" class="warm-card text-center py-12 text-gray-400 text-sm">选择左侧角色设置权限</div>
-        <div v-else class="warm-card">
+        <div v-if="!selectedRole" class="em-card text-center py-12 text-content-muted text-sm">选择左侧角色设置权限</div>
+        <div v-else class="em-card">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h3 class="text-sm font-medium text-gray-800">{{ selectedRole.name }} · 权限</h3>
-              <p class="text-xs text-gray-400 mt-0.5">{{ selectedRole.description || '无描述' }}</p>
+              <h3 class="text-sm font-medium text-content-primary">{{ selectedRole.name }} · 权限</h3>
+              <p class="text-xs text-content-muted mt-0.5">{{ selectedRole.description || '无描述' }}</p>
             </div>
             <UButton icon="i-lucide-save" variant="soft" color="primary" size="xs" :loading="permLoading" @click="savePermissions">保存</UButton>
           </div>
 
-          <div v-if="permLoading" class="text-xs text-gray-400 py-4 text-center">加载中...</div>
-          <div v-else-if="Object.keys(permissionGroups).length === 0" class="text-xs text-gray-400 py-4 text-center">暂无权限数据</div>
+          <div v-if="permLoading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+          <div v-else-if="Object.keys(permissionGroups).length === 0" class="text-xs text-content-muted py-4 text-center">暂无权限数据</div>
           <div v-else class="space-y-4">
             <div v-for="(perms, resource) in permissionGroups" :key="resource">
-              <h4 class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">{{ getLabel('PermissionResource', resource) || resource }}</h4>
+              <h4 class="text-xs font-medium text-content-muted mb-2 uppercase tracking-wide">{{ getLabel('PermissionResource', resource) || resource }}</h4>
               <div class="grid grid-cols-2 gap-1">
                 <label
                   v-for="p in perms"
                   :key="p.id"
-                  class="flex items-center gap-2 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-gray-50"
+                  class="flex items-center gap-2 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-surface-hover"
                 >
-                  <input type="checkbox" class="w-3.5 h-3.5 rounded border-gray-300 text-brand-500" :checked="isPermChecked(p.id)" @change="togglePermission(p.id)" />
-                  <span class="text-gray-600">{{ p.name }}</span>
-                  <span class="text-[10px] text-gray-400 ml-auto">{{ getLabel('PermissionAction', p.action) || p.action }}</span>
+                  <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500" :checked="isPermChecked(p.id)" @change="togglePermission(p.id)" />
+                  <span class="text-content-secondary">{{ p.name }}</span>
+                  <span class="text-[10px] text-content-muted ml-auto">{{ getLabel('PermissionAction', p.action) || p.action }}</span>
                 </label>
               </div>
             </div>
@@ -208,18 +208,26 @@ onMounted(fetchRoles)
     </div>
 
     <!-- 角色弹窗 -->
-    <UModal v-model:open="showRoleModal">
-      <template #header>{{ editingRoleId ? '编辑角色' : '添加角色' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleRoleSave">
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="roleForm.name" type="text" placeholder="角色名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
-            <div><label class="block text-sm text-gray-600 mb-1">标识 <span class="text-red-400">*</span></label><input v-model="roleForm.code" type="text" placeholder="唯一标识（英文下划线）" :disabled="!!editingRoleId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 disabled:bg-gray-50 font-mono text-xs" /></div>
-          </div>
-          <div><label class="block text-sm text-gray-600 mb-1">描述</label><textarea v-model="roleForm.description" rows="2" placeholder="角色描述..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 resize-none" /></div>
-        </form>
+    <CommonFormModal
+      v-if="showRoleModal"
+      v-model:open="showRoleModal"
+      :title="editingRoleId ? '编辑角色' : '添加角色'"
+      size="compact"
+      :loading="roleLoading"
+      @confirm="handleRoleSave"
+      @cancel="showRoleModal = false"
+    >
+      <form class="space-y-3" @submit.prevent="handleRoleSave">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="roleForm.name" type="text" placeholder="角色名称" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">标识 <span class="text-red-400">*</span></label><input v-model="roleForm.code" type="text" placeholder="唯一标识（英文下划线）" :disabled="!!editingRoleId" class="w-full input-base focus-ring disabled:bg-surface-page font-mono text-xs" /></div>
+        </div>
+        <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="roleForm.description" rows="2" placeholder="角色描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
+      </form>
+      <template #footer>
+        <UButton variant="ghost" color="neutral" @click="showRoleModal = false">算了</UButton>
+        <UButton color="primary" :loading="roleLoading" @click="handleRoleSave">{{ editingRoleId ? '保存' : '创建' }}</UButton>
       </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showRoleModal = false">取消</UButton><UButton color="primary" :loading="roleLoading" @click="handleRoleSave">{{ editingRoleId ? '保存' : '创建' }}</UButton></div></template>
-    </UModal>
+    </CommonFormModal>
   </div>
 </template>

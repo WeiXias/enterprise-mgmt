@@ -9,11 +9,15 @@ interface Props {
   placeholder?: string
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   placeholder: '选择产品',
 })
 
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  /** 选择时返回完整产品信息，方便父组件设置价格 */
+  select: [product: { id: string; name: string; code: string; price: number }]
+}>()
 
 const { $api } = useNuxtApp()
 const options = ref<{ id: string; name: string; code: string; price: number }[]>([])
@@ -49,30 +53,29 @@ function onSearch() {
   timer = setTimeout(load, 250)
 }
 
-const props = defineProps<Props>()
 onMounted(load)
 </script>
 
 <template>
   <div class="relative">
     <div class="relative">
-      <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+      <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
       <input
         v-model="searchKeyword"
         type="text"
         :placeholder="placeholder"
-        class="w-full pl-8 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 bg-white"
+        class="w-full pl-8 input-base focus-ring"
         @focus="onSearch()"
         @input="onSearch"
       />
     </div>
     <div
       v-if="options.length > 0"
-      class="absolute z-20 w-full mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg"
+      class="absolute z-20 w-full mt-1 max-h-48 overflow-y-auto bg-surface-card border border-line rounded-xl shadow-lg"
     >
       <button
         v-if="!props.modelValue"
-        class="w-full text-left px-3 py-2 text-xs text-gray-400 hover:bg-gray-50"
+        class="w-full text-left px-3 py-2 text-xs text-content-muted hover:bg-surface-hover"
         disabled
       >
         选择产品
@@ -82,18 +85,18 @@ onMounted(load)
         :key="opt.id"
         :class="[
           'w-full text-left px-3 py-2 text-sm hover:bg-brand-50 transition-colors flex items-center justify-between',
-          modelValue === opt.id ? 'bg-brand-50 text-brand-700' : 'text-gray-700'
+          modelValue === opt.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary'
         ]"
-        @click="emit('update:modelValue', opt.id); options = []"
+        @click="emit('update:modelValue', opt.id); emit('select', opt); options = []"
       >
         <div class="flex items-center gap-2">
           <span>{{ opt.name }}</span>
-          <span class="text-xs text-gray-400">{{ opt.code }}</span>
+          <span class="text-xs text-content-muted">{{ opt.code }}</span>
         </div>
-        <span class="text-xs text-gray-500">{{ formatMoney(opt.price) }}</span>
+        <span class="text-xs text-content-muted">{{ formatMoney(opt.price) }}</span>
       </button>
     </div>
-    <div v-else-if="loading" class="absolute z-20 w-full mt-1 p-2 text-xs text-gray-400 bg-white border border-gray-200 rounded-lg">
+    <div v-else-if="loading" class="absolute z-20 w-full mt-1 p-2 text-xs text-content-muted bg-surface-card border border-line rounded-xl">
       加载中...
     </div>
   </div>

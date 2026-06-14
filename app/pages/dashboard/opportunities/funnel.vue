@@ -16,7 +16,7 @@ const { getLabel } = useEnum()
 
 const stageColors: Record<string, string> = {
   initial_contact: 'bg-gray-400',
-  requirement_confirmed: 'bg-blue-400',
+  requirement_confirmed: 'bg-brand-400',
   proposal_submitted: 'bg-brand-400',
   business_negotiation: 'bg-orange-400',
   closed_won: 'bg-teal-400',
@@ -73,8 +73,8 @@ onMounted(() => fetchFunnel())
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">销售漏斗</h1>
-        <p class="text-sm text-gray-400 mt-0.5">
+        <h1 class="text-lg font-medium text-content-primary">销售漏斗</h1>
+        <p class="text-sm text-content-muted mt-0.5">
           看看商机在哪个阶段卡住了
         </p>
       </div>
@@ -85,44 +85,44 @@ onMounted(() => fetchFunnel())
 
     <!-- 概要卡片 -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="warm-card flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center">
+      <div class="em-card flex items-center gap-3">
+        <div class="w-9 h-9 rounded-md bg-brand-50 flex items-center justify-center">
           <UIcon name="i-lucide-flag" class="w-5 h-5 text-brand-500" />
         </div>
         <div>
-          <p class="text-lg font-semibold text-gray-800">{{ funnelData.total }}</p>
-          <p class="text-xs text-gray-400">商机总数</p>
+          <p class="text-lg font-semibold text-content-primary">{{ funnelData.total }}</p>
+          <p class="text-xs text-content-muted">商机总数</p>
         </div>
       </div>
-      <div class="warm-card flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center">
+      <div class="em-card flex items-center gap-3">
+        <div class="w-9 h-9 rounded-md bg-teal-50 flex items-center justify-center">
           <UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-teal-500" />
         </div>
         <div>
           <p class="text-lg font-semibold text-teal-600">{{ formatMoney(funnelData.totalAmount) }}</p>
-          <p class="text-xs text-gray-400">总金额</p>
+          <p class="text-xs text-content-muted">总金额</p>
         </div>
       </div>
-      <div class="warm-card flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
-          <UIcon name="i-lucide-trending-up" class="w-5 h-5 text-blue-400" />
+      <div class="em-card flex items-center gap-3">
+        <div class="w-9 h-9 rounded-md bg-brand-50 flex items-center justify-center">
+          <UIcon name="i-lucide-trending-up" class="w-5 h-5 text-brand-400" />
         </div>
         <div>
-          <p class="text-lg font-semibold text-blue-600">{{ Math.round(funnelData.winRate * 100) }}%</p>
-          <p class="text-xs text-gray-400">赢单率</p>
+          <p class="text-lg font-semibold text-brand-600">{{ Math.round(funnelData.winRate * 100) }}%</p>
+          <p class="text-xs text-content-muted">赢单率</p>
         </div>
       </div>
     </div>
 
     <!-- 漏斗图 -->
-    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
-    <div v-else class="warm-card">
-      <h3 class="text-sm font-medium text-gray-700 mb-4">各阶段分布</h3>
+    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-else class="em-card">
+      <h3 class="text-sm font-medium text-content-secondary mb-4">各阶段分布</h3>
       <div class="space-y-3">
         <div
           v-for="(stage, i) in funnelData.stages"
           :key="stage.status"
-          class="flex items-center gap-4 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -mx-2 transition-colors"
+          class="flex items-center gap-4 cursor-pointer hover:bg-surface-hover rounded-md p-2 -mx-2 transition-colors"
           :class="{ 'opacity-50': stage.status === 'closed_lost' }"
           @click="selectStage(stage.status)"
         >
@@ -133,12 +133,12 @@ onMounted(() => fetchFunnel())
 
           <!-- 阶段信息 -->
           <div class="w-24 flex-shrink-0">
-            <p class="text-sm font-medium text-gray-700">{{ getLabel('OpportunityStatus', stage.status) }}</p>
-            <p class="text-xs text-gray-400">{{ stage.count }} 个 · {{ formatMoney(stage.totalAmount) }}</p>
+            <p class="text-sm font-medium text-content-secondary">{{ getLabel('OpportunityStatus', stage.status) }}</p>
+            <p class="text-xs text-content-muted">{{ stage.count }} 个 · {{ formatMoney(stage.totalAmount) }}</p>
           </div>
 
           <!-- 进度条 -->
-          <div class="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+          <div class="flex-1 h-6 bg-surface-hover rounded-full overflow-hidden">
             <div
               :class="[stageColors[stage.status] || 'bg-gray-300', 'h-full rounded-full transition-all flex items-center justify-end pr-2']"
               :style="{ width: funnelData.total > 0 ? Math.max((stage.count / funnelData.total) * 100, 5) + '%' : '0%' }"
@@ -149,7 +149,7 @@ onMounted(() => fetchFunnel())
 
           <!-- 转化率 -->
           <div class="w-12 text-right">
-            <span v-if="i > 0 && funnelData.stages[i - 1].count > 0" class="text-xs text-gray-400">
+            <span v-if="i > 0 && funnelData.stages[i - 1].count > 0" class="text-xs text-content-muted">
               {{ Math.round((stage.count / funnelData.stages[i - 1].count) * 100) }}%
             </span>
           </div>
@@ -158,36 +158,37 @@ onMounted(() => fetchFunnel())
     </div>
 
     <!-- 阶段详情弹窗 -->
-    <UModal v-model:open="stageModalOpen">
-      <template v-if="selectedStage" #header>
-        {{ getLabel('OpportunityStatus', selectedStage) }}阶段的商机
-      </template>
-      <template v-if="selectedStage" #body>
-        <div v-if="stageLoading" class="text-center py-6 text-gray-400">马上就好...</div>
-        <div v-else-if="stageOpportunities.length === 0" class="text-center py-6 text-gray-400">这个阶段还没有商机</div>
+    <CommonFormModal
+      v-if="stageModalOpen"
+      v-model:open="stageModalOpen"
+      :title="selectedStage ? `${getLabel('OpportunityStatus', selectedStage)}阶段的商机` : ''"
+      size="standard"
+      @cancel="closeStageModal"
+    >
+      <template v-if="selectedStage">
+        <div v-if="stageLoading" class="text-center py-6 text-content-muted">马上就好...</div>
+        <div v-else-if="stageOpportunities.length === 0" class="text-center py-6 text-content-muted">这个阶段还没有商机</div>
         <div v-else class="space-y-2">
           <NuxtLink
             v-for="opp in stageOpportunities"
             :key="opp.id"
             :to="`/dashboard/opportunities/${opp.id}`"
-            class="warm-card flex items-center gap-3 !py-3 !px-4 hover:bg-gray-50 transition-colors block"
+            class="em-card flex items-center gap-3 !py-3 !px-4 hover:bg-surface-page transition-colors block"
           >
             <div class="flex-1 min-w-0">
-              <p class="text-sm text-gray-800 truncate">{{ opp.name }}</p>
-              <p class="text-xs text-gray-400 mt-0.5">
+              <p class="text-sm text-content-primary truncate">{{ opp.name }}</p>
+              <p class="text-xs text-content-muted mt-0.5">
                 {{ opp.customer?.name || '-' }}
                 <span v-if="opp.owner?.name" class="ml-2">{{ opp.owner.name }}</span>
               </p>
             </div>
-            <p class="text-sm font-medium text-gray-700">{{ formatMoney(opp.estimatedAmount) }}</p>
+            <p class="text-sm font-medium text-content-secondary">{{ formatMoney(opp.estimatedAmount) }}</p>
           </NuxtLink>
         </div>
       </template>
-      <template v-if="selectedStage" #footer>
-        <div class="flex justify-end">
-          <UButton variant="ghost" color="neutral" @click="closeStageModal">关闭</UButton>
-        </div>
+      <template #footer>
+        <UButton variant="ghost" color="neutral" @click="closeStageModal">关闭</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
   </div>
 </template>

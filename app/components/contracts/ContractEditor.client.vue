@@ -79,7 +79,7 @@ watch(
 </script>
 
 <template>
-  <div class="contract-editor border border-gray-200 rounded-lg overflow-hidden" :class="{ 'opacity-60 pointer-events-none': disabled }">
+  <div class="contract-editor border border-line rounded-xl overflow-hidden" :class="{ 'opacity-60 pointer-events-none': disabled }">
     <template v-if="initReady">
       <DocxEditorComp
         ref="docxEditorRef"
@@ -96,7 +96,7 @@ watch(
         style="min-height: 500px"
       />
     </template>
-    <div v-else class="flex items-center justify-center h-[500px] text-gray-400 text-xs">
+    <div v-else class="flex items-center justify-center h-[500px] text-content-muted text-xs">
       编辑器加载中...
     </div>
   </div>

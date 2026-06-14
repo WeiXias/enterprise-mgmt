@@ -33,7 +33,7 @@ function close() {
 <template>
   <UModal
     :open="open"
-    :ui="{ content: 'sm:max-w-xl rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--color-shadow-elevated)]' }"
+    :ui="{ content: 'sm:max-w-xl rounded-2xl bg-surface-card shadow-elevated' }"
     @update:open="emit('update:open', $event)"
   >
     <template #body>
@@ -41,20 +41,20 @@ function close() {
         <!-- 危险图标 -->
         <div
           v-if="danger"
-          class="w-12 h-12 rounded-xl bg-[var(--color-danger-50)] text-[var(--color-danger-600)] flex items-center justify-center mx-auto mb-4"
+          class="w-12 h-12 rounded-xl bg-danger-50 text-danger-600 flex items-center justify-center mx-auto mb-4"
         >
           <UIcon name="i-lucide-triangle-alert" class="w-6 h-6" />
         </div>
         <!-- 普通图标 -->
         <div
           v-else
-          class="w-12 h-12 rounded-xl bg-[var(--color-brand-50)] text-[var(--color-brand-600)] flex items-center justify-center mx-auto mb-4"
+          class="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4"
         >
           <UIcon name="i-lucide-circle-alert" class="w-6 h-6" />
         </div>
 
-        <h3 class="text-base font-medium text-[var(--color-content-primary)] mb-2">{{ title }}</h3>
-        <p class="text-sm text-[var(--color-content-secondary)] leading-relaxed whitespace-pre-wrap">{{ message }}</p>
+        <h3 class="text-base font-medium text-content-primary mb-2">{{ title }}</h3>
+        <p class="text-sm text-content-secondary leading-relaxed whitespace-pre-wrap">{{ message }}</p>
       </div>
     </template>
 

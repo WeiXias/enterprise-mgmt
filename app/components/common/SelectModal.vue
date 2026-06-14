@@ -42,17 +42,17 @@ defineExpose({ search, selectedId })
 <template>
   <UModal
     :open="open"
-    :ui="{ content: 'sm:max-w-xl rounded-2xl bg-[var(--color-surface-card)] shadow-[var(--color-shadow-elevated)]' }"
+    :ui="{ content: 'sm:max-w-xl rounded-2xl bg-surface-card shadow-elevated' }"
     @update:open="emit('update:open', $event)"
   >
     <!-- 头部 -->
     <template #header="{ close }">
       <div class="flex items-center justify-between w-full">
         <div>
-          <h3 class="text-base font-medium text-[var(--color-content-primary)]">{{ title }}</h3>
-          <p v-if="subtitle" class="text-sm text-[var(--color-content-muted)] mt-0.5">{{ subtitle }}</p>
+          <h3 class="text-base font-medium text-content-primary">{{ title }}</h3>
+          <p v-if="subtitle" class="text-sm text-content-muted mt-0.5">{{ subtitle }}</p>
         </div>
-        <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-lg" @click="close(); emit('update:open', false); emit('cancel')" />
+        <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" class="w-8 h-8 !rounded-md" @click="close" />
       </div>
     </template>
 
@@ -61,7 +61,7 @@ defineExpose({ search, selectedId })
       <!-- 影响提示 -->
       <div
         v-if="impactHint"
-        class="flex items-start gap-2 px-3 py-2 rounded-lg bg-[var(--color-brand-50)] text-sm text-[var(--color-brand-700)] mb-4"
+        class="flex items-start gap-2 px-3 py-2 rounded-md bg-brand-50 text-sm text-brand-700 mb-4"
       >
         <UIcon name="i-lucide-info" class="w-4 h-4 mt-0.5 shrink-0" />
         <span v-html="impactHint" />
@@ -69,12 +69,12 @@ defineExpose({ search, selectedId })
 
       <!-- 搜索 -->
       <div class="relative mb-3">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-content-muted)]" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
         <input
           v-model="search"
           type="text"
           :placeholder="searchPlaceholder"
-          class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-page)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+          class="w-full pl-9 input-base focus-ring bg-surface-page"
         />
       </div>
 
@@ -84,9 +84,9 @@ defineExpose({ search, selectedId })
       </div>
 
       <!-- 空结果提示 -->
-      <div v-if="!$slots.list" class="py-8 text-center text-sm text-[var(--color-content-muted)]">
+      <div v-if="!$slots.list" class="py-8 text-center text-sm text-content-muted">
         <slot name="empty">
-          <UIcon name="i-lucide-search-x" class="w-8 h-8 mx-auto mb-2 text-[var(--color-line)]" />
+          <UIcon name="i-lucide-search-x" class="w-8 h-8 mx-auto mb-2 text-line" />
           {{ emptyHint || '没有找到匹配的选项' }}
         </slot>
       </div>
@@ -96,7 +96,7 @@ defineExpose({ search, selectedId })
         v-if="showReason"
         type="text"
         :placeholder="reasonPlaceholder"
-        class="w-full mt-3 px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-page)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15"
+        class="w-full mt-3 input-base focus-ring bg-surface-page"
       />
     </template>
 

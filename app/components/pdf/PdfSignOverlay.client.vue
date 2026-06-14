@@ -119,7 +119,7 @@ function onDragEnd() {
       <!-- 骑缝章标记 -->
       <span
         v-if="p.type === 'seal_across'"
-        class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-brand-500 bg-white px-1 rounded border border-brand-200 whitespace-nowrap"
+        class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-brand-500 bg-surface-card px-1 rounded border border-brand-200 whitespace-nowrap"
       >
         骑缝章
       </span>

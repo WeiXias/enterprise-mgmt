@@ -42,7 +42,7 @@ const followUpForm = ref({
 
 // 商机状态配置
 const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
-  initial_contact: { label: '初步接触', color: 'bg-gray-100 text-gray-600', dotColor: 'bg-gray-400' },
+  initial_contact: { label: '初步接触', color: 'bg-surface-hover text-content-secondary', dotColor: 'bg-gray-400' },
   requirement_confirmed: { label: '需求确认', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
   proposal_submitted: { label: '方案提交', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
   business_negotiation: { label: '商务谈判', color: 'bg-orange-50 text-orange-600', dotColor: 'bg-orange-400' },
@@ -337,7 +337,7 @@ function getStatusLabel(status: string) {
 }
 
 function getStatusColor(status: string) {
-  return statusConfig[status]?.color || 'bg-gray-100 text-gray-600'
+  return statusConfig[status]?.color || 'bg-surface-hover text-content-secondary'
 }
 
 function canAdvance(status: string) {
@@ -370,7 +370,7 @@ const stageProgress = computed(() => {
   return stageFlow.map((s, i) => ({
     key: s,
     label: statusConfig[s]?.label || s,
-    dotColor: statusConfig[s]?.dotColor || 'bg-[var(--color-line)]',
+    dotColor: statusConfig[s]?.dotColor || 'bg-line',
     isCurrent: s === opp.value.status,
     isCompleted: i < currentIdx || opp.value.status === 'closed_won',
     isLost: opp.value.status === 'closed_lost',
@@ -387,14 +387,14 @@ onMounted(() => {
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-12 text-[var(--color-content-muted)]">加载中...</div>
-    <div v-else-if="!opp" class="text-center py-12 text-[var(--color-content-muted)]">商机不存在</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="!opp" class="text-center py-12 text-content-muted">商机不存在</div>
     <template v-else>
       <!-- 头部 -->
       <div class="mb-6">
         <div class="flex items-center gap-2 mb-2">
           <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/opportunities')" />
-          <h1 class="text-lg font-medium text-[var(--color-content-primary)]">{{ opp.name }}</h1>
+          <h1 class="text-lg font-medium text-content-primary">{{ opp.name }}</h1>
           <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(opp.status)]">
             {{ getStatusLabel(opp.status) }}
           </span>
@@ -412,18 +412,18 @@ onMounted(() => {
       </div>
 
       <!-- 阶段进度条 -->
-      <div v-if="!isClosed" class="warm-card mb-4">
+      <div v-if="!isClosed" class="em-card mb-4">
         <div class="flex items-center gap-1">
           <template v-for="(stage, i) in stageProgress" :key="stage.key">
             <div class="flex items-center gap-1">
               <div
-                :class="['w-2.5 h-2.5 rounded-full transition-colors', stage.isCurrent ? stage.dotColor + ' ring-2 ring-offset-1 ring-[var(--color-brand-400)]' : stage.isCompleted ? 'bg-teal-400' : 'bg-[var(--color-line-light)]']"
+                :class="['w-2.5 h-2.5 rounded-full transition-colors', stage.isCurrent ? stage.dotColor + ' ring-2 ring-offset-1 ring-brand-400' : stage.isCompleted ? 'bg-teal-400' : 'bg-line-light']"
               />
-              <span :class="['text-xs', stage.isCurrent ? 'text-[var(--color-content-primary)] font-medium' : stage.isCompleted ? 'text-teal-600' : 'text-[var(--color-content-muted)]']">
+              <span :class="['text-xs', stage.isCurrent ? 'text-content-primary font-medium' : stage.isCompleted ? 'text-teal-600' : 'text-content-muted']">
                 {{ stage.label }}
               </span>
             </div>
-            <div v-if="i < stageProgress.length - 1" class="flex-1 h-px mx-1" :class="stage.isCompleted ? 'bg-teal-300' : 'bg-[var(--color-line-light)]'" />
+            <div v-if="i < stageProgress.length - 1" class="flex-1 h-px mx-1" :class="stage.isCompleted ? 'bg-teal-300' : 'bg-line-light'" />
           </template>
         </div>
       </div>
@@ -432,45 +432,45 @@ onMounted(() => {
         <!-- 左侧：基本信息 -->
         <div class="lg:col-span-2 space-y-4">
           <!-- 基本信息卡片 -->
-          <div class="warm-card">
-            <h3 class="text-sm font-medium text-[var(--color-content-primary)] mb-3">基本信息</h3>
+          <div class="em-card">
+            <h3 class="text-sm font-medium text-content-primary mb-3">基本信息</h3>
             <div class="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span class="text-[var(--color-content-muted)]">预估金额</span>
-                <p class="text-[var(--color-content-primary)] font-medium">{{ formatAmount(opp.estimatedAmount) }}</p>
+                <span class="text-content-muted">预估金额</span>
+                <p class="text-content-primary font-medium">{{ formatAmount(opp.estimatedAmount) }}</p>
               </div>
               <div>
-                <span class="text-[var(--color-content-muted)]">预计成交日期</span>
-                <p class="text-[var(--color-content-primary)]">{{ formatDate(opp.estimatedCloseDate) }}</p>
+                <span class="text-content-muted">预计成交日期</span>
+                <p class="text-content-primary">{{ formatDate(opp.estimatedCloseDate) }}</p>
               </div>
               <div>
-                <span class="text-[var(--color-content-muted)]">来源</span>
-                <p class="text-[var(--color-content-primary)]">{{ opp.source || '-' }}</p>
+                <span class="text-content-muted">来源</span>
+                <p class="text-content-primary">{{ opp.source || '-' }}</p>
               </div>
               <div>
-                <span class="text-[var(--color-content-muted)]">竞争对手</span>
-                <p class="text-[var(--color-content-primary)]">{{ opp.competitor || '-' }}</p>
+                <span class="text-content-muted">竞争对手</span>
+                <p class="text-content-primary">{{ opp.competitor || '-' }}</p>
               </div>
               <div v-if="opp.lostReason" class="col-span-2">
-                <span class="text-[var(--color-content-muted)]">输单原因</span>
-                <p class="text-[var(--color-danger-600)]">{{ opp.lostReason }}</p>
+                <span class="text-content-muted">输单原因</span>
+                <p class="text-danger-600">{{ opp.lostReason }}</p>
               </div>
             </div>
           </div>
 
           <!-- 关联产品 -->
-          <div class="warm-card">
+          <div class="em-card">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-medium text-[var(--color-content-primary)]">关联产品</h3>
+              <h3 class="text-sm font-medium text-content-primary">关联产品</h3>
               <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="openProductModal">添加</UButton>
             </div>
-            <div v-if="!opp.products || opp.products.length === 0" class="text-xs text-[var(--color-content-muted)] text-center py-4">
+            <div v-if="!opp.products || opp.products.length === 0" class="text-xs text-content-muted text-center py-4">
               还没有关联产品
             </div>
             <div v-else class="space-y-2">
-              <div v-for="p in opp.products" :key="p.id" class="flex items-center justify-between text-sm py-2 border-b border-[var(--color-line-light)] last:border-0">
-                <span class="text-[var(--color-content-primary)]">{{ p.productName || '未知产品' }}</span>
-                <div class="flex items-center gap-3 text-xs text-[var(--color-content-muted)]">
+              <div v-for="p in opp.products" :key="p.id" class="flex items-center justify-between text-sm py-2 border-b border-line-light last:border-0">
+                <span class="text-content-primary">{{ p.productName || '未知产品' }}</span>
+                <div class="flex items-center gap-3 text-xs text-content-muted">
                   <span>× {{ p.quantity }}</span>
                   <span>¥{{ Number(p.unitPrice).toLocaleString() }}</span>
                   <span v-if="p.discount < 1" class="text-brand-600">{{ (p.discount * 100).toFixed(0) }}折</span>
@@ -480,47 +480,47 @@ onMounted(() => {
           </div>
 
           <!-- 报价记录 -->
-          <div class="warm-card">
+          <div class="em-card">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-medium text-[var(--color-content-primary)]">报价记录</h3>
+              <h3 class="text-sm font-medium text-content-primary">报价记录</h3>
               <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="openQuoteModal">新建报价</UButton>
             </div>
-            <div v-if="!opp.quotes || opp.quotes.length === 0" class="text-xs text-[var(--color-content-muted)] text-center py-4">
+            <div v-if="!opp.quotes || opp.quotes.length === 0" class="text-xs text-content-muted text-center py-4">
               还没有报价
             </div>
             <div v-else class="space-y-4">
-              <div v-for="q in opp.quotes" :key="q.id" class="border border-[var(--color-line)] rounded-lg p-4 hover:border-[var(--color-brand-200)] transition-colors">
+              <div v-for="q in opp.quotes" :key="q.id" class="border border-line rounded-xl p-4 hover:border-brand-200 transition-colors">
                 <div class="flex items-start justify-between mb-3">
                   <div>
                     <div class="flex items-center gap-2">
-                      <span class="text-sm font-medium text-[var(--color-content-primary)]">{{ q.name || '报价单' }}</span>
+                      <span class="text-sm font-medium text-content-primary">{{ q.name || '报价单' }}</span>
                       <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', {
-                        'bg-[var(--color-line-light)] text-[var(--color-content-muted)]': q.status === 'draft',
+                        'bg-line-light text-content-muted': q.status === 'draft',
                         'bg-brand-50 text-brand-700': q.status === 'sent',
                         'bg-teal-50 text-teal-600': q.status === 'accepted',
-                        'bg-red-50 text-[var(--color-danger-600)]': q.status === 'rejected',
+                        'bg-red-50 text-danger-600': q.status === 'rejected',
                       }]">{{ { draft: '草稿', sent: '已发送', accepted: '已接受', rejected: '已拒绝' }[q.status as string] || q.status }}</span>
                     </div>
-                    <div class="flex items-center gap-3 text-xs text-[var(--color-content-muted)] mt-1">
+                    <div class="flex items-center gap-3 text-xs text-content-muted mt-1">
                       <span v-if="q.quoteNo">编号：{{ q.quoteNo }}</span>
                       <span>创建于 {{ (q.createdAt || '').slice(0, 10) }}</span>
                       <span v-if="q.validUntil">有效期至 {{ q.validUntil.slice(0, 10) }}</span>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-sm font-semibold text-[var(--color-content-primary)]">{{ formatAmount(q.totalAmount) }}</p>
-                    <p v-if="q.finalAmount && q.finalAmount !== q.totalAmount" class="text-xs text-[var(--color-content-muted)] line-through">{{ formatAmount(q.totalAmount) }}</p>
+                    <p class="text-sm font-semibold text-content-primary">{{ formatAmount(q.totalAmount) }}</p>
+                    <p v-if="q.finalAmount && q.finalAmount !== q.totalAmount" class="text-xs text-content-muted line-through">{{ formatAmount(q.totalAmount) }}</p>
                     <p v-if="q.finalAmount && q.finalAmount !== q.totalAmount" class="text-xs text-teal-600">{{ formatAmount(q.finalAmount) }}</p>
                   </div>
                 </div>
                 <!-- 产品明细摘要 -->
-                <div v-if="q.items && q.items.length" class="border-t border-[var(--color-line-light)] pt-2 mt-2">
-                  <table class="w-full text-xs"><thead><tr class="text-[var(--color-content-muted)]"><th class="text-left py-1 font-normal">产品</th><th class="text-right py-1 font-normal w-12">数量</th><th class="text-right py-1 font-normal w-16">单价</th><th class="text-right py-1 font-normal w-16">金额</th></tr></thead>
-                    <tbody><tr v-for="item in q.items" :key="item.productId"><td class="py-1 text-[var(--color-content-primary)]">{{ item.productName }}</td><td class="py-1 text-right text-[var(--color-content-secondary)]">{{ item.quantity }}</td><td class="py-1 text-right text-[var(--color-content-secondary)]">{{ formatAmount(item.unitPrice) }}</td><td class="py-1 text-right text-[var(--color-content-primary)]">{{ formatAmount(item.quantity * item.unitPrice * (item.discount || 1)) }}</td></tr></tbody>
+                <div v-if="q.items && q.items.length" class="border-t border-line-light pt-2 mt-2">
+                  <table class="w-full text-xs"><thead><tr class="text-content-muted"><th class="text-left py-1 font-normal">产品</th><th class="text-right py-1 font-normal w-12">数量</th><th class="text-right py-1 font-normal w-16">单价</th><th class="text-right py-1 font-normal w-16">金额</th></tr></thead>
+                    <tbody><tr v-for="item in q.items" :key="item.productId"><td class="py-1 text-content-primary">{{ item.productName }}</td><td class="py-1 text-right text-content-secondary">{{ item.quantity }}</td><td class="py-1 text-right text-content-secondary">{{ formatAmount(item.unitPrice) }}</td><td class="py-1 text-right text-content-primary">{{ formatAmount(item.quantity * item.unitPrice * (item.discount || 1)) }}</td></tr></tbody>
                   </table>
                 </div>
                 <!-- 操作 -->
-                <div class="flex items-center gap-1 mt-3 pt-2 border-t border-[var(--color-line-light)]">
+                <div class="flex items-center gap-1 mt-3 pt-2 border-t border-line-light">
                   <UButton v-if="q.status === 'draft'" size="xs" variant="ghost" color="info" icon="i-lucide-send" @click="openSendModal(q)">发送报价</UButton>
                   <UButton v-if="q.status === 'sent'" size="xs" variant="ghost" color="success" icon="i-lucide-check" @click="handleQuoteStatus(q.id, 'accepted')">接受</UButton>
                   <UButton v-if="q.status === 'sent'" size="xs" variant="ghost" color="error" icon="i-lucide-x" @click="handleQuoteStatus(q.id, 'rejected')">拒绝</UButton>
@@ -533,7 +533,7 @@ onMounted(() => {
           </div>
 
           <!-- 跟进记录 -->
-          <div class="warm-card">
+          <div class="em-card">
             <CommonFollowUpList :items="opp.followUps || []" :show-add-button="!isClosed" @add="showFollowUpModal = true" />
           </div>
         </div>
@@ -541,40 +541,40 @@ onMounted(() => {
         <!-- 右侧：关联信息 -->
         <div class="space-y-4">
           <!-- 客户信息 -->
-          <div class="warm-card">
-            <h3 class="text-sm font-medium text-[var(--color-content-primary)] mb-3">关联客户</h3>
+          <div class="em-card">
+            <h3 class="text-sm font-medium text-content-primary mb-3">关联客户</h3>
             <div v-if="opp.customer">
               <NuxtLink :to="`/dashboard/customers/${opp.customer.id}`" class="flex items-center gap-2 text-sm text-brand-600 hover:underline">
                 <UIcon name="i-lucide-building-2" class="w-4 h-4" />
                 {{ opp.customer.name }}
               </NuxtLink>
             </div>
-            <p v-else class="text-xs text-[var(--color-content-muted)]">未关联客户</p>
+            <p v-else class="text-xs text-content-muted">未关联客户</p>
           </div>
 
           <!-- 负责人 -->
-          <div class="warm-card">
-            <h3 class="text-sm font-medium text-[var(--color-content-primary)] mb-3">负责人</h3>
+          <div class="em-card">
+            <h3 class="text-sm font-medium text-content-primary mb-3">负责人</h3>
             <div v-if="opp.owner" class="flex items-center gap-2 text-sm">
               <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 text-xs font-medium">
                 {{ opp.owner.name?.charAt(0) }}
               </div>
-              <span class="text-[var(--color-content-primary)]">{{ opp.owner.name }}</span>
+              <span class="text-content-primary">{{ opp.owner.name }}</span>
             </div>
-            <p v-else class="text-xs text-[var(--color-content-muted)]">未指定</p>
+            <p v-else class="text-xs text-content-muted">未指定</p>
           </div>
 
           <!-- 时间线 -->
-          <div class="warm-card">
-            <h3 class="text-sm font-medium text-[var(--color-content-primary)] mb-3">时间线</h3>
-            <div class="space-y-2 text-xs text-[var(--color-content-muted)]">
+          <div class="em-card">
+            <h3 class="text-sm font-medium text-content-primary mb-3">时间线</h3>
+            <div class="space-y-2 text-xs text-content-muted">
               <div class="flex justify-between">
                 <span>创建时间</span>
-                <span class="text-[var(--color-content-secondary)]">{{ opp.createdAt?.slice(0, 16)?.replace('T', ' ') }}</span>
+                <span class="text-content-secondary">{{ opp.createdAt?.slice(0, 16)?.replace('T', ' ') }}</span>
               </div>
               <div class="flex justify-between">
                 <span>更新时间</span>
-                <span class="text-[var(--color-content-secondary)]">{{ opp.updatedAt?.slice(0, 16)?.replace('T', ' ') }}</span>
+                <span class="text-content-secondary">{{ opp.updatedAt?.slice(0, 16)?.replace('T', ' ') }}</span>
               </div>
             </div>
           </div>
@@ -584,7 +584,8 @@ onMounted(() => {
 
     <!-- 编辑弹窗 -->
     <CommonFormModal
-      v-model="showEditModal"
+      v-if="showEditModal"
+      v-model:open="showEditModal"
       title="编辑商机"
       size="standard"
       :loading="editLoading"
@@ -592,42 +593,39 @@ onMounted(() => {
     >
       <template #default>
         <form class="space-y-4" @submit.prevent="handleEdit">
-          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
             <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-              <span class="text-sm font-medium text-[var(--color-brand-700)]">基本信息</span>
+              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+              <span class="text-sm font-medium text-brand-700">基本信息</span>
             </div>
-            <div class="form-group mb-3">
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">商机名称 <span class="text-[var(--color-danger-600)]">*</span></label>
-              <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <div class="mb-3">
+              <label class="block text-sm text-content-secondary mb-1">商机名称 <span class="text-danger-600">*</span></label>
+              <input v-model="editForm.name" type="text" class="w-full input-base focus-ring" />
             </div>
             <div class="grid grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预估金额</label>
-                <input v-model.number="editForm.estimatedAmount" type="number" min="0" step="0.01" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              <div class="mb-4">
+                <label class="block text-sm text-content-secondary mb-1">预估金额</label>
+                <input v-model.number="editForm.estimatedAmount" type="number" min="0" step="0.01" class="w-full input-base focus-ring" />
               </div>
-              <div class="form-group">
-                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">预计成交日期</label>
-                <input v-model="editForm.estimatedCloseDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              <div class="mb-4">
+                <label class="block text-sm text-content-secondary mb-1">预计成交日期</label>
+                <input v-model="editForm.estimatedCloseDate" type="date" class="w-full input-base focus-ring" />
               </div>
             </div>
           </div>
-          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
             <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-              <span class="text-sm font-medium text-[var(--color-brand-700)]">补充信息</span>
+              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+              <span class="text-sm font-medium text-brand-700">补充信息</span>
             </div>
             <div class="grid grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">来源</label>
-                <select v-model="editForm.source" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]">
-                  <option value="">选择来源</option>
-                  <option v-for="s in sourceOptions" :key="s" :value="s">{{ s }}</option>
-                </select>
+              <div class="mb-4">
+                <label class="block text-sm text-content-secondary mb-1">来源</label>
+                <EnumSelect v-model="editForm.source" :options="sourceOptions" placeholder="选择来源" />
               </div>
-              <div class="form-group">
-                <label class="block text-sm text-[var(--color-content-secondary)] mb-1">竞争对手</label>
-                <input v-model="editForm.competitor" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+              <div class="mb-4">
+                <label class="block text-sm text-content-secondary mb-1">竞争对手</label>
+                <input v-model="editForm.competitor" type="text" class="w-full input-base focus-ring" />
               </div>
             </div>
           </div>
@@ -641,6 +639,7 @@ onMounted(() => {
 
     <!-- 删除确认弹窗 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除商机「${opp?.name}」吗？删了就找不回来。`"
@@ -653,7 +652,8 @@ onMounted(() => {
 
     <!-- 赢单确认弹窗 -->
     <CommonFormModal
-      v-model="showWinModal"
+      v-if="showWinModal"
+      v-model:open="showWinModal"
       title="确认赢单"
       :subtitle="`确定将商机「${opp?.name}」标记为赢单？`"
       size="compact"
@@ -661,8 +661,8 @@ onMounted(() => {
       @confirm="handleWin"
     >
       <template #default>
-        <label class="flex items-center gap-2 text-sm text-[var(--color-content-secondary)]">
-          <input v-model="winGenerateContract" type="checkbox" class="rounded border-[var(--color-line)]" />
+        <label class="flex items-center gap-2 text-sm text-content-secondary">
+          <input v-model="winGenerateContract" type="checkbox" class="rounded border-line" />
           同时生成合同草稿
         </label>
       </template>
@@ -674,7 +674,8 @@ onMounted(() => {
 
     <!-- 输单确认弹窗 -->
     <CommonFormModal
-      v-model="showLoseModal"
+      v-if="showLoseModal"
+      v-model:open="showLoseModal"
       title="确认输单"
       :subtitle="`将商机「${opp?.name}」标记为输单`"
       size="compact"
@@ -683,9 +684,9 @@ onMounted(() => {
       @cancel="loseReason = ''"
     >
       <template #default>
-        <div class="form-group">
-          <label class="block text-sm text-[var(--color-content-secondary)] mb-1">输单原因 <span class="text-[var(--color-danger-600)]">*</span></label>
-          <textarea v-model="loseReason" rows="3" placeholder="分析一下为什么输了..." class="w-full px-3 py-2 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15 resize-none" />
+        <div class="mb-4">
+          <label class="block text-sm text-content-secondary mb-1">输单原因 <span class="text-danger-600">*</span></label>
+          <textarea v-model="loseReason" rows="3" placeholder="分析一下为什么输了..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
         </div>
       </template>
       <template #footer>
@@ -696,7 +697,8 @@ onMounted(() => {
 
     <!-- 跟进记录弹窗 -->
     <CommonFormModal
-      v-model="showFollowUpModal"
+      v-if="showFollowUpModal"
+      v-model:open="showFollowUpModal"
       title="添加跟进"
       size="standard"
       :loading="followUpLoading"
@@ -713,7 +715,8 @@ onMounted(() => {
 
     <!-- 新建报价弹窗 -->
     <CommonFormModal
-      v-model="showQuoteModal"
+      v-if="showQuoteModal"
+      v-model:open="showQuoteModal"
       title="新建报价"
       size="spacious"
       :loading="quoteLoading"
@@ -721,37 +724,37 @@ onMounted(() => {
     >
       <template #default>
         <form class="space-y-4" @submit.prevent="handleCreateQuote">
-          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
             <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-              <span class="text-sm font-medium text-[var(--color-brand-700)]">报价信息</span>
+              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+              <span class="text-sm font-medium text-brand-700">报价信息</span>
             </div>
-            <div class="form-group mb-3">
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">报价名称 <span class="text-[var(--color-danger-600)]">*</span></label>
-              <input v-model="quoteForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+            <div class="mb-3">
+              <label class="block text-sm text-content-secondary mb-1">报价名称 <span class="text-danger-600">*</span></label>
+              <input v-model="quoteForm.name" type="text" class="w-full input-base focus-ring" />
             </div>
-            <div class="form-group">
-              <label class="block text-sm text-[var(--color-content-secondary)] mb-1">有效期</label>
+            <div class="mb-4">
+              <label class="block text-sm text-content-secondary mb-1">有效期</label>
               <div class="flex gap-2 items-center">
-                <button type="button" :class="['px-3 py-1 text-xs rounded-full', quoteValidMonth === '1' ? 'bg-brand-100 text-brand-700' : 'bg-[var(--color-line-light)] text-[var(--color-content-muted)]']" @click="setValidUntil('1')">1 个月</button>
-                <button type="button" :class="['px-3 py-1 text-xs rounded-full', quoteValidMonth === '3' ? 'bg-brand-100 text-brand-700' : 'bg-[var(--color-line-light)] text-[var(--color-content-muted)]']" @click="setValidUntil('3')">3 个月</button>
-                <button type="button" :class="['px-3 py-1 text-xs rounded-full', quoteValidMonth === 'custom' ? 'bg-brand-100 text-brand-700' : 'bg-[var(--color-line-light)] text-[var(--color-content-muted)]']" @click="setValidUntil('custom')">自选</button>
-                <input v-if="quoteValidMonth === 'custom'" v-model="quoteForm.validUntil" type="date" class="flex-1 px-2 py-1 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)]" />
+                <button type="button" :class="['px-3 py-1 text-xs rounded-full', quoteValidMonth === '1' ? 'bg-brand-100 text-brand-700' : 'bg-line-light text-content-muted']" @click="setValidUntil('1')">1 个月</button>
+                <button type="button" :class="['px-3 py-1 text-xs rounded-full', quoteValidMonth === '3' ? 'bg-brand-100 text-brand-700' : 'bg-line-light text-content-muted']" @click="setValidUntil('3')">3 个月</button>
+                <button type="button" :class="['px-3 py-1 text-xs rounded-full', quoteValidMonth === 'custom' ? 'bg-brand-100 text-brand-700' : 'bg-line-light text-content-muted']" @click="setValidUntil('custom')">自选</button>
+                <input v-if="quoteValidMonth === 'custom'" v-model="quoteForm.validUntil" type="date" class="flex-1 px-2 py-1 text-sm rounded-md border border-line bg-surface-card focus-ring" />
               </div>
             </div>
           </div>
-          <div class="rounded-xl border border-[var(--color-line-light)] bg-[var(--color-line-light)]/40 p-4">
+          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-1.5">
-                <span class="w-0.5 h-3.5 rounded-full bg-[var(--color-brand-400)]" />
-                <span class="text-sm font-medium text-[var(--color-brand-700)]">产品明细</span>
+                <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
+                <span class="text-sm font-medium text-brand-700">产品明细</span>
               </div>
               <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="quoteForm.items.push({ productId: '', quantity: 1, unitPrice: 0, discount: 100 })">添加</UButton>
             </div>
-            <div v-if="!quoteForm.items.length" class="text-xs text-[var(--color-content-muted)] py-2">还没有添加产品</div>
+            <div v-if="!quoteForm.items.length" class="text-xs text-content-muted py-2">还没有添加产品</div>
             <div v-else class="space-y-1.5">
               <!-- 表头 -->
-              <div class="flex items-center gap-1.5 text-[10px] text-[var(--color-content-muted)] font-medium pb-1">
+              <div class="flex items-center gap-1.5 text-[10px] text-content-muted font-medium pb-1">
                 <div class="flex-1">产品</div>
                 <div class="w-16 text-center">列表价</div>
                 <div class="w-12 text-center">折扣%</div>
@@ -761,18 +764,18 @@ onMounted(() => {
                 <div class="w-6" />
               </div>
               <div v-for="(item, i) in quoteForm.items" :key="i" class="flex items-center gap-1.5 text-xs">
-                <select v-model="item.productId" class="flex-1 px-1.5 py-1.5 rounded border border-[var(--color-line)] text-xs bg-[var(--color-surface-card)]" @change="onQuoteProductChange(item)"><option value="">选产品</option><option v-for="p in productOptions" :key="p.id" :value="p.id">{{ p.name }}</option></select>
-                <span class="w-16 text-center text-[var(--color-content-muted)]">{{ item.listPrice != null ? '¥' + item.listPrice.toLocaleString() : '-' }}</span>
-                <input v-model.number="item.discount" type="number" min="0" max="100" class="w-12 px-1 py-1.5 text-center rounded border border-[var(--color-line)] text-xs" />
+                <ProductSelect v-model="item.productId" placeholder="选产品" @select="(prod: { id: string; name: string; code: string; price: number }) => { if (prod) { item.productName = prod.name; item.listPrice = prod.price } }" />
+                <span class="w-16 text-center text-content-muted">{{ item.listPrice != null ? '¥' + item.listPrice.toLocaleString() : '-' }}</span>
+                <input v-model.number="item.discount" type="number" min="0" max="100" class="w-12 px-1 py-1.5 text-center rounded border border-line text-xs" />
                 <span class="w-16 text-right text-brand-700 font-medium">{{ '¥' + ((item.listPrice || 0) * ((item.discount ?? 100) / 100)).toLocaleString() }}</span>
-                <input v-model.number="item.quantity" type="number" min="1" class="w-10 px-1 py-1.5 text-center rounded border border-[var(--color-line)] text-xs" />
-                <span class="w-20 text-right text-[var(--color-content-primary)] flex-shrink-0">¥{{ ((item.quantity || 0) * (item.listPrice || 0) * ((item.discount ?? 100) / 100)).toLocaleString() }}</span>
+                <input v-model.number="item.quantity" type="number" min="1" class="w-10 px-1 py-1.5 text-center rounded border border-line text-xs" />
+                <span class="w-20 text-right text-content-primary flex-shrink-0">¥{{ ((item.quantity || 0) * (item.listPrice || 0) * ((item.discount ?? 100) / 100)).toLocaleString() }}</span>
                 <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" class="w-6" @click="quoteForm.items.splice(i, 1)" />
               </div>
               <!-- 汇总 -->
-              <div class="flex justify-end border-t border-[var(--color-line-light)] pt-2 mt-1 text-sm">
-                <span class="text-[var(--color-content-secondary)] mr-2">合计</span>
-                <span class="font-semibold text-[var(--color-content-primary)]">¥{{ quoteForm.items.reduce((s: number, it: any) => s + (it.quantity || 0) * (it.listPrice || 0) * ((it.discount ?? 100) / 100), 0).toLocaleString() }}</span>
+              <div class="flex justify-end border-t border-line-light pt-2 mt-1 text-sm">
+                <span class="text-content-secondary mr-2">合计</span>
+                <span class="font-semibold text-content-primary">¥{{ quoteForm.items.reduce((s: number, it: any) => s + (it.quantity || 0) * (it.listPrice || 0) * ((it.discount ?? 100) / 100), 0).toLocaleString() }}</span>
               </div>
             </div>
           </div>
@@ -786,7 +789,8 @@ onMounted(() => {
 
     <!-- 关联产品弹窗 -->
     <CommonFormModal
-      v-model="showProductModal"
+      v-if="showProductModal"
+      v-model:open="showProductModal"
       title="关联产品"
       size="standard"
       :loading="productLoading"
@@ -794,12 +798,12 @@ onMounted(() => {
     >
       <template #default>
         <div class="space-y-3">
-          <div class="flex items-center justify-between mb-2"><span class="text-xs text-[var(--color-content-muted)]">产品明细</span><UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addProductRow">添加</UButton></div>
-          <div v-if="!selectedProducts.length" class="text-xs text-[var(--color-content-muted)] py-2">还没有关联产品</div>
+          <div class="flex items-center justify-between mb-2"><span class="text-xs text-content-muted">产品明细</span><UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addProductRow">添加</UButton></div>
+          <div v-if="!selectedProducts.length" class="text-xs text-content-muted py-2">还没有关联产品</div>
           <div v-else class="space-y-2">
             <div v-for="(sp, i) in selectedProducts" :key="i" class="flex items-center gap-2 text-xs">
-              <select v-model="sp.productId" class="flex-1 px-2 py-1 rounded border border-[var(--color-line)] text-xs bg-[var(--color-surface-card)]" @change="const p = allProducts.find((o: any) => o.id === sp.productId); if (p) sp.unitPrice = p.standardPrice || p.price || 0"><option value="">选产品</option><option v-for="p in allProducts" :key="p.id" :value="p.id">{{ p.name }}</option></select>
-              <input v-model.number="sp.quantity" type="number" min="1" class="w-14 px-1 py-1 text-center rounded border border-[var(--color-line)] text-xs" />
+              <ProductSelect v-model="sp.productId" placeholder="选产品" @select="(prod: { id: string; name: string; code: string; price: number }) => { if (prod) sp.unitPrice = prod.price }" />
+              <input v-model.number="sp.quantity" type="number" min="1" class="w-14 px-1 py-1 text-center rounded border border-line text-xs" />
               <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeProductRow(i)" />
             </div>
           </div>
@@ -812,35 +816,38 @@ onMounted(() => {
     </CommonFormModal>
 
     <!-- 报价预览弹窗 -->
-    <UModal v-model:open="showPreviewModal" :ui="{ content: 'max-w-3xl' }">
-      <template #header>报价单预览</template>
-      <template #body>
-        <div v-if="previewLoading" class="text-center py-8 text-[var(--color-content-muted)]">加载中...</div>
-        <div v-else-if="!previewQuote" class="text-center py-8 text-[var(--color-content-muted)]">加载失败</div>
-        <div v-else class="space-y-4" id="quote-preview-print-area">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-base font-medium text-[var(--color-content-primary)]">{{ previewQuote.name || '报价单' }}</h3>
-              <p class="text-xs text-[var(--color-content-muted)] mt-0.5">编号：{{ previewQuote.quoteNo || '-' }} · 状态：{{ ({ draft: '草稿', sent: '已发送', accepted: '已接受', rejected: '已拒绝' } as Record<string, string>)[previewQuote.status as string] || previewQuote.status }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-lg font-semibold text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</p>
-              <p v-if="previewQuote.validUntil" class="text-xs text-[var(--color-content-muted)]">有效期至 {{ (previewQuote.validUntil || '').slice(0, 10) }}</p>
-            </div>
+    <CommonFormModal
+      v-if="showPreviewModal"
+      v-model:open="showPreviewModal"
+      title="报价单预览"
+      size="spacious"
+      @cancel="showPreviewModal = false"
+    >
+      <div v-if="previewLoading" class="text-center py-8 text-content-muted">加载中...</div>
+      <div v-else-if="!previewQuote" class="text-center py-8 text-content-muted">加载失败</div>
+      <div v-else class="space-y-4" id="quote-preview-print-area">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-medium text-content-primary">{{ previewQuote.name || '报价单' }}</h3>
+            <p class="text-xs text-content-muted mt-0.5">编号：{{ previewQuote.quoteNo || '-' }} · 状态：{{ ({ draft: '草稿', sent: '已发送', accepted: '已接受', rejected: '已拒绝' } as Record<string, string>)[previewQuote.status as string] || previewQuote.status }}</p>
           </div>
-          <table class="w-full text-sm border-collapse">
-            <thead><tr class="bg-[var(--color-line-light)]"><th class="py-2 px-3 text-left text-xs font-normal text-[var(--color-content-muted)]">产品</th><th class="py-2 px-3 text-right text-xs font-normal text-[var(--color-content-muted)] w-12">数量</th><th class="py-2 px-3 text-right text-xs font-normal text-[var(--color-content-muted)] w-20">单价</th><th class="py-2 px-3 text-right text-xs font-normal text-[var(--color-content-muted)] w-20">折扣</th><th class="py-2 px-3 text-right text-xs font-normal text-[var(--color-content-muted)] w-24">小计</th></tr></thead>
-            <tbody><tr v-for="item in (previewQuote.items || [])" :key="item.productId" class="border-b border-[var(--color-line-light)]"><td class="py-2 px-3 text-[var(--color-content-primary)]">{{ item.productName }}</td><td class="py-2 px-3 text-right text-[var(--color-content-secondary)]">{{ item.quantity }}</td><td class="py-2 px-3 text-right text-[var(--color-content-secondary)]">{{ formatAmount(item.unitPrice) }}</td><td class="py-2 px-3 text-right text-[var(--color-content-secondary)]">{{ item.discount ? (item.discount * 100).toFixed(0) + '%' : '-' }}</td><td class="py-2 px-3 text-right text-[var(--color-content-primary)]">{{ formatAmount((item.quantity || 0) * (item.unitPrice || 0)) }}</td></tr></tbody>
-          </table>
-          <div class="flex justify-end border-t border-[var(--color-line-light)] pt-3">
-            <span class="text-base font-medium text-[var(--color-content-primary)] mr-2">合计</span>
-            <span class="text-base font-semibold text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</span>
+          <div class="text-right">
+            <p class="text-lg font-semibold text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</p>
+            <p v-if="previewQuote.validUntil" class="text-xs text-content-muted">有效期至 {{ (previewQuote.validUntil || '').slice(0, 10) }}</p>
           </div>
         </div>
-      </template>
+        <table class="w-full text-sm border-collapse">
+          <thead><tr class="bg-line-light"><th class="py-2 px-3 text-left text-xs font-normal text-content-muted">产品</th><th class="py-2 px-3 text-right text-xs font-normal text-content-muted w-12">数量</th><th class="py-2 px-3 text-right text-xs font-normal text-content-muted w-20">单价</th><th class="py-2 px-3 text-right text-xs font-normal text-content-muted w-20">折扣</th><th class="py-2 px-3 text-right text-xs font-normal text-content-muted w-24">小计</th></tr></thead>
+          <tbody><tr v-for="item in (previewQuote.items || [])" :key="item.productId" class="border-b border-line-light"><td class="py-2 px-3 text-content-primary">{{ item.productName }}</td><td class="py-2 px-3 text-right text-content-secondary">{{ item.quantity }}</td><td class="py-2 px-3 text-right text-content-secondary">{{ formatAmount(item.unitPrice) }}</td><td class="py-2 px-3 text-right text-content-secondary">{{ item.discount ? (item.discount * 100).toFixed(0) + '%' : '-' }}</td><td class="py-2 px-3 text-right text-content-primary">{{ formatAmount((item.quantity || 0) * (item.unitPrice || 0)) }}</td></tr></tbody>
+        </table>
+        <div class="flex justify-end border-t border-line-light pt-3">
+          <span class="text-base font-medium text-content-primary mr-2">合计</span>
+          <span class="text-base font-semibold text-brand-700">{{ formatAmount(previewQuote.finalAmount || previewQuote.totalAmount) }}</span>
+        </div>
+      </div>
       <template #footer>
         <div class="flex justify-between items-center w-full">
-          <span class="text-xs text-[var(--color-content-muted)]">生成时间：{{ nowRef }}</span>
+          <span class="text-xs text-content-muted">生成时间：{{ nowRef }}</span>
           <div class="flex gap-2">
             <UButton v-if="previewQuote?.pdfUrl" variant="outline" color="neutral" size="sm" icon="i-lucide-download" @click="openPdf(previewQuote.pdfUrl)">下载 PDF</UButton>
             <UButton variant="outline" color="neutral" size="sm" icon="i-lucide-printer" @click="handlePrint">打印</UButton>
@@ -848,11 +855,12 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 发送报价弹窗 -->
     <CommonFormModal
-      v-model="showSendModal"
+      v-if="showSendModal"
+      v-model:open="showSendModal"
       title="发送报价"
       subtitle="报价函将以 PDF 附件发送，状态变更为「已发送」"
       size="compact"
@@ -861,13 +869,13 @@ onMounted(() => {
     >
       <template #default>
         <form class="space-y-3" @submit.prevent="handleSendQuote(null as any)">
-          <div class="form-group">
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">收件人邮箱 <span class="text-[var(--color-danger-600)]">*</span></label>
-            <input v-model="sendForm.to" type="email" placeholder="customer@example.com" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <div class="mb-4">
+            <label class="block text-sm text-content-secondary mb-1">收件人邮箱 <span class="text-danger-600">*</span></label>
+            <input v-model="sendForm.to" type="email" placeholder="customer@example.com" class="w-full input-base focus-ring" />
           </div>
-          <div class="form-group">
-            <label class="block text-sm text-[var(--color-content-secondary)] mb-1">邮件主题</label>
-            <input v-model="sendForm.subject" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-[var(--color-line)] bg-[var(--color-surface-card)] focus:outline-none focus:border-[var(--color-brand-400)] focus:ring-2 focus:ring-[var(--color-brand-400)]/15" />
+          <div class="mb-4">
+            <label class="block text-sm text-content-secondary mb-1">邮件主题</label>
+            <input v-model="sendForm.subject" type="text" class="w-full input-base focus-ring" />
           </div>
         </form>
       </template>

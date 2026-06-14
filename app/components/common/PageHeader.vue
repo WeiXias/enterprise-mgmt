@@ -26,8 +26,8 @@ const router = useRouter()
           @click="router.back()"
         />
         <div>
-          <h1 class="text-lg font-medium text-gray-800">{{ title }}</h1>
-          <p v-if="description" class="text-sm text-gray-400 mt-0.5">{{ description }}</p>
+          <h1 class="text-lg font-medium text-content-primary">{{ title }}</h1>
+          <p v-if="description" class="text-sm text-content-muted mt-0.5">{{ description }}</p>
         </div>
       </div>
       <div v-if="$slots.actions">

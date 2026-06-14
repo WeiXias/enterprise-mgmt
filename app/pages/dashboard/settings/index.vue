@@ -791,20 +791,20 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-lg font-medium text-stone-800">系统设置</h1>
-      <p class="text-sm text-stone-400 mt-0.5">配置系统参数</p>
+      <h1 class="text-lg font-medium text-content-primary">系统设置</h1>
+      <p class="text-sm text-content-muted mt-0.5">配置系统参数</p>
     </div>
 
     <!-- 设置内容左右分栏 -->
     <div class="flex gap-6">
       <!-- 左侧竖排导航 -->
       <nav class="w-40 shrink-0">
-        <p class="text-[11px] font-medium text-stone-400 uppercase tracking-wide mb-2 px-3">设置分类</p>
+        <p class="text-[11px] font-medium text-content-muted uppercase tracking-wide mb-2 px-3">设置分类</p>
         <ul class="space-y-0.5">
           <li v-for="tab in tabs" :key="tab.key">
             <button
-              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors"
-              :class="activeTab === tab.key ? 'bg-amber-50 text-amber-700 font-medium' : 'text-stone-500 hover:bg-stone-50'"
+              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors"
+              :class="activeTab === tab.key ? 'bg-brand-50 text-brand-700 font-medium' : 'text-content-muted hover:bg-surface-hover'"
               @click="activeTab = tab.key"
             >
               <UIcon :name="tab.icon" class="w-4 h-4 shrink-0" />
@@ -819,16 +819,16 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
     <!-- ==================== 基本信息 ==================== -->
     <div v-show="activeTab === 'basic'">
-      <div class="warm-card space-y-4">
-        <h3 class="text-sm font-medium text-stone-700 mb-4">基本信息</h3>
+      <div class="em-card space-y-4">
+        <h3 class="text-sm font-medium text-content-secondary mb-4">基本信息</h3>
         <div v-for="field in basicFields" :key="field.key">
-          <label class="block text-sm text-stone-600 mb-1">{{ field.label }}</label>
+          <label class="block text-sm text-content-secondary mb-1">{{ field.label }}</label>
           <div class="flex gap-2">
             <input
               v-model="config[field.key]"
               type="text"
               :placeholder="field.placeholder"
-              class="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              class="flex-1 px-3 py-2 text-sm rounded-md border border-line focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
             />
             <UButton color="primary" size="sm" :loading="saving[field.key]" @click="saveConfig(field.key)">
               保存
@@ -838,35 +838,35 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
         <!-- Logo 上传 -->
         <div>
-          <label class="block text-sm text-stone-600 mb-1">公司 Logo</label>
+          <label class="block text-sm text-content-secondary mb-1">公司 Logo</label>
           <div class="flex items-start gap-3">
-            <div v-if="config.company_logo" class="w-16 h-16 rounded-lg border border-stone-200 overflow-hidden bg-stone-50 flex-shrink-0">
+            <div v-if="config.company_logo" class="w-16 h-16 rounded-md border border-line overflow-hidden bg-surface-hover flex-shrink-0">
               <img :src="config.company_logo" alt="Logo" class="w-full h-full object-contain" />
             </div>
-            <div v-else class="w-16 h-16 rounded-lg border border-stone-200 bg-stone-50 flex items-center justify-center flex-shrink-0">
-              <UIcon name="i-lucide-image" class="w-6 h-6 text-stone-300" />
+            <div v-else class="w-16 h-16 rounded-md border border-line bg-surface-hover flex items-center justify-center flex-shrink-0">
+              <UIcon name="i-lucide-image" class="w-6 h-6 text-content-muted" />
             </div>
             <div class="flex-1">
               <input ref="logoInput" type="file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg" class="hidden" @change="handleLogoChange" />
               <UButton color="neutral" variant="outline" size="sm" :loading="logoUploading" @click="triggerLogoUpload">选择图片</UButton>
-              <p class="text-xs text-stone-400 mt-1">支持 png/jpg/gif/webp/svg，上传后自动替换</p>
+              <p class="text-xs text-content-muted mt-1">支持 png/jpg/gif/webp/svg，上传后自动替换</p>
             </div>
           </div>
         </div>
 
         <div>
-          <label class="block text-sm text-stone-600 mb-1">上传目录路径</label>
+          <label class="block text-sm text-content-secondary mb-1">上传目录路径</label>
           <div class="flex gap-2">
             <input
               v-model="config.upload_path"
               type="text"
               placeholder="data/uploads"
-              class="flex-1 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              class="flex-1 px-3 py-2 text-sm rounded-md border border-line focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
             />
             <UButton color="neutral" variant="outline" size="sm" @click="pickUploadDir">选择目录</UButton>
             <UButton color="primary" size="sm" :loading="saving.upload_path" @click="saveConfig('upload_path')">保存</UButton>
           </div>
-          <p class="text-xs text-stone-400 mt-1">相对路径相对于项目根目录，也可填写绝对路径</p>
+          <p class="text-xs text-content-muted mt-1">相对路径相对于项目根目录，也可填写绝对路径</p>
         </div>
       </div>
     </div>
@@ -876,18 +876,18 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     <!-- ==================== 组织架构 ==================== -->
     <div v-show="activeTab === 'organizations'">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="warm-card">
+        <div class="em-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-stone-700">部门列表</h3>
+            <h3 class="text-sm font-medium text-content-secondary">部门列表</h3>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openCreateDept()">添加</UButton>
           </div>
-          <div v-if="orgLoading" class="text-xs text-stone-400 py-4 text-center">加载中...</div>
-          <div v-else-if="orgTree.length === 0" class="text-xs text-stone-400 py-4 text-center">还没有部门</div>
+          <div v-if="orgLoading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+          <div v-else-if="orgTree.length === 0" class="text-xs text-content-muted py-4 text-center">还没有部门</div>
           <div v-else class="space-y-0.5">
-            <div v-for="node in flatOrgTree" :key="node.id" :class="['flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer text-sm transition-colors group', selectedDept?.id === node.id ? 'bg-amber-50 text-amber-700' : 'text-stone-600 hover:bg-stone-50']" :style="{ paddingLeft: (node._level * 16 + 8) + 'px' }" @click="selectDept(node)">
-              <UIcon :name="node._level > 0 ? 'i-lucide-corner-down-right' : 'i-lucide-building-2'" class="w-3.5 h-3.5 flex-shrink-0 text-stone-400" />
+            <div v-for="node in flatOrgTree" :key="node.id" :class="['flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm transition-colors group', selectedDept?.id === node.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary hover:bg-surface-hover']" :style="{ paddingLeft: (node._level * 16 + 8) + 'px' }" @click="selectDept(node)">
+              <UIcon :name="node._level > 0 ? 'i-lucide-corner-down-right' : 'i-lucide-building-2'" class="w-3.5 h-3.5 flex-shrink-0 text-content-muted" />
               <span class="flex-1 truncate">{{ node.name }}</span>
-              <span class="text-[10px] text-stone-400">{{ node.memberCount }}人</span>
+              <span class="text-[10px] text-content-muted">{{ node.memberCount }}人</span>
               <div class="hidden group-hover:flex items-center gap-0.5">
                 <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click.stop="openCreateDept(node.id)" />
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEditDept(node)" />
@@ -897,20 +897,20 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
           </div>
         </div>
         <div class="lg:col-span-2 space-y-4">
-          <div v-if="!selectedDept" class="warm-card text-center py-12 text-stone-400 text-sm">选择左侧部门查看详情</div>
+          <div v-if="!selectedDept" class="em-card text-center py-12 text-content-muted text-sm">选择左侧部门查看详情</div>
           <template v-else>
-            <div class="warm-card">
+            <div class="em-card">
               <div class="flex items-start justify-between mb-3">
-                <div><h3 class="text-sm font-medium text-stone-800">{{ selectedDept.name }}</h3><p v-if="selectedDept.description" class="text-xs text-stone-400 mt-0.5">{{ selectedDept.description }}</p></div>
+                <div><h3 class="text-sm font-medium text-content-primary">{{ selectedDept.name }}</h3><p v-if="selectedDept.description" class="text-xs text-content-muted mt-0.5">{{ selectedDept.description }}</p></div>
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditDept(selectedDept)" />
               </div>
-              <div class="flex gap-4 text-xs text-stone-400"><span v-if="selectedDept.managerName">负责人：{{ selectedDept.managerName }}</span><span>{{ selectedDept.memberCount }} 名成员</span></div>
+              <div class="flex gap-4 text-xs text-content-muted"><span v-if="selectedDept.managerName">负责人：{{ selectedDept.managerName }}</span><span>{{ selectedDept.memberCount }} 名成员</span></div>
             </div>
-            <div class="warm-card">
-              <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-medium text-stone-700">部门成员</h3><UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" @click="openMemberModal(selectedDept)">管理</UButton></div>
-              <div v-if="deptMembersLoading" class="text-xs text-stone-400 py-4 text-center">加载中...</div>
-              <div v-else-if="deptMembers.length === 0" class="text-xs text-stone-400 py-4 text-center">还没有成员</div>
-              <div v-else class="space-y-2"><div v-for="m in deptMembers" :key="m.id" class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center text-amber-700 text-[10px]">{{ m.name?.charAt(0) }}</span><span class="text-sm text-stone-700">{{ m.name }}</span><span class="text-xs text-stone-400">{{ m.username }}</span></div></div>
+            <div class="em-card">
+              <div class="flex items-center justify-between mb-3"><h3 class="text-sm font-medium text-content-secondary">部门成员</h3><UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" @click="openMemberModal(selectedDept)">管理</UButton></div>
+              <div v-if="deptMembersLoading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+              <div v-else-if="deptMembers.length === 0" class="text-xs text-content-muted py-4 text-center">还没有成员</div>
+              <div v-else class="space-y-2"><div v-for="m in deptMembers" :key="m.id" class="flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 text-[10px]">{{ m.name?.charAt(0) }}</span><span class="text-sm text-content-secondary">{{ m.name }}</span><span class="text-xs text-content-muted">{{ m.username }}</span></div></div>
             </div>
           </template>
         </div>
@@ -920,17 +920,17 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     <!-- ==================== 角色权限 ==================== -->
     <div v-show="activeTab === 'roles'">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="warm-card">
+        <div class="em-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-stone-700">角色列表</h3>
+            <h3 class="text-sm font-medium text-content-secondary">角色列表</h3>
             <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openCreateRole()">添加</UButton>
           </div>
-          <div v-if="roleLoading" class="text-xs text-stone-400 py-4 text-center">加载中...</div>
+          <div v-if="roleLoading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
           <div v-else class="space-y-1">
-            <div v-for="r in roleList" :key="r.id" :class="['flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors group', selectedRole?.id === r.id ? 'bg-amber-50' : 'hover:bg-stone-50']" @click="selectRole(r)">
-              <UIcon :name="r.isSystem ? 'i-lucide-lock' : 'i-lucide-shield'" class="w-3.5 h-3.5 flex-shrink-0" :class="r.isSystem ? 'text-stone-400' : 'text-amber-500'" />
-              <div class="flex-1 min-w-0"><span class="text-stone-700">{{ r.name }}</span><span class="text-[10px] text-stone-400 ml-1 font-mono">{{ r.code }}</span></div>
-              <span class="text-[10px] text-stone-400">{{ r.memberCount }}人</span>
+            <div v-for="r in roleList" :key="r.id" :class="['flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer text-sm transition-colors group', selectedRole?.id === r.id ? 'bg-brand-50' : 'hover:bg-surface-hover']" @click="selectRole(r)">
+              <UIcon :name="r.isSystem ? 'i-lucide-lock' : 'i-lucide-shield'" class="w-3.5 h-3.5 flex-shrink-0" :class="r.isSystem ? 'text-content-muted' : 'text-brand-500'" />
+              <div class="flex-1 min-w-0"><span class="text-content-secondary">{{ r.name }}</span><span class="text-[10px] text-content-muted ml-1 font-mono">{{ r.code }}</span></div>
+              <span class="text-[10px] text-content-muted">{{ r.memberCount }}人</span>
               <div class="hidden group-hover:flex items-center gap-0.5">
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEditRole(r)" />
                 <UButton v-if="!r.isSystem" icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click.stop="handleDeleteRole(r)" />
@@ -939,19 +939,19 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
           </div>
         </div>
         <div>
-          <div v-if="!selectedRole" class="warm-card text-center py-12 text-stone-400 text-sm">选择左侧角色设置权限</div>
-          <div v-else class="warm-card">
-            <div class="flex items-center justify-between mb-4"><div><h3 class="text-sm font-medium text-stone-800">{{ selectedRole.name }} · 权限</h3><p class="text-xs text-stone-400 mt-0.5">{{ selectedRole.description || '无描述' }}</p></div><UButton icon="i-lucide-save" variant="soft" color="primary" size="xs" :loading="permLoading" @click="savePermissions">保存</UButton></div>
-            <div v-if="permLoading" class="text-xs text-stone-400 py-4 text-center">加载中...</div>
-            <div v-else-if="Object.keys(permissionGroups).length === 0" class="text-xs text-stone-400 py-4 text-center">暂无权限数据</div>
+          <div v-if="!selectedRole" class="em-card text-center py-12 text-content-muted text-sm">选择左侧角色设置权限</div>
+          <div v-else class="em-card">
+            <div class="flex items-center justify-between mb-4"><div><h3 class="text-sm font-medium text-content-primary">{{ selectedRole.name }} · 权限</h3><p class="text-xs text-content-muted mt-0.5">{{ selectedRole.description || '无描述' }}</p></div><UButton icon="i-lucide-save" variant="soft" color="primary" size="xs" :loading="permLoading" @click="savePermissions">保存</UButton></div>
+            <div v-if="permLoading" class="text-xs text-content-muted py-4 text-center">加载中...</div>
+            <div v-else-if="Object.keys(permissionGroups).length === 0" class="text-xs text-content-muted py-4 text-center">暂无权限数据</div>
             <div v-else class="space-y-4">
               <div v-for="(perms, resource) in permissionGroups" :key="resource">
-                <h4 class="text-xs font-medium text-stone-500 mb-2 uppercase tracking-wide">{{ getLabel('PermissionResource', resource) || resource }}</h4>
+                <h4 class="text-xs font-medium text-content-muted mb-2 uppercase tracking-wide">{{ getLabel('PermissionResource', resource) || resource }}</h4>
                 <div class="grid grid-cols-2 gap-1">
-                  <label v-for="p in perms" :key="p.id" class="flex items-center gap-2 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-stone-50">
-                    <input type="checkbox" class="w-3.5 h-3.5 rounded border-stone-300 text-amber-500" :checked="rolePermissions.includes(p.id)" @change="togglePerm(p.id)" />
-                    <span class="text-stone-600">{{ p.name }}</span>
-                    <span class="text-[10px] text-stone-400 ml-auto">{{ getLabel('PermissionAction', p.action) || p.action }}</span>
+                  <label v-for="p in perms" :key="p.id" class="flex items-center gap-2 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-surface-hover">
+                    <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500" :checked="rolePermissions.includes(p.id)" @change="togglePerm(p.id)" />
+                    <span class="text-content-secondary">{{ p.name }}</span>
+                    <span class="text-[10px] text-content-muted ml-auto">{{ getLabel('PermissionAction', p.action) || p.action }}</span>
                   </label>
                 </div>
               </div>
@@ -963,45 +963,44 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
     <!-- ==================== 编码规则 ==================== -->
     <div v-show="activeTab === 'coderules'">
-      <div class="warm-card space-y-4">
-        <h3 class="text-sm font-medium text-stone-700 mb-4">编码规则</h3>
-        <div v-for="mod in modules" :key="mod.key" class="p-4 rounded-lg bg-stone-50">
-          <p class="text-sm font-medium text-stone-700 mb-3">{{ mod.label }}</p>
+      <div class="em-card space-y-4">
+        <h3 class="text-sm font-medium text-content-secondary mb-4">编码规则</h3>
+        <div v-for="mod in modules" :key="mod.key" class="p-4 rounded-xl bg-surface-hover">
+          <p class="text-sm font-medium text-content-secondary mb-3">{{ mod.label }}</p>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-xs text-stone-400">前缀</label>
+              <label class="text-xs text-content-muted">前缀</label>
               <input
                 :value="getRule(mod.key).prefix"
                 type="text"
-                class="w-full px-2 py-1.5 text-sm rounded border border-stone-200 mt-0.5"
+                class="w-full px-2 py-1.5 text-sm rounded border border-line mt-0.5"
                 @input="(e: any) => updateRule(mod.key, 'prefix', e.target.value)"
               />
             </div>
             <div>
-              <label class="text-xs text-stone-400">分隔符</label>
+              <label class="text-xs text-content-muted">分隔符</label>
               <input
                 :value="getRule(mod.key).separator"
                 type="text"
-                class="w-full px-2 py-1.5 text-sm rounded border border-stone-200 mt-0.5"
+                class="w-full px-2 py-1.5 text-sm rounded border border-line mt-0.5"
                 @input="(e: any) => updateRule(mod.key, 'separator', e.target.value)"
               />
             </div>
             <div>
-              <label class="text-xs text-stone-400">日期格式</label>
-              <select
-                :value="getRule(mod.key).datePart"
-                class="w-full px-2 py-1.5 text-sm rounded border border-stone-200 bg-white mt-0.5"
-                @change="(e: any) => updateRule(mod.key, 'datePart', e.target.value)"
-              >
-                <option v-for="opt in getOptions('CodeRuleDatePart')" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
+              <label class="text-xs text-content-muted">日期格式</label>
+              <EnumSelect
+                :model-value="getRule(mod.key).datePart"
+                :options="getOptions('CodeRuleDatePart')"
+                placeholder="选择日期格式"
+                @update:model-value="(v: string) => updateRule(mod.key, 'datePart', v)"
+              />
             </div>
             <div>
-              <label class="text-xs text-stone-400">序号位数</label>
+              <label class="text-xs text-content-muted">序号位数</label>
               <input
                 :value="getRule(mod.key).seqLength"
                 type="number"
-                class="w-full px-2 py-1.5 text-sm rounded border border-stone-200 mt-0.5"
+                class="w-full px-2 py-1.5 text-sm rounded border border-line mt-0.5"
                 @input="(e: any) => updateRule(mod.key, 'seqLength', e.target.value)"
               />
             </div>
@@ -1010,7 +1009,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
             <UButton size="xs" color="primary" :loading="saving['rule_' + mod.key]" @click="saveRule(mod.key)">
               保存
             </UButton>
-            <span class="text-[10px] text-stone-400">当前序列号: {{ getRule(mod.key).currentSeq || '0' }}</span>
+            <span class="text-[10px] text-content-muted">当前序列号: {{ getRule(mod.key).currentSeq || '0' }}</span>
           </div>
         </div>
       </div>
@@ -1018,61 +1017,61 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
     <!-- ==================== 邮件配置 ==================== -->
     <div v-show="activeTab === 'smtp'">
-      <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-4">SMTP 邮件服务配置</h3>
-        <p class="text-xs text-stone-400 mb-4">用于系统通知、审批提醒等邮件发送</p>
+      <div class="em-card">
+        <h3 class="text-sm font-medium text-content-secondary mb-4">SMTP 邮件服务配置</h3>
+        <p class="text-xs text-content-muted mb-4">用于系统通知、审批提醒等邮件发送</p>
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <label class="block text-sm text-stone-600 mb-1">SMTP 服务器地址</label>
+            <label class="block text-sm text-content-secondary mb-1">SMTP 服务器地址</label>
             <input
               v-model="smtpConfig.smtp_host"
               type="text"
               placeholder="smtp.example.com"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">端口</label>
+            <label class="block text-sm text-content-secondary mb-1">端口</label>
             <input
               v-model="smtpConfig.smtp_port"
               type="text"
               placeholder="587"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">发件邮箱</label>
+            <label class="block text-sm text-content-secondary mb-1">发件邮箱</label>
             <input
               v-model="smtpConfig.smtp_user"
               type="text"
               placeholder="user@example.com"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">邮箱密码/授权码</label>
+            <label class="block text-sm text-content-secondary mb-1">邮箱密码/授权码</label>
             <input
               v-model="smtpConfig.smtp_pass"
               type="password"
               placeholder="••••••••"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">发件人显示名称</label>
+            <label class="block text-sm text-content-secondary mb-1">发件人显示名称</label>
             <input
               v-model="smtpConfig.smtp_from"
               type="text"
               placeholder="系统通知 <noreply@company.com>"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
           </div>
           <div class="flex items-end gap-6 pb-2">
-            <label class="flex items-center gap-2 text-sm text-stone-600">
+            <label class="flex items-center gap-2 text-sm text-content-secondary">
               <input v-model="smtpConfig.smtp_secure" type="checkbox" true-value="true" false-value="false" class="rounded" />
               使用 SSL
             </label>
-            <label class="flex items-center gap-2 text-sm text-stone-600">
+            <label class="flex items-center gap-2 text-sm text-content-secondary">
               <input v-model="smtpConfig.smtp_enabled" type="checkbox" true-value="true" false-value="false" class="rounded" />
               启用邮件发送
             </label>
@@ -1085,53 +1084,53 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
     <!-- ==================== 安全策略 ==================== -->
     <div v-show="activeTab === 'security'">
-      <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-4">安全策略</h3>
-        <p class="text-xs text-stone-400 mb-4">修改后立即生效，请谨慎操作</p>
+      <div class="em-card">
+        <h3 class="text-sm font-medium text-content-secondary mb-4">安全策略</h3>
+        <p class="text-xs text-content-muted mb-4">修改后立即生效，请谨慎操作</p>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-stone-600 mb-1">密码最小长度</label>
+            <label class="block text-sm text-content-secondary mb-1">密码最小长度</label>
             <input
               v-model="securityConfig.password_min_length"
               type="number"
               min="6"
               max="32"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
-            <p class="text-xs text-stone-400 mt-0.5">建议至少 8 位</p>
+            <p class="text-xs text-content-muted mt-0.5">建议至少 8 位</p>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">登录失败锁定次数</label>
+            <label class="block text-sm text-content-secondary mb-1">登录失败锁定次数</label>
             <input
               v-model="securityConfig.login_max_attempts"
               type="number"
               min="1"
               max="20"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
-            <p class="text-xs text-stone-400 mt-0.5">连续失败达到此次数后锁定账号</p>
+            <p class="text-xs text-content-muted mt-0.5">连续失败达到此次数后锁定账号</p>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">锁定时间（分钟）</label>
+            <label class="block text-sm text-content-secondary mb-1">锁定时间（分钟）</label>
             <input
               v-model="securityConfig.login_lock_minutes"
               type="number"
               min="1"
               max="1440"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
-            <p class="text-xs text-stone-400 mt-0.5">账号锁定后自动解锁的时间</p>
+            <p class="text-xs text-content-muted mt-0.5">账号锁定后自动解锁的时间</p>
           </div>
           <div>
-            <label class="block text-sm text-stone-600 mb-1">Token 过期时间（小时）</label>
+            <label class="block text-sm text-content-secondary mb-1">Token 过期时间（小时）</label>
             <input
               v-model="securityConfig.token_expire_hours"
               type="number"
               min="1"
               max="720"
-              class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400"
+              class="w-full input-base focus:outline-none focus:border-brand-400"
             />
-            <p class="text-xs text-stone-400 mt-0.5">登录会话的有效时长</p>
+            <p class="text-xs text-content-muted mt-0.5">登录会话的有效时长</p>
           </div>
         </div>
         <UButton color="primary" class="mt-4" :loading="saving.security" @click="saveSecurity">保存安全策略</UButton>
@@ -1142,8 +1141,8 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
     <div v-show="activeTab === 'backup'">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h3 class="text-sm font-medium text-stone-700">备份管理</h3>
-          <p class="text-xs text-stone-400 mt-0.5">创建、恢复和下载数据库备份</p>
+          <h3 class="text-sm font-medium text-content-secondary">备份管理</h3>
+          <p class="text-xs text-content-muted mt-0.5">创建、恢复和下载数据库备份</p>
         </div>
         <UButton
           icon="i-lucide-plus"
@@ -1155,16 +1154,16 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
         </UButton>
       </div>
 
-      <div v-if="backupLoading" class="text-center py-12 text-stone-400">加载中...</div>
-      <div v-else-if="backups.length === 0" class="warm-card text-center py-12">
-        <UIcon name="i-lucide-hard-drive" class="w-8 h-8 text-stone-300 mx-auto mb-2" />
-        <p class="text-sm text-stone-500">暂无备份记录</p>
-        <p class="text-xs text-stone-400 mt-1">点击「立即备份」创建第一个备份</p>
+      <div v-if="backupLoading" class="text-center py-12 text-content-muted">加载中...</div>
+      <div v-else-if="backups.length === 0" class="em-card text-center py-12">
+        <UIcon name="i-lucide-hard-drive" class="w-8 h-8 text-content-muted mx-auto mb-2" />
+        <p class="text-sm text-content-muted">暂无备份记录</p>
+        <p class="text-xs text-content-muted mt-1">点击「立即备份」创建第一个备份</p>
       </div>
-      <div v-else class="warm-card overflow-hidden">
+      <div v-else class="em-card overflow-hidden">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-stone-100 text-left text-xs text-stone-400">
+            <tr class="border-b border-line-light text-left text-xs text-content-muted">
               <th class="py-2 px-4 font-normal">文件名</th>
               <th class="py-2 px-4 font-normal">大小</th>
               <th class="py-2 px-4 font-normal">创建时间</th>
@@ -1172,10 +1171,10 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
             </tr>
           </thead>
           <tbody>
-            <tr v-for="b in backups" :key="b.id" class="border-b border-stone-50 hover:bg-stone-50/50">
-              <td class="py-2.5 px-4 text-stone-700 font-mono text-xs">{{ b.fileName }}</td>
-              <td class="py-2.5 px-4 text-xs text-stone-500">{{ formatSize(b.fileSize) }}</td>
-              <td class="py-2.5 px-4 text-xs text-stone-400">{{ (b.createdAt || '').slice(0, 19) }}</td>
+            <tr v-for="b in backups" :key="b.id" class="border-b border-line-light hover:bg-surface-hover/50">
+              <td class="py-2.5 px-4 text-content-secondary font-mono text-xs">{{ b.fileName }}</td>
+              <td class="py-2.5 px-4 text-xs text-content-muted">{{ formatSize(b.fileSize) }}</td>
+              <td class="py-2.5 px-4 text-xs text-content-muted">{{ (b.createdAt || '').slice(0, 19) }}</td>
               <td class="py-2.5 px-4 text-right">
                 <div class="flex items-center justify-end gap-1">
                   <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="xs" :loading="downloadingId === b.id" @click="downloadBackup(b)">下载</UButton>
@@ -1189,38 +1188,34 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </div>
 
       <!-- 恢复确认弹窗 -->
-      <UModal v-model:open="showRestoreConfirm">
-        <template #header>确认恢复备份</template>
-        <template #body>
-          <div class="text-sm text-stone-600 space-y-2">
-            <p>恢复备份将 <span class="text-red-500 font-medium">覆盖当前数据库</span>，此操作不可撤销。</p>
-            <p>恢复完成后建议重启服务以确保缓存数据一致。</p>
-            <p class="text-xs text-stone-400">建议在恢复前先创建一份当前数据库的备份。</p>
-          </div>
-        </template>
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton variant="ghost" color="neutral" @click="showRestoreConfirm = false; restoreTarget = null">取消</UButton>
-            <UButton color="error" :loading="restoreLoading" @click="confirmRestore">确认恢复</UButton>
-          </div>
-        </template>
-      </UModal>
+      <CommonConfirmDialog
+        v-if="showRestoreConfirm"
+        v-model:open="showRestoreConfirm"
+        title="确认恢复备份"
+        message="恢复备份将覆盖当前数据库，此操作不可撤销。\n\n恢复完成后建议重启服务以确保缓存数据一致。\n\n建议在恢复前先创建一份当前数据库的备份。"
+        confirm-text="确认恢复"
+        cancel-text="再想想"
+        :loading="restoreLoading"
+        danger
+        @confirm="confirmRestore"
+        @cancel="showRestoreConfirm = false; restoreTarget = null"
+      />
     </div>
 
     <!-- ==================== AI 设置 ==================== -->
     <div v-show="activeTab === 'ai'">
       <!-- AI 基础设置 -->
-      <div class="warm-card mb-4">
-        <h3 class="text-sm font-medium text-stone-700 mb-4 flex items-center gap-1.5">
-          <UIcon name="i-lucide-bot" class="w-4 h-4 text-amber-500" />
+      <div class="em-card mb-4">
+        <h3 class="text-sm font-medium text-content-secondary mb-4 flex items-center gap-1.5">
+          <UIcon name="i-lucide-bot" class="w-4 h-4 text-brand-500" />
           AI 基础设置
         </h3>
-        <div v-if="aiSettingsLoading" class="text-center py-4 text-stone-400 text-sm">加载中...</div>
+        <div v-if="aiSettingsLoading" class="text-center py-4 text-content-muted text-sm">加载中...</div>
         <div v-else class="space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <span class="text-sm text-stone-600">自动 AI 审核</span>
-              <p class="text-xs text-stone-400">合同创建或编辑后自动触发 AI 审核</p>
+              <span class="text-sm text-content-secondary">自动 AI 审核</span>
+              <p class="text-xs text-content-muted">合同创建或编辑后自动触发 AI 审核</p>
             </div>
             <UToggle v-model="aiSettings.autoReviewEnabled" />
           </div>
@@ -1229,32 +1224,32 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </div>
 
       <!-- 模型供应商 -->
-      <div class="warm-card mb-4">
+      <div class="em-card mb-4">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-medium text-stone-700 flex items-center gap-1.5">
+          <h3 class="text-sm font-medium text-content-secondary flex items-center gap-1.5">
             <UIcon name="i-lucide-server" class="w-4 h-4 text-teal-500" />
             模型供应商
           </h3>
           <UButton icon="i-lucide-plus" size="sm" variant="ghost" color="primary" @click="openCreateProvider">添加供应商</UButton>
         </div>
-        <div v-if="loadingProviders" class="text-center py-4 text-stone-400 text-sm">加载中...</div>
+        <div v-if="loadingProviders" class="text-center py-4 text-content-muted text-sm">加载中...</div>
         <div v-else-if="providers.length === 0" class="text-center py-8">
-          <UIcon name="i-lucide-server" class="w-8 h-8 text-stone-300 mx-auto mb-2" />
-          <p class="text-sm text-stone-500">还没有模型供应商</p>
-          <p class="text-xs text-stone-400 mt-1">添加 DeepSeek 或自定义供应商来接入大模型</p>
+          <UIcon name="i-lucide-server" class="w-8 h-8 text-content-muted mx-auto mb-2" />
+          <p class="text-sm text-content-muted">还没有模型供应商</p>
+          <p class="text-xs text-content-muted mt-1">添加 DeepSeek 或自定义供应商来接入大模型</p>
         </div>
         <div v-else class="space-y-2">
-          <div v-for="p in providers" :key="p.id" class="flex items-center gap-3 p-3 rounded-lg border border-stone-100 bg-stone-50/50">
-            <div class="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+          <div v-for="p in providers" :key="p.id" class="flex items-center gap-3 p-3 rounded-xl border border-line-light bg-surface-hover/50">
+            <div class="w-8 h-8 rounded-md bg-teal-50 flex items-center justify-center flex-shrink-0">
               <UIcon name="i-lucide-server" class="w-4 h-4 text-teal-500" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-stone-700">{{ p.name }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-stone-100 text-stone-500">{{ getLabel('AIProviderType', p.type) || p.type }}</span>
-                <span v-if="p.isDefault" class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">默认</span>
+                <span class="text-sm font-medium text-content-secondary">{{ p.name }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted">{{ getLabel('AIProviderType', p.type) || p.type }}</span>
+                <span v-if="p.isDefault" class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-600">默认</span>
               </div>
-              <p class="text-xs text-stone-400 mt-0.5 truncate">{{ p.baseUrl }}</p>
+              <p class="text-xs text-content-muted mt-0.5 truncate">{{ p.baseUrl }}</p>
             </div>
             <div class="flex gap-1">
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditProvider(p)" />
@@ -1265,32 +1260,32 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       </div>
 
       <!-- AI 数字员工 -->
-      <div class="warm-card">
+      <div class="em-card">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-medium text-stone-700 flex items-center gap-1.5">
-            <UIcon name="i-lucide-users" class="w-4 h-4 text-amber-500" />
+          <h3 class="text-sm font-medium text-content-secondary flex items-center gap-1.5">
+            <UIcon name="i-lucide-users" class="w-4 h-4 text-brand-500" />
             AI 数字员工
           </h3>
           <UButton icon="i-lucide-plus" size="sm" variant="ghost" color="primary" @click="openCreateEmployee" :disabled="providers.length === 0">创建员工</UButton>
         </div>
-        <div v-if="loadingEmployees" class="text-center py-4 text-stone-400 text-sm">加载中...</div>
+        <div v-if="loadingEmployees" class="text-center py-4 text-content-muted text-sm">加载中...</div>
         <div v-else-if="employees.length === 0" class="text-center py-8">
-          <UIcon name="i-lucide-bot" class="w-8 h-8 text-stone-300 mx-auto mb-2" />
-          <p class="text-sm text-stone-500">还没有 AI 数字员工</p>
-          <p class="text-xs text-stone-400 mt-1">创建 AI 数字员工来执行合同审核等任务</p>
+          <UIcon name="i-lucide-bot" class="w-8 h-8 text-content-muted mx-auto mb-2" />
+          <p class="text-sm text-content-muted">还没有 AI 数字员工</p>
+          <p class="text-xs text-content-muted mt-1">创建 AI 数字员工来执行合同审核等任务</p>
         </div>
         <div v-else class="space-y-2">
-          <div v-for="e in employees" :key="e.id" class="flex items-center gap-3 p-3 rounded-lg border border-stone-100 bg-stone-50/50">
-            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-              <UIcon name="i-lucide-bot" class="w-4 h-4 text-amber-500" />
+          <div v-for="e in employees" :key="e.id" class="flex items-center gap-3 p-3 rounded-xl border border-line-light bg-surface-hover/50">
+            <div class="w-8 h-8 rounded-md bg-brand-50 flex items-center justify-center flex-shrink-0">
+              <UIcon name="i-lucide-bot" class="w-4 h-4 text-brand-500" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-stone-700">{{ e.name }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">{{ e.roleLabel }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full" :class="e.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-stone-100 text-stone-400'">{{ e.isActive ? '活跃' : '已停用' }}</span>
+                <span class="text-sm font-medium text-content-secondary">{{ e.name }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-50 text-brand-600">{{ e.roleLabel }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full" :class="e.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-surface-hover text-content-muted'">{{ e.isActive ? '活跃' : '已停用' }}</span>
               </div>
-              <p class="text-xs text-stone-400 mt-0.5">{{ e.providerName }} · {{ e.model }}</p>
+              <p class="text-xs text-content-muted mt-0.5">{{ e.providerName }} · {{ e.model }}</p>
             </div>
             <div class="flex gap-1">
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditEmployee(e)" />
@@ -1303,21 +1298,21 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
     <!-- ==================== 菜单排序 ==================== -->
     <div v-show="activeTab === 'sidebar'">
-      <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-4">侧边栏菜单排序</h3>
-        <p class="text-xs text-stone-400 mb-4">拖拽排序暂不支持，点击上下箭头调整顺序，保存后刷新页面生效。</p>
+      <div class="em-card">
+        <h3 class="text-sm font-medium text-content-secondary mb-4">侧边栏菜单排序</h3>
+        <p class="text-xs text-content-muted mb-4">拖拽排序暂不支持，点击上下箭头调整顺序，保存后刷新页面生效。</p>
         <div class="space-y-1">
-          <div v-for="(m, idx) in sortedSidebarModules" :key="m.key" class="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-100 bg-stone-50/50">
+          <div v-for="(m, idx) in sortedSidebarModules" :key="m.key" class="flex items-center gap-2 px-3 py-2 rounded-md border border-line-light bg-surface-hover/50">
             <div class="flex flex-col gap-0.5">
-              <button class="w-5 h-5 flex items-center justify-center rounded hover:bg-stone-200 text-stone-400 hover:text-stone-600 disabled:opacity-30" :disabled="idx === 0" @click="moveSidebarItem(m.key, -1)">
+              <button class="w-5 h-5 flex items-center justify-center rounded hover:bg-surface-hover text-content-muted hover:text-content-secondary disabled:opacity-30" :disabled="idx === 0" @click="moveSidebarItem(m.key, -1)">
                 <UIcon name="i-lucide-chevron-up" class="w-3.5 h-3.5" />
               </button>
-              <button class="w-5 h-5 flex items-center justify-center rounded hover:bg-stone-200 text-stone-400 hover:text-stone-600 disabled:opacity-30" :disabled="idx === sortedSidebarModules.length - 1" @click="moveSidebarItem(m.key, 1)">
+              <button class="w-5 h-5 flex items-center justify-center rounded hover:bg-surface-hover text-content-muted hover:text-content-secondary disabled:opacity-30" :disabled="idx === sortedSidebarModules.length - 1" @click="moveSidebarItem(m.key, 1)">
                 <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
               </button>
             </div>
-            <span class="flex-1 text-sm text-stone-700">{{ m.label }}</span>
-            <span class="text-xs text-stone-400">#{{ idx + 1 }}</span>
+            <span class="flex-1 text-sm text-content-secondary">{{ m.label }}</span>
+            <span class="text-xs text-content-muted">#{{ idx + 1 }}</span>
           </div>
         </div>
         <div class="mt-4">
@@ -1331,27 +1326,23 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
       <!-- 搜索 + 分类筛选 -->
       <div class="flex items-center gap-3 mb-4">
         <div class="relative flex-1 max-w-xs">
-          <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
-          <input v-model="dictSearch" type="text" placeholder="搜索字典或选项..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400" />
+          <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+          <input v-model="dictSearch" type="text" placeholder="搜索字典或选项..." class="w-full pl-9 input-base focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
         </div>
-        <select v-model="dictCategory" class="h-9 px-3 text-sm rounded-lg border border-stone-200 bg-white focus:outline-none focus:border-amber-400">
-          <option value="">全部分类</option>
-          <option value="业务字典">业务字典</option>
-          <option value="状态枚举">状态枚举</option>
-        </select>
-        <span class="text-xs text-stone-400">共 {{ filteredDictTypes.length }} 组</span>
+        <EnumSelect v-model="dictCategory" :options="[{ value: '', label: '全部分类' }, { value: '业务字典', label: '业务字典' }, { value: '状态枚举', label: '状态枚举' }]" placeholder="全部分类" />
+        <span class="text-xs text-content-muted">共 {{ filteredDictTypes.length }} 组</span>
       </div>
 
       <div class="flex gap-4">
         <!-- 左侧：字典类型列表 -->
-        <nav class="w-48 shrink-0 border-r border-stone-100 pr-2 max-h-[60vh] overflow-y-auto">
+        <nav class="w-48 shrink-0 border-r border-line-light pr-2 max-h-[60vh] overflow-y-auto">
           <template v-for="cat in dictCategories" :key="cat.name">
-            <p class="text-[10px] font-medium text-stone-400 uppercase tracking-wide px-2 py-1.5">{{ cat.name }}</p>
+            <p class="text-[10px] font-medium text-content-muted uppercase tracking-wide px-2 py-1.5">{{ cat.name }}</p>
             <button
               v-for="dt in cat.types"
               :key="dt.key"
-              class="w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors mb-0.5"
-              :class="selectedDictType === dt.key ? 'bg-amber-50 text-amber-700 font-medium' : 'text-stone-500 hover:bg-stone-50'"
+              class="w-full text-left px-3 py-1.5 rounded-md text-xs transition-colors mb-0.5"
+              :class="selectedDictType === dt.key ? 'bg-brand-50 text-brand-700 font-medium' : 'text-content-muted hover:bg-surface-hover'"
               @click="selectDictType(dt.key)"
             >
               {{ dt.label }}
@@ -1361,32 +1352,32 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
         <!-- 右侧：字典内容编辑 -->
         <div class="flex-1 min-w-0">
-          <div v-if="!selectedDictType" class="text-stone-400 text-xs py-12 text-center">从左边选一个字典开始管理</div>
+          <div v-if="!selectedDictType" class="text-content-muted text-xs py-12 text-center">从左边选一个字典开始管理</div>
 
           <template v-else>
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-medium text-stone-700">{{ selectedDictLabel }}</h3>
-              <span class="text-xs text-stone-400">{{ currentDictItems.length }} 项</span>
+              <h3 class="text-sm font-medium text-content-secondary">{{ selectedDictLabel }}</h3>
+              <span class="text-xs text-content-muted">{{ currentDictItems.length }} 项</span>
             </div>
 
             <div class="flex flex-wrap gap-2 mb-4">
               <div v-for="(item, idx) in currentDictItems" :key="item.id || idx" class="flex items-center gap-1.5 group">
                 <span
-                  :class="['px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer select-none border',
-                    item.isActive === false ? 'bg-stone-100 text-stone-400 border-stone-200 line-through' : 'bg-brand-50 text-brand-700 border-brand-100 hover:shadow-sm']"
+                  :class="['px-2.5 py-1 rounded-md text-xs transition-all cursor-pointer select-none border',
+                    item.isActive === false ? 'bg-surface-hover text-content-muted border-line line-through' : 'bg-brand-50 text-brand-700 border-brand-100 hover:shadow-sm']"
                   @click="toggleDictItem(item)"
                 >
                   {{ item.label }}
                 </span>
                 <UIcon v-if="currentDictTypeCategory !== '状态枚举'"
                   name="i-lucide-x"
-                  class="w-3 h-3 text-stone-300 opacity-0 group-hover:opacity-100 cursor-pointer shrink-0 hover:text-red-400"
+                  class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 cursor-pointer shrink-0 hover:text-red-400"
                   @click="removeDictItem(idx)"
                 />
               </div>
               <!-- 添加按钮（仅业务字典） -->
               <button v-if="currentDictTypeCategory !== '状态枚举'"
-                class="px-2.5 py-1 rounded-lg text-xs border border-dashed border-stone-300 text-stone-400 hover:border-amber-400 hover:text-amber-600 transition-colors flex items-center gap-1"
+                class="px-2.5 py-1 rounded-md text-xs border border-dashed border-line text-content-muted hover:border-brand-400 hover:text-brand-600 transition-colors flex items-center gap-1"
                 @click="addDictItem()"
               >
                 <UIcon name="i-lucide-plus" class="w-3 h-3" /> 添加
@@ -1395,16 +1386,16 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
             <!-- 行内添加/编辑表单 -->
             <div v-if="editingDictItemIdx !== null" class="flex items-center gap-2 mb-4">
-              <input v-model="editingDictItemValue" type="text" placeholder="英文标识" class="w-32 px-2.5 h-8 text-xs rounded border border-stone-200 focus:outline-none focus:border-amber-400 font-mono" />
-              <input v-model="editingDictItemLabel" type="text" placeholder="中文标签" class="flex-1 px-2.5 h-8 text-xs rounded border border-stone-200 focus:outline-none focus:border-amber-400" @keydown.enter="saveDictItem()" @keydown.escape="cancelDictItemEdit()" />
+              <input v-model="editingDictItemValue" type="text" placeholder="英文标识" class="w-32 px-2.5 h-8 text-xs rounded border border-line focus:outline-none focus:border-brand-400 font-mono" />
+              <input v-model="editingDictItemLabel" type="text" placeholder="中文标签" class="flex-1 px-2.5 h-8 text-xs rounded border border-line focus:outline-none focus:border-brand-400" @keydown.enter="saveDictItem()" @keydown.escape="cancelDictItemEdit()" />
               <UButton size="xs" color="primary" @click="saveDictItem()">确定</UButton>
               <UButton size="xs" variant="ghost" color="neutral" @click="cancelDictItemEdit()">取消</UButton>
             </div>
 
-            <div class="flex items-center gap-2 pt-3 border-t border-stone-100">
+            <div class="flex items-center gap-2 pt-3 border-t border-line-light">
               <UButton size="xs" color="primary" :loading="dictSaveLoading" @click="saveCurrentDict()">保存变更</UButton>
               <UButton size="xs" variant="ghost" color="neutral" @click="loadDictItems()">放弃</UButton>
-              <span class="text-[10px] text-stone-400 ml-auto">{{ hasDictChanges ? '有未保存的变更' : '' }}</span>
+              <span class="text-[10px] text-content-muted ml-auto">{{ hasDictChanges ? '有未保存的变更' : '' }}</span>
             </div>
           </template>
         </div>
@@ -1413,108 +1404,89 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
 
     <!-- ==================== 操作日志 ==================== -->
     <div v-show="activeTab === 'logs'">
-      <div class="warm-card">
-        <h3 class="text-sm font-medium text-stone-700 mb-3">最近操作记录</h3>
-        <div class="text-xs text-stone-400 mb-3">
-          <NuxtLink to="/dashboard/logs" class="text-amber-600 hover:underline">查看完整日志 →</NuxtLink>
+      <div class="em-card">
+        <h3 class="text-sm font-medium text-content-secondary mb-3">最近操作记录</h3>
+        <div class="text-xs text-content-muted mb-3">
+          <NuxtLink to="/dashboard/logs" class="text-brand-600 hover:underline">查看完整日志 →</NuxtLink>
         </div>
       </div>
     </div>
 
     <!-- 部门弹窗 -->
-    <UModal v-model:open="showDeptModal">
-      <template #header>{{ editingDeptId ? '编辑部门' : '添加部门' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleDeptSave">
-          <div><label class="block text-sm text-stone-600 mb-1">名称</label><input v-model="deptForm.name" type="text" placeholder="部门名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">上级部门</label><select v-model="deptForm.parentId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">无（顶级部门）</option><option v-for="n in flatOrgTree" :key="n.id" :value="n.id" :disabled="n.id === editingDeptId">{{ '—'.repeat(n._level || 0) + ' ' + n.name }}</option></select></div>
-          <div><label class="block text-sm text-stone-600 mb-1">描述</label><textarea v-model="deptForm.description" rows="2" placeholder="部门描述..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showDeptModal = false">取消</UButton><UButton color="primary" :loading="deptLoading" @click="handleDeptSave">{{ editingDeptId ? '保存' : '创建' }}</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showDeptModal" v-model:open="showDeptModal" :title="editingDeptId ? '编辑部门' : '添加部门'" size="compact" :loading="deptLoading" @confirm="handleDeptSave">
+      <form class="space-y-3" @submit.prevent="handleDeptSave">
+        <div><label class="block text-sm text-content-primary mb-1">名称</label><input v-model="deptForm.name" type="text" placeholder="部门名称" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">上级部门</label><select v-model="deptForm.parentId" class="w-full input-base"><option value="">无（顶级部门）</option><option v-for="n in flatOrgTree" :key="n.id" :value="n.id" :disabled="n.id === editingDeptId">{{ '—'.repeat(n._level || 0) + ' ' + n.name }}</option></select></div>
+        <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="deptForm.description" rows="2" placeholder="部门描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- 管理成员弹窗 -->
-    <UModal v-model:open="showMemberModal">
-      <template #header>管理成员</template>
-      <template #body>
-        <div v-if="allUsers.length === 0" class="text-xs text-stone-400 py-4">加载中...</div>
-        <div v-else class="space-y-1 max-h-80 overflow-y-auto">
-          <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-stone-50 cursor-pointer">
-            <input type="checkbox" class="w-3.5 h-3.5 rounded border-stone-300 text-amber-500" :checked="selectedUserIds.has(u.id)" @change="toggleUser(u.id)" />
-            <span class="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-[10px]">{{ u.name?.charAt(0) }}</span>
-            <span class="text-sm text-stone-700">{{ u.name }}</span>
-            <span class="text-xs text-stone-400 ml-auto">{{ u.username }}</span>
-          </label>
-        </div>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showMemberModal = false">取消</UButton><UButton color="primary" :loading="memberLoading" @click="saveMembers">保存</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showMemberModal" v-model:open="showMemberModal" title="管理成员" size="standard" :loading="memberLoading" @confirm="saveMembers">
+      <div v-if="allUsers.length === 0" class="text-xs text-content-muted py-4">加载中...</div>
+      <div v-else class="space-y-1 max-h-80 overflow-y-auto">
+        <label v-for="u in allUsers" :key="u.id" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-surface-hover cursor-pointer">
+          <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500" :checked="selectedUserIds.has(u.id)" @change="toggleUser(u.id)" />
+          <span class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center text-[10px]">{{ u.name?.charAt(0) }}</span>
+          <span class="text-sm text-content-primary">{{ u.name }}</span>
+          <span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
+        </label>
+      </div>
+    </CommonFormModal>
 
     <!-- 角色弹窗 -->
-    <UModal v-model:open="showRoleModal">
-      <template #header>{{ editingRoleId ? '编辑角色' : '添加角色' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleRoleSave">
-          <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-stone-600 mb-1">名称</label><input v-model="roleForm.name" type="text" placeholder="角色名称" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div><div><label class="block text-sm text-stone-600 mb-1">标识</label><input v-model="roleForm.code" type="text" placeholder="英文下划线" :disabled="!!editingRoleId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 disabled:bg-stone-50 font-mono text-xs" /></div></div>
-          <div><label class="block text-sm text-stone-600 mb-1">描述</label><textarea v-model="roleForm.description" rows="2" placeholder="角色描述..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showRoleModal = false">取消</UButton><UButton color="primary" :loading="roleSaving" @click="handleRoleSave">{{ editingRoleId ? '保存' : '创建' }}</UButton></div></template>
-    </UModal>
+    <CommonFormModal v-if="showRoleModal" v-model:open="showRoleModal" :title="editingRoleId ? '编辑角色' : '添加角色'" size="compact" :loading="roleSaving" @confirm="handleRoleSave">
+      <form class="space-y-3" @submit.prevent="handleRoleSave">
+        <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-primary mb-1">名称</label><input v-model="roleForm.name" type="text" placeholder="角色名称" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-primary mb-1">标识</label><input v-model="roleForm.code" type="text" placeholder="英文下划线" :disabled="!!editingRoleId" class="w-full input-base focus-ring disabled:bg-surface-page font-mono text-xs" /></div></div>
+        <div><label class="block text-sm text-content-primary mb-1">描述</label><textarea v-model="roleForm.description" rows="2" placeholder="角色描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" /></div>
+      </form>
+    </CommonFormModal>
 
     <!-- ==================== AI 供应商弹窗 ==================== -->
-    <UModal v-model:open="showProviderModal">
-      <template #header>{{ editingProviderId ? '编辑供应商' : '添加供应商' }}</template>
-      <template #body>
-        <div class="space-y-3">
-          <div><label class="block text-sm text-stone-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="providerForm.name" type="text" placeholder="如：我的 DeepSeek" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">类型</label><select v-model="providerForm.type" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="deepseek">DeepSeek</option><option value="custom">自定义（OpenAI 兼容）</option></select></div>
-          <div><label class="block text-sm text-stone-600 mb-1">API 地址 <span class="text-red-400">*</span></label><input v-model="providerForm.baseUrl" type="text" placeholder="https://api.deepseek.com" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 font-mono text-xs" /></div>
-          <div><label class="block text-sm text-stone-600 mb-1">API Key <span v-if="!editingProviderId" class="text-red-400">*</span></label><input v-model="providerForm.apiKey" type="password" placeholder="sk-..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 font-mono text-xs" /></div>
-          <div class="flex items-center gap-2">
-            <label class="flex items-center gap-1 text-sm text-stone-600"><input v-model="providerForm.isDefault" type="checkbox" class="w-3.5 h-3.5 rounded border-stone-300 text-amber-500" /> 设为默认供应商</label>
-          </div>
-          <div v-if="testResult" :class="['text-xs px-2 py-1 rounded', testResult === '连接成功' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500']">{{ testResult }}</div>
+    <CommonFormModal v-if="showProviderModal" v-model:open="showProviderModal" :title="editingProviderId ? '编辑供应商' : '添加供应商'" size="standard" :loading="providerLoading" @confirm="handleSaveProvider">
+      <div class="space-y-3">
+        <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="providerForm.name" type="text" placeholder="如：我的 DeepSeek" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">类型</label><EnumSelect v-model="providerForm.type" :options="[{ value: 'deepseek', label: 'DeepSeek' }, { value: 'custom', label: '自定义（OpenAI 兼容）' }]" placeholder="选择类型" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">API 地址 <span class="text-danger-500">*</span></label><input v-model="providerForm.baseUrl" type="text" placeholder="https://api.deepseek.com" class="w-full input-base focus-ring font-mono text-xs" /></div>
+        <div><label class="block text-sm text-content-primary mb-1">API Key <span v-if="!editingProviderId" class="text-danger-500">*</span></label><input v-model="providerForm.apiKey" type="password" placeholder="sk-..." class="w-full input-base focus-ring font-mono text-xs" /></div>
+        <div class="flex items-center gap-2">
+          <label class="flex items-center gap-1 text-sm text-content-primary"><input v-model="providerForm.isDefault" type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500" /> 设为默认供应商</label>
         </div>
-      </template>
+        <div v-if="testResult" :class="['text-xs px-2 py-1 rounded', testResult === '连接成功' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500']">{{ testResult }}</div>
+      </div>
       <template #footer>
-        <div class="flex justify-between">
+        <div class="flex justify-between w-full">
           <div class="flex gap-2">
             <UButton v-if="editingProviderId" icon="i-lucide-plug" variant="ghost" color="neutral" size="sm" :loading="testingProvider" @click="handleTestProvider">测试连接</UButton>
             <UButton v-if="editingProviderId" icon="i-lucide-list" variant="ghost" color="neutral" size="sm" :loading="fetchingModels" @click="handleFetchModels">拉取模型</UButton>
           </div>
           <div class="flex gap-2">
-            <UButton variant="ghost" color="neutral" @click="showProviderModal = false">取消</UButton>
+            <UButton variant="ghost" color="neutral" @click="showProviderModal = false">算了</UButton>
             <UButton color="primary" :loading="providerLoading" @click="handleSaveProvider">保存</UButton>
           </div>
         </div>
       </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- ==================== AI 员工弹窗 ==================== -->
-    <UModal v-model:open="showEmployeeModal">
-      <template #header>{{ editingEmployeeId ? '编辑 AI 员工' : '创建 AI 员工' }}</template>
-      <template #body>
-        <div class="space-y-3">
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="employeeForm.name" type="text" placeholder="如：合同审核助手" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">角色</label><select v-model="employeeForm.role" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white" @change="onEmployeeRoleChange"><option v-for="opt in getOptions('AIEmployeeRole')" :key="opt.value" :value="opt.value">{{ opt.label }}</option></select></div>
-          </div>
-          <div><label class="block text-sm text-stone-600 mb-1">角色显示名</label><input v-model="employeeForm.roleLabel" type="text" placeholder="如：合同审核员" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">供应商 <span class="text-red-400">*</span></label><select v-model="employeeForm.providerId" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择供应商</option><option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }} ({{ getLabel('AIProviderType', p.type) || p.type }})</option></select></div>
-            <div><label class="block text-sm text-stone-600 mb-1">模型 <span class="text-red-400">*</span></label><select v-model="employeeForm.model" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 bg-white"><option value="">选择模型</option><option v-for="m in availableModels" :key="m" :value="m">{{ m }}</option></select></div>
-          </div>
-          <div><label class="block text-sm text-stone-600 mb-1">系统提示词 <span class="text-red-400">*</span></label><textarea v-model="employeeForm.systemPrompt" rows="6" placeholder="你是专业的合同审核专家..." class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400 resize-none font-mono text-xs leading-relaxed" /></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-stone-600 mb-1">温度 ({{ employeeForm.temperature }})</label><input v-model.number="employeeForm.temperature" type="range" min="0" max="2" step="0.1" class="w-full accent-amber-500" /></div>
-            <div><label class="block text-sm text-stone-600 mb-1">最大 Token</label><input v-model.number="employeeForm.maxTokens" type="number" min="1" max="128000" class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:outline-none focus:border-amber-400" /></div>
-          </div>
+    <CommonFormModal v-if="showEmployeeModal" v-model:open="showEmployeeModal" :title="editingEmployeeId ? '编辑 AI 员工' : '创建 AI 员工'" size="standard" :loading="employeeLoading" @confirm="handleSaveEmployee">
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-sm text-content-primary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="employeeForm.name" type="text" placeholder="如：合同审核助手" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-primary mb-1">角色</label><EnumSelect v-model="employeeForm.role" dict="AIEmployeeRole" placeholder="选择角色" @change="onEmployeeRoleChange" /></div>
         </div>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showEmployeeModal = false">取消</UButton><UButton color="primary" :loading="employeeLoading" @click="handleSaveEmployee">保存</UButton></div></template>
-    </UModal>
+        <div><label class="block text-sm text-content-primary mb-1">角色显示名</label><input v-model="employeeForm.roleLabel" type="text" placeholder="如：合同审核员" class="w-full input-base focus-ring" /></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-sm text-content-primary mb-1">供应商 <span class="text-danger-500">*</span></label><select v-model="employeeForm.providerId" class="w-full input-base"><option value="">选择供应商</option><option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }} ({{ getLabel('AIProviderType', p.type) || p.type }})</option></select></div>
+          <div><label class="block text-sm text-content-primary mb-1">模型 <span class="text-danger-500">*</span></label><select v-model="employeeForm.model" class="w-full input-base"><option value="">选择模型</option><option v-for="m in availableModels" :key="m" :value="m">{{ m }}</option></select></div>
+        </div>
+        <div><label class="block text-sm text-content-primary mb-1">系统提示词 <span class="text-danger-500">*</span></label><textarea v-model="employeeForm.systemPrompt" rows="6" placeholder="你是专业的合同审核专家..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none font-mono text-xs leading-relaxed" /></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-sm text-content-primary mb-1">温度 ({{ employeeForm.temperature }})</label><input v-model.number="employeeForm.temperature" type="range" min="0" max="2" step="0.1" class="w-full accent-brand-500" /></div>
+          <div><label class="block text-sm text-content-primary mb-1">最大 Token</label><input v-model.number="employeeForm.maxTokens" type="number" min="1" max="128000" class="w-full input-base focus-ring" /></div>
+        </div>
+      </div>
+    </CommonFormModal>
   </div>
   </div>
   </div>

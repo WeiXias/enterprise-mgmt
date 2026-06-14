@@ -38,32 +38,32 @@ const PAYMENT_METHODS = [
 <template>
   <form class="space-y-4" @submit.prevent="$emit('submit')">
     <div>
-      <label class="block text-sm text-gray-600 mb-1">收款金额 <span class="text-red-400">*</span></label>
+      <label class="block text-sm text-content-secondary mb-1">收款金额 <span class="text-red-400">*</span></label>
       <input
         :value="modelValue.amount"
         type="number"
         step="0.01"
         placeholder="0"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+        class="w-full input-base focus-ring"
         @input="$emit('update:modelValue', { ...modelValue, amount: Number(($event.target as HTMLInputElement).value) })"
       />
     </div>
 
     <div>
-      <label class="block text-sm text-gray-600 mb-1">收款日期 <span class="text-red-400">*</span></label>
+      <label class="block text-sm text-content-secondary mb-1">收款日期 <span class="text-red-400">*</span></label>
       <input
         :value="modelValue.paymentDate"
         type="date"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+        class="w-full input-base focus-ring"
         @input="$emit('update:modelValue', { ...modelValue, paymentDate: ($event.target as HTMLInputElement).value })"
       />
     </div>
 
     <div>
-      <label class="block text-sm text-gray-600 mb-1">关联收款计划</label>
+      <label class="block text-sm text-content-secondary mb-1">关联收款计划</label>
       <select
         :value="modelValue.paymentPlanId"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
+        class="w-full input-base focus-ring"
         @change="$emit('update:modelValue', { ...modelValue, paymentPlanId: ($event.target as HTMLSelectElement).value })"
       >
         <option value="">不关联</option>
@@ -74,24 +74,22 @@ const PAYMENT_METHODS = [
     </div>
 
     <div>
-      <label class="block text-sm text-gray-600 mb-1">收款方式</label>
-      <select
-        :value="modelValue.paymentMethod"
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white"
-        @change="$emit('update:modelValue', { ...modelValue, paymentMethod: ($event.target as HTMLSelectElement).value })"
-      >
-        <option value="">选择方式</option>
-        <option v-for="pm in PAYMENT_METHODS" :key="pm.value" :value="pm.value">{{ pm.label }}</option>
-      </select>
+      <label class="block text-sm text-content-secondary mb-1">收款方式</label>
+      <EnumSelect
+        :model-value="modelValue.paymentMethod || ''"
+        :options="PAYMENT_METHODS"
+        placeholder="选择方式"
+        @update:model-value="$emit('update:modelValue', { ...modelValue, paymentMethod: $event })"
+      />
     </div>
 
     <div>
-      <label class="block text-sm text-gray-600 mb-1">备注</label>
+      <label class="block text-sm text-content-secondary mb-1">备注</label>
       <input
         :value="modelValue.remark"
         type="text"
         placeholder="备注信息..."
-        class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+        class="w-full input-base focus-ring"
         @input="$emit('update:modelValue', { ...modelValue, remark: ($event.target as HTMLInputElement).value })"
       />
     </div>

@@ -46,39 +46,43 @@ onMounted(() => { fetchOrders() })
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input v-model="keyword" type="text" placeholder="搜销售订单编号..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
+        <input v-model="keyword" type="text" placeholder="搜销售订单编号..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
       </div>
-      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-        <option value="">全部状态</option>
-        <option value="draft">草稿</option>
-        <option value="confirmed">已确认</option>
-        <option value="shipped">已发货</option>
-        <option value="completed">已完成</option>
-        <option value="cancelled">已取消</option>
-      </select>
-      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
+      <EnumSelect
+        v-model="statusFilter"
+        :options="[
+          { value: '', label: '全部状态' },
+          { value: 'draft', label: '草稿' },
+          { value: 'confirmed', label: '已确认' },
+          { value: 'shipped', label: '已发货' },
+          { value: 'completed', label: '已完成' },
+          { value: 'cancelled', label: '已取消' },
+        ]"
+        placeholder="全部状态"
+      />
+      <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="orderList.length === 0" class="text-center py-12 text-gray-400">
-      <UIcon name="i-lucide-clipboard-list" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="orderList.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-clipboard-list" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">还没有销售订单</p>
       <UButton class="mt-3" size="sm" color="primary" @click="$router.push('/dashboard/sales/create')">新建销售订单</UButton>
     </div>
     <div v-else class="space-y-2">
-      <div v-for="order in orderList" :key="order.id" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
+      <div v-for="order in orderList" :key="order.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0',
           order.status === 'draft' ? 'bg-gray-300' :
-          order.status === 'confirmed' ? 'bg-amber-400' :
-          order.status === 'shipped' ? 'bg-blue-400' :
+          order.status === 'confirmed' ? 'bg-brand-400' :
+          order.status === 'shipped' ? 'bg-brand-400' :
           order.status === 'completed' ? 'bg-teal-400' : 'bg-red-300']" />
         <div class="flex-1 min-w-0 cursor-pointer" @click="$router.push(`/dashboard/sales/${order.id}`)">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800">{{ order.code }}</span>
+            <span class="text-sm font-medium text-content-primary">{{ order.code }}</span>
             <StatusBadge :value="order.status" enum-type="salesOrderStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400">
+          <div class="flex items-center gap-3 text-xs text-content-muted">
             <span v-if="order.customerName"><UIcon name="i-lucide-users" class="w-3 h-3 inline-block mr-0.5" />{{ order.customerName }}</span>
             <span><UIcon name="i-lucide-coins" class="w-3 h-3 inline-block mr-0.5" />{{ formatAmount(order.totalAmount) }}</span>
           </div>
@@ -93,6 +97,7 @@ onMounted(() => { fetchOrders() })
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchOrders" @next="fetchOrders" />
 
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除销售订单「${deleteTarget?.code}」吗？`"

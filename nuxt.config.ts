@@ -6,6 +6,13 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
 
+  // Nuxt 4: common/ 去掉目录前缀，页面用 <EnumSelect> 而非 <CommonEnumSelect>
+  components: {
+    dirs: [
+      { path: '~/components/common', prefix: '' },
+    ]
+  },
+
   // 使用本地字体 provider 替代 Google Fonts（避免 SSR 超时）
   fonts: {
     provider: 'local',

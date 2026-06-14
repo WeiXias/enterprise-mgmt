@@ -67,23 +67,23 @@ onMounted(() => fetchCategories())
   <div>
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-medium text-gray-800">收支分类</h1>
-        <p class="text-sm text-gray-400 mt-0.5">管理收入和支出的分类项</p>
+        <h1 class="text-lg font-medium text-content-primary">收支分类</h1>
+        <p class="text-sm text-content-muted mt-0.5">管理收入和支出的分类项</p>
       </div>
       <NuxtLink to="/dashboard/finance"><UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm">返回财务</UButton></NuxtLink>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">马上就好...</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
     <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- 收入分类 -->
-      <div class="warm-card">
+      <div class="em-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-medium text-teal-700">收入分类</h3>
           <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openCreate('income')">添加</UButton>
         </div>
         <div class="space-y-1">
-          <div v-for="c in incomeCategories" :key="c.id" class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 text-sm">
-            <span class="text-gray-700">{{ c.name }}</span>
+          <div v-for="c in incomeCategories" :key="c.id" class="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover text-sm">
+            <span class="text-content-secondary">{{ c.name }}</span>
             <div class="flex items-center gap-1">
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(c)" />
               <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(c)" />
@@ -93,14 +93,14 @@ onMounted(() => fetchCategories())
       </div>
 
       <!-- 支出分类 -->
-      <div class="warm-card">
+      <div class="em-card">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-medium text-red-500">支出分类</h3>
           <UButton icon="i-lucide-plus" variant="ghost" color="error" size="xs" @click="openCreate('expense')">添加</UButton>
         </div>
         <div class="space-y-1">
-          <div v-for="c in expenseCategories" :key="c.id" class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 text-sm">
-            <span class="text-gray-700">{{ c.name }}</span>
+          <div v-for="c in expenseCategories" :key="c.id" class="flex items-center justify-between p-2 rounded-md hover:bg-surface-hover text-sm">
+            <span class="text-content-secondary">{{ c.name }}</span>
             <div class="flex items-center gap-1">
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(c)" />
               <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(c)" />
@@ -111,22 +111,26 @@ onMounted(() => fetchCategories())
     </div>
 
     <!-- 弹窗 -->
-    <UModal v-model:open="showModal">
-      <template #header>{{ editTarget ? '编辑分类' : '添加分类' }}</template>
-      <template #body>
-        <form class="space-y-3" @submit.prevent="handleSave">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">类型</label>
-            <div class="flex gap-2">
-              <UButton :color="form.type === 'income' ? 'primary' : 'neutral'" :variant="form.type === 'income' ? 'solid' : 'outline'" size="sm" @click="form.type = 'income'">收入</UButton>
-              <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'">支出</UButton>
-            </div>
+    <CommonFormModal
+      v-if="showModal"
+      v-model:open="showModal"
+      :title="editTarget ? '编辑分类' : '添加分类'"
+      size="compact"
+      :loading="saving"
+      @confirm="handleSave"
+      @cancel="showModal = false"
+    >
+      <form class="space-y-3" @submit.prevent="handleSave">
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">类型</label>
+          <div class="flex gap-2">
+            <UButton :color="form.type === 'income' ? 'primary' : 'neutral'" :variant="form.type === 'income' ? 'solid' : 'outline'" size="sm" @click="form.type = 'income'">收入</UButton>
+            <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'">支出</UButton>
           </div>
-          <div><label class="block text-sm text-gray-600 mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="分类名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" /></div>
-          <div><label class="block text-sm text-gray-600 mb-1">排序</label><input v-model.number="form.sort" type="number" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400" /></div>
-        </form>
-      </template>
-      <template #footer><div class="flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="showModal = false">取消</UButton><UButton color="primary" :loading="saving" @click="handleSave">保存</UButton></div></template>
-    </UModal>
+        </div>
+        <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="分类名称" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">排序</label><input v-model.number="form.sort" type="number" class="w-full input-base focus-ring" /></div>
+      </form>
+    </CommonFormModal>
   </div>
 </template>

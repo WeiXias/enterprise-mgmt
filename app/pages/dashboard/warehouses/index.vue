@@ -175,24 +175,24 @@ onMounted(() => { fetchWarehouses() })
       </template>
     </CommonPageHeader>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="warehouseList.length === 0" class="text-center py-12 text-gray-400">
-      <UIcon name="i-lucide-warehouse" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="warehouseList.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-warehouse" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">还没有仓库，先建一个？</p>
       <UButton class="mt-3" size="sm" color="primary" @click="resetCreateForm(); showCreateModal = true">添加仓库</UButton>
     </div>
     <div v-else class="space-y-3">
-      <div v-for="wh in warehouseList" :key="wh.id" class="warm-card">
+      <div v-for="wh in warehouseList" :key="wh.id" class="em-card">
         <!-- 仓库基本信息 -->
         <div class="flex items-center gap-4 cursor-pointer" @click="toggleExpand(wh)">
           <div class="w-1 h-10 rounded-full flex-shrink-0 bg-teal-400" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-0.5">
-              <UIcon :name="expandedWarehouseId === wh.id ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="w-4 h-4 text-gray-400" />
-              <span class="text-sm font-medium text-gray-800">{{ wh.name }}</span>
-              <span class="text-xs text-gray-400">{{ wh.code }}</span>
+              <UIcon :name="expandedWarehouseId === wh.id ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="w-4 h-4 text-content-muted" />
+              <span class="text-sm font-medium text-content-primary">{{ wh.name }}</span>
+              <span class="text-xs text-content-muted">{{ wh.code }}</span>
             </div>
-            <div class="flex items-center gap-3 text-xs text-gray-400 ml-6">
+            <div class="flex items-center gap-3 text-xs text-content-muted ml-6">
               <span v-if="wh.manager"><UIcon name="i-lucide-user" class="w-3 h-3 inline-block mr-0.5" />{{ wh.manager }}</span>
               <span v-if="wh.address">{{ wh.address }}</span>
             </div>
@@ -204,18 +204,18 @@ onMounted(() => { fetchWarehouses() })
         </div>
 
         <!-- 库位列表（展开时显示） -->
-        <div v-if="expandedWarehouseId === wh.id" class="mt-3 ml-6 pt-3 border-t border-gray-100">
+        <div v-if="expandedWarehouseId === wh.id" class="mt-3 ml-6 pt-3 border-t border-line-light">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs text-gray-400">库位</span>
+            <span class="text-xs text-content-muted">库位</span>
             <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click.stop="openAddLocation(wh.id)">添加库位</UButton>
           </div>
-          <div v-if="loadingLocations" class="text-xs text-gray-400 py-2">加载中...</div>
-          <div v-else-if="!locationMap[wh.id] || (locationMap[wh.id] && locationMap[wh.id]!.length === 0)" class="text-xs text-gray-400 py-2">还没有库位</div>
+          <div v-if="loadingLocations" class="text-xs text-content-muted py-2">加载中...</div>
+          <div v-else-if="!locationMap[wh.id] || (locationMap[wh.id] && locationMap[wh.id]!.length === 0)" class="text-xs text-content-muted py-2">还没有库位</div>
           <div v-else class="space-y-1">
-            <div v-for="loc in locationMap[wh.id]" :key="loc.id" class="flex items-center justify-between px-3 py-1.5 rounded hover:bg-gray-50">
+            <div v-for="loc in locationMap[wh.id]" :key="loc.id" class="flex items-center justify-between px-3 py-1.5 rounded hover:bg-surface-hover">
               <div class="flex items-center gap-2 text-sm">
-                <span class="text-gray-700">{{ loc.name }}</span>
-                <span class="text-xs text-gray-400">{{ loc.code }}</span>
+                <span class="text-content-secondary">{{ loc.name }}</span>
+                <span class="text-xs text-content-muted">{{ loc.code }}</span>
               </div>
               <div class="flex items-center gap-1">
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEditLocation(loc, wh.id)" />
@@ -228,108 +228,82 @@ onMounted(() => { fetchWarehouses() })
     </div>
 
     <!-- 仓库新增弹窗 -->
-    <UModal v-model:open="showCreateModal">
-      <template #header>添加仓库</template>
-      <template #body>
+    <CommonFormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加仓库" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
         <form class="space-y-4" @submit.prevent="handleCreate">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">仓库名称 <span class="text-red-400">*</span></label>
-              <input v-model="createForm.name" type="text" placeholder="仓库名称" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">仓库名称 <span class="text-red-400">*</span></label>
+              <input v-model="createForm.name" type="text" placeholder="仓库名称" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">编码 <span class="text-gray-400 text-xs">(自动生成)</span></label>
-              <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">编码 <span class="text-content-muted text-xs">(自动生成)</span></label>
+              <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full input-base focus-ring" />
             </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">地址</label>
-            <input v-model="createForm.address" type="text" placeholder="仓库地址" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">地址</label>
+            <input v-model="createForm.address" type="text" placeholder="仓库地址" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">负责人</label>
-            <input v-model="createForm.manager" type="text" placeholder="负责人" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">负责人</label>
+            <input v-model="createForm.manager" type="text" placeholder="负责人" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">备注</label>
-            <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
+            <label class="block text-sm text-content-secondary mb-1">备注</label>
+            <textarea v-model="createForm.remark" rows="2" placeholder="备注信息..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">取消</UButton>
-          <UButton color="primary" :loading="createLoading" @click="handleCreate">添加</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 仓库编辑弹窗 -->
-    <UModal v-model:open="showEditModal">
-      <template #header>编辑仓库</template>
-      <template #body>
+    <CommonFormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑仓库" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
         <form class="space-y-4" @submit.prevent="handleEdit">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-gray-600 mb-1">仓库名称 <span class="text-red-400">*</span></label>
-              <input v-model="editForm.name" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">仓库名称 <span class="text-red-400">*</span></label>
+              <input v-model="editForm.name" type="text" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-gray-600 mb-1">编码</label>
-              <input v-model="editForm.code" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+              <label class="block text-sm text-content-secondary mb-1">编码</label>
+              <input v-model="editForm.code" type="text" class="w-full input-base focus-ring" />
             </div>
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">地址</label>
-            <input v-model="editForm.address" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">地址</label>
+            <input v-model="editForm.address" type="text" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">负责人</label>
-            <input v-model="editForm.manager" type="text" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">负责人</label>
+            <input v-model="editForm.manager" type="text" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">备注</label>
-            <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
+            <label class="block text-sm text-content-secondary mb-1">备注</label>
+            <textarea v-model="editForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
           </div>
         </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showEditModal = false">取消</UButton>
-          <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 库位弹窗 -->
-    <UModal v-model:open="showLocationModal">
-      <template #header>{{ editingLocationId ? '编辑库位' : '添加库位' }}</template>
-      <template #body>
+    <CommonFormModal v-if="showLocationModal" v-model:open="showLocationModal" :title="editingLocationId ? '编辑库位' : '添加库位'" size="compact" :loading="locationLoading" @confirm="handleSaveLocation" @cancel="showLocationModal = false">
         <form class="space-y-4" @submit.prevent="handleSaveLocation">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">库位名称 <span class="text-red-400">*</span></label>
-            <input v-model="locationForm.name" type="text" placeholder="如 A区-01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">库位名称 <span class="text-red-400">*</span></label>
+            <input v-model="locationForm.name" type="text" placeholder="如 A区-01" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">库位编码 <span class="text-red-400">*</span></label>
-            <input v-model="locationForm.code" type="text" placeholder="如 A-01" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">库位编码 <span class="text-red-400">*</span></label>
+            <input v-model="locationForm.code" type="text" placeholder="如 A-01" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-gray-600 mb-1">备注</label>
-            <input v-model="locationForm.remark" type="text" placeholder="备注" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            <label class="block text-sm text-content-secondary mb-1">备注</label>
+            <input v-model="locationForm.remark" type="text" placeholder="备注" class="w-full input-base focus-ring" />
           </div>
         </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showLocationModal = false">取消</UButton>
-          <UButton color="primary" :loading="locationLoading" @click="handleSaveLocation">{{ editingLocationId ? '保存' : '添加' }}</UButton>
-        </div>
-      </template>
-    </UModal>
+    </CommonFormModal>
 
     <!-- 删除确认 -->
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除仓库「${deleteTarget?.name}」吗？删了就找不回来了。`"

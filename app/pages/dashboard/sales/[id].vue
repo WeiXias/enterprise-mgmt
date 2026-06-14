@@ -69,32 +69,32 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
       </template>
     </CommonPageHeader>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
 
     <div v-else-if="order" class="space-y-4">
-      <div class="warm-card p-6">
+      <div class="em-card p-6">
         <div class="flex items-center gap-3 mb-4">
-          <h2 class="text-lg font-medium text-gray-800">{{ order.code }}</h2>
+          <h2 class="text-lg font-medium text-content-primary">{{ order.code }}</h2>
           <StatusBadge :value="order.status" enum-type="salesOrderStatus" />
         </div>
         <div class="grid grid-cols-3 gap-4 text-sm">
-          <div><span class="text-gray-400">客户</span><p class="text-gray-700 mt-0.5">{{ order.customerName || '-' }}</p></div>
-          <div><span class="text-gray-400">关联合同</span><p class="text-gray-700 mt-0.5">{{ order.contractCode || '-' }}</p></div>
-          <div><span class="text-gray-400">订单总额</span><p class="text-gray-700 mt-0.5 font-medium">{{ formatAmount(order.totalAmount) }}</p></div>
-          <div><span class="text-gray-400">创建时间</span><p class="text-gray-700 mt-0.5">{{ order.createdAt || '-' }}</p></div>
+          <div><span class="text-content-muted">客户</span><p class="text-content-secondary mt-0.5">{{ order.customerName || '-' }}</p></div>
+          <div><span class="text-content-muted">关联合同</span><p class="text-content-secondary mt-0.5">{{ order.contractCode || '-' }}</p></div>
+          <div><span class="text-content-muted">订单总额</span><p class="text-content-secondary mt-0.5 font-medium">{{ formatAmount(order.totalAmount) }}</p></div>
+          <div><span class="text-content-muted">创建时间</span><p class="text-content-secondary mt-0.5">{{ order.createdAt || '-' }}</p></div>
         </div>
-        <div v-if="order.remark" class="mt-4 pt-4 border-t border-gray-100">
-          <span class="text-sm text-gray-400">备注</span>
-          <p class="text-sm text-gray-700 mt-1">{{ order.remark }}</p>
+        <div v-if="order.remark" class="mt-4 pt-4 border-t border-line-light">
+          <span class="text-sm text-content-muted">备注</span>
+          <p class="text-sm text-content-secondary mt-1">{{ order.remark }}</p>
         </div>
       </div>
 
-      <div class="warm-card p-6">
-        <h3 class="text-sm font-medium text-gray-600 mb-3">销售产品</h3>
-        <div v-if="!order.items || order.items.length === 0" class="text-sm text-gray-400">没有产品明细</div>
+      <div class="em-card p-6">
+        <h3 class="text-sm font-medium text-content-secondary mb-3">销售产品</h3>
+        <div v-if="!order.items || order.items.length === 0" class="text-sm text-content-muted">没有产品明细</div>
         <table v-else class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-100 text-gray-400">
+            <tr class="border-b border-line-light text-content-muted">
               <th class="text-left py-2 font-normal">产品</th>
               <th class="text-right py-2 font-normal">数量</th>
               <th class="text-right py-2 font-normal">单价</th>
@@ -102,14 +102,14 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in order.items" :key="item.id" class="border-b border-gray-50">
+            <tr v-for="item in order.items" :key="item.id" class="border-b border-line-light">
               <td class="py-2">
-                <span class="text-gray-700">{{ item.productName }}</span>
-                <span class="text-xs text-gray-400 ml-1">{{ item.productCode }}</span>
+                <span class="text-content-secondary">{{ item.productName }}</span>
+                <span class="text-xs text-content-muted ml-1">{{ item.productCode }}</span>
               </td>
-              <td class="text-right py-2 text-gray-700">{{ item.quantity }}</td>
-              <td class="text-right py-2 text-gray-700">{{ formatAmount(item.unitPrice) }}</td>
-              <td class="text-right py-2 text-gray-700">{{ formatAmount(item.amount) }}</td>
+              <td class="text-right py-2 text-content-secondary">{{ item.quantity }}</td>
+              <td class="text-right py-2 text-content-secondary">{{ formatAmount(item.unitPrice) }}</td>
+              <td class="text-right py-2 text-content-secondary">{{ formatAmount(item.amount) }}</td>
             </tr>
           </tbody>
         </table>
@@ -125,29 +125,33 @@ onMounted(() => { fetchOrder(); fetchWarehouses() })
     </div>
 
     <!-- 发货弹窗（选择仓库） -->
-    <UModal v-model:open="showShipModal">
-      <template #header>确认发货</template>
-      <template #body>
-        <div class="space-y-4">
-          <p class="text-sm text-gray-500">发货后库存会自动扣减，确认要发货吗？</p>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">出货仓库（可选）</label>
-            <select v-model="shipForm.warehouseId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-              <option value="">不指定</option>
-              <option v-for="w in warehouseOptions" :key="w.id" :value="w.id">{{ w.name }}</option>
-            </select>
-          </div>
+    <CommonFormModal
+      v-if="showShipModal"
+      v-model:open="showShipModal"
+      title="确认发货"
+      size="compact"
+      :loading="actionLoading"
+      @confirm="doAction('ship', shipForm)"
+      @cancel="showShipModal = false"
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-content-secondary">发货后库存会自动扣减，确认要发货吗？</p>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">出货仓库（可选）</label>
+          <select v-model="shipForm.warehouseId" class="w-full input-base focus-ring">
+            <option value="">不指定</option>
+            <option v-for="w in warehouseOptions" :key="w.id" :value="w.id">{{ w.name }}</option>
+          </select>
         </div>
-      </template>
+      </div>
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showShipModal = false">取消</UButton>
-          <UButton color="primary" :loading="actionLoading" @click="doAction('ship', shipForm)">确认发货</UButton>
-        </div>
+        <UButton variant="ghost" color="neutral" @click="showShipModal = false">算了</UButton>
+        <UButton color="primary" :loading="actionLoading" @click="doAction('ship', shipForm)">确认发货</UButton>
       </template>
-    </UModal>
+    </CommonFormModal>
 
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除销售订单「${order?.code}」吗？`"

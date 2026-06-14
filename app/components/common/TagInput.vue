@@ -30,7 +30,7 @@ const props = defineProps<Props>()
       </span>
     </div>
     <input v-model="input" :placeholder="placeholder" type="text"
-      class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400"
+      class="w-full input-base focus-ring"
       @keydown.enter.prevent="addTag" @keydown.,.prevent="addTag" />
   </div>
 </template>

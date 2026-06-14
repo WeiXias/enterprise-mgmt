@@ -75,34 +75,34 @@ onMounted(() => { fetchList(); fetchWarehouses() })
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input v-model="keyword" type="text" placeholder="搜盘点单号..." class="w-full pl-9 pr-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 transition-colors" @input="onSearchInput" />
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
+        <input v-model="keyword" type="text" placeholder="搜盘点单号..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
       </div>
-      <select v-model="statusFilter" class="px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
+      <select v-model="statusFilter" class="input-base focus-ring">
         <option value="">全部状态</option>
         <option value="draft">草稿</option>
         <option value="counting">盘点中</option>
         <option value="completed">已完成</option>
       </select>
-      <span class="text-xs text-gray-400">共 {{ total }} 条</span>
+      <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-gray-400">加载中...</div>
-    <div v-else-if="counts.length === 0" class="text-center py-12 text-gray-400">
-      <UIcon name="i-lucide-clipboard-check" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="counts.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-clipboard-check" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">还没有盘点计划</p>
     </div>
     <div v-else class="space-y-2">
-      <div v-for="c in counts" :key="c.id" class="warm-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer" @click="$router.push(`/dashboard/inventory/counts/${c.id}`)">
+      <div v-for="c in counts" :key="c.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer" @click="$router.push(`/dashboard/inventory/counts/${c.id}`)">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0',
           c.status === 'draft' ? 'bg-gray-300' :
-          c.status === 'counting' ? 'bg-amber-400' : 'bg-teal-400']" />
+          c.status === 'counting' ? 'bg-brand-400' : 'bg-teal-400']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800">{{ c.code }}</span>
+            <span class="text-sm font-medium text-content-primary">{{ c.code }}</span>
             <StatusBadge :value="c.status" enum-type="countStatus" />
           </div>
-          <div class="flex items-center gap-3 text-xs text-gray-400">
+          <div class="flex items-center gap-3 text-xs text-content-muted">
             <span v-if="c.warehouseName"><UIcon name="i-lucide-warehouse" class="w-3 h-3 inline-block mr-0.5" />{{ c.warehouseName }}</span>
             <span v-if="c.plannedDate">计划 {{ c.plannedDate }}</span>
             <span v-if="c.completedAt">完成于 {{ c.completedAt?.slice(0, 10) }}</span>
@@ -114,40 +114,40 @@ onMounted(() => { fetchList(); fetchWarehouses() })
 
     <CommonPagination v-model:page="page" :total-pages="totalPages" @prev="fetchList" @next="fetchList" />
 
-    <UModal v-model:open="showCreateModal">
-      <template #header>新建盘点计划</template>
-      <template #body>
-        <form class="space-y-4" @submit.prevent="handleCreate">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">盘点单号 <span class="text-gray-400 text-xs">(空则自动生成)</span></label>
-            <input v-model="createForm.code" type="text" placeholder="自动生成" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">盘点仓库（可选）</label>
-            <select v-model="createForm.warehouseId" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 bg-white">
-              <option value="">全部仓库</option>
-              <option v-for="w in warehouseOptions" :key="w.id" :value="w.id">{{ w.name }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">计划日期</label>
-            <input v-model="createForm.plannedDate" type="date" class="w-full px-3 h-9 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">备注</label>
-            <textarea v-model="createForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400 resize-none" />
-          </div>
-        </form>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showCreateModal = false">取消</UButton>
-          <UButton color="primary" :loading="createLoading" @click="handleCreate">创建</UButton>
+    <CommonFormModal
+      v-if="showCreateModal"
+      v-model:open="showCreateModal"
+      title="新建盘点计划"
+      size="compact"
+      :loading="createLoading"
+      @confirm="handleCreate"
+      @cancel="showCreateModal = false"
+    >
+      <form class="space-y-4" @submit.prevent="handleCreate">
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">盘点单号 <span class="text-content-muted text-xs">(空则自动生成)</span></label>
+          <input v-model="createForm.code" type="text" placeholder="自动生成" class="w-full input-base focus-ring" />
         </div>
-      </template>
-    </UModal>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">盘点仓库（可选）</label>
+          <select v-model="createForm.warehouseId" class="w-full input-base focus-ring">
+            <option value="">全部仓库</option>
+            <option v-for="w in warehouseOptions" :key="w.id" :value="w.id">{{ w.name }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">计划日期</label>
+          <input v-model="createForm.plannedDate" type="date" class="w-full input-base focus-ring" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">备注</label>
+          <textarea v-model="createForm.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
+        </div>
+      </form>
+    </CommonFormModal>
 
     <CommonConfirmDialog
+      v-if="showDeleteModal"
       v-model:open="showDeleteModal"
       title="确认删除"
       :message="`确定要删除盘点计划「${deleteTarget?.code}」吗？`"

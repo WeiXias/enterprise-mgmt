@@ -37,11 +37,11 @@ async function handleSubmit() {
     <div class="mb-6 flex items-center gap-3">
       <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.back()" />
       <div>
-        <h1 class="text-lg font-medium text-gray-800">新建客户</h1>
-        <p class="text-sm text-gray-400 mt-0.5">添加一个新客户，还可以带上联系人</p>
+        <h1 class="text-lg font-medium text-content-primary">新建客户</h1>
+        <p class="text-sm text-content-muted mt-0.5">添加一个新客户，还可以带上联系人</p>
       </div>
     </div>
-    <div class="warm-card">
+    <div class="em-card">
       <CustomerForm v-model="form" mode="create" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2">
         <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>
