@@ -321,7 +321,10 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         <!-- 产品描述 -->
         <div class="em-card">
-          <h3 class="text-sm font-medium text-content-secondary mb-3">产品描述</h3>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-medium text-content-secondary">产品描述</h3>
+            <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-pen-line" @click="openEditModal">编辑</UButton>
+          </div>
           <p v-if="product.description" class="text-sm text-content-secondary whitespace-pre-wrap leading-relaxed">{{ product.description }}</p>
           <p v-else class="text-xs text-content-muted">暂无描述</p>
         </div>
