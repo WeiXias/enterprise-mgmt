@@ -296,9 +296,9 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
             <!-- 操作按钮 -->
             <div class="flex items-center gap-2">
               <UButton size="xs" color="primary" icon="i-lucide-pen-line" @click="openEditModal">编辑</UButton>
-              <UButton size="xs" :icon="product.status === 'on_sale' ? 'i-lucide-eye-off' : 'i-lucide-eye'" :color="product.status === 'on_sale' ? 'neutral' : 'success'" variant="ghost" @click="toggleStatus">{{ product.status === 'on_sale' ? '下架' : '上架' }}</UButton>
               <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-upload" :loading="imageUploading" @click="document.getElementById('product-image-input')?.click()">上传图片</UButton>
               <input id="product-image-input" type="file" accept="image/*" class="hidden" @change="onImageSelect" />
+              <UButton size="xs" :icon="product.status === 'on_sale' ? 'i-lucide-eye-off' : 'i-lucide-eye'" :color="product.status === 'on_sale' ? 'neutral' : 'success'" variant="ghost" @click="toggleStatus">{{ product.status === 'on_sale' ? '下架' : '上架' }}</UButton>
               <div class="flex-1" />
               <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="showDeleteModal = true">删除</UButton>
             </div>
@@ -342,8 +342,8 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
               </div>
             </div>
             <div class="flex justify-end gap-2">
-              <UButton size="xs" variant="ghost" color="neutral" @click="specEditing = false">算了</UButton>
               <UButton size="xs" color="primary" :loading="specSaving" @click="saveSpecs">保存</UButton>
+              <UButton size="xs" variant="ghost" color="neutral" @click="specEditing = false">算了</UButton>
             </div>
           </div>
 
