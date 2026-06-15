@@ -10,6 +10,9 @@ const DICT_TYPES: Record<string, { label: string; category: string }> = {
   finance_income_category: { label: '收入分类', category: '财务' },
   finance_expense_category: { label: '支出分类', category: '财务' },
   reimbursement_type: { label: '报销类型', category: '财务' },
+  spec_template_hardware: { label: '规格模板-硬件产品', category: '产品规格模板' },
+  spec_template_software: { label: '规格模板-软件产品', category: '产品规格模板' },
+  spec_template_service: { label: '规格模板-服务产品', category: '产品规格模板' },
 }
 
 export default defineEventHandler(() => {
