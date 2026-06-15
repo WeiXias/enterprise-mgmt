@@ -20,6 +20,25 @@ const categoryOptions = ref<any[]>([])
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
 
+// 图片
+const productImages = ref<any[]>([])
+const imageUploading = ref(false)
+const imagesLoading = ref(false)
+
+// 规格
+const productSpecs = ref<any[]>([])
+const specsLoading = ref(false)
+const specEditing = ref(false)
+const specTemplateOptions = [
+  { value: 'spec_template_hardware', label: '硬件规格' },
+  { value: 'spec_template_software', label: '软件规格' },
+  { value: 'spec_template_service', label: '服务规格' },
+]
+const editSpecTemplate = ref('')
+const editSpecItems = ref<{ key: string; label: string }[]>([])
+const editSpecValues = ref<Record<string, string>>({})
+const specSaving = ref(false)
+
 // 库存流水
 const transactions = ref<any[]>([])
 const showInventoryModal = ref(false)
@@ -142,7 +161,90 @@ async function handleDeleteConfirmed() {
   finally { showDeleteDialog.value = false }
 }
 
-onMounted(() => { fetchDetail(); fetchTransactions() })
+// ---- 图片 ----
+async function fetchImages() {
+  imagesLoading.value = true
+  try { const res = await $api(`/api/products/${productId}/images`) as any; if (res?.code === 0) productImages.value = res.data } catch {}
+  finally { imagesLoading.value = false }
+}
+
+function onImageSelect(e: Event) {
+  const input = e.target as HTMLInputElement
+  const files = input.files
+  if (!files?.length) return
+  uploadImage(files[0]!)
+  input.value = ''
+}
+
+async function uploadImage(file: File) {
+  if (file.size > 10 * 1024 * 1024) { toast.add({ title: '图片不能超过 10MB', color: 'warning' }); return }
+  imageUploading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await $fetch(`/api/products/${productId}/images`, { method: 'POST', body: fd }) as any
+    if (res?.code === 0) { toast.add({ title: '图片已上传', color: 'success' }); fetchImages() }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '上传失败', color: 'error' }) }
+  finally { imageUploading.value = false }
+}
+
+async function deleteImage(imageId: string) {
+  try {
+    const res = await $api(`/api/products/${productId}/images/${imageId}`, { method: 'DELETE' }) as any
+    if (res?.code === 0) { toast.add({ title: '图片已删除', color: 'success' }); fetchImages() }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+}
+
+function getImageUrl(img: any) {
+  return img.filePath?.startsWith('/uploads') ? img.filePath : `/api/files/${img.fileName}`
+}
+
+// ---- 规格 ----
+async function fetchSpecs() {
+  specsLoading.value = true
+  try { const res = await $api(`/api/products/${productId}/specs`) as any; if (res?.code === 0) productSpecs.value = res.data } catch {}
+  finally { specsLoading.value = false }
+}
+
+async function loadSpecTemplate(type: string) {
+  editSpecItems.value = []
+  editSpecValues.value = {}
+  if (!type) return
+  try {
+    const res = await $api(`/api/dict/${type}`) as any
+    if (res?.code === 0 && res.data?.length) {
+      editSpecItems.value = res.data.map((item: any) => ({ key: item.value, label: item.label }))
+      for (const item of res.data) editSpecValues.value[item.value] = ''
+    }
+  } catch {}
+}
+
+watch(editSpecTemplate, loadSpecTemplate)
+
+function startEditSpecs() {
+  specEditing.value = true
+  // 尝试匹配已有规格类型
+  const existing = productSpecs.value[0]
+  editSpecTemplate.value = existing?.specTemplate || ''
+  setTimeout(() => loadSpecTemplate(editSpecTemplate.value), 200)
+}
+
+async function saveSpecs() {
+  const specs = editSpecItems.value
+    .filter(item => editSpecValues.value[item.key]?.trim())
+    .map(item => ({ specTemplate: editSpecTemplate.value, specKey: item.key, specValue: editSpecValues.value[item.key].trim() }))
+  if (!specs.length) { toast.add({ title: '还没填规格值呢', color: 'warning' }); return }
+  specSaving.value = true
+  try {
+    await $api(`/api/products/${productId}/specs`, { method: 'PUT', body: { specs } })
+    toast.add({ title: '规格已保存', color: 'success' })
+    specEditing.value = false
+    fetchSpecs()
+  } catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
+  finally { specSaving.value = false }
+}
+
+onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs() })
 </script>
 
 <template>
@@ -150,7 +252,7 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="!product" class="text-center py-12 text-content-muted">产品不存在</div>
     <template v-else>
-      <UTabs :items="[{ label: '基本信息' }, { label: '库存流水' }]" :default-value="'0'" :unmount-on-hide="false">
+      <UTabs :items="[{ label: '基本信息' }, { label: '产品图片' }, { label: '规格参数' }, { label: '库存流水' }]" :default-value="'0'" :unmount-on-hide="false">
         <template #content="{ index }">
           <!-- 基本信息 -->
           <div v-if="index === 0" class="mt-4">
@@ -204,8 +306,71 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
             </div>
           </div>
 
-          <!-- 库存流水 -->
+          <!-- 产品图片 -->
           <div v-if="index === 1" class="mt-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-sm text-content-secondary">{{ productImages.length }} 张图片</span>
+              <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-upload" :loading="imageUploading" @click="document.getElementById('product-image-input')?.click()">上传图片</UButton>
+              <input id="product-image-input" type="file" accept="image/*" class="hidden" @change="onImageSelect" />
+            </div>
+            <div v-if="imagesLoading" class="text-center py-8 text-content-muted text-sm">加载中...</div>
+            <div v-else-if="!productImages.length" class="text-center py-12 text-content-muted">
+              <UIcon name="i-lucide-image" class="w-10 h-10 mx-auto mb-2 text-line" />
+              <p class="text-sm">还没有图片，上传一张？</p>
+            </div>
+            <div v-else class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div v-for="img in productImages" :key="img.id" class="relative group rounded-lg border border-line overflow-hidden aspect-square">
+                <img :src="getImageUrl(img)" class="w-full h-full object-cover" />
+                <button class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" @click="deleteImage(img.id)"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 规格参数 -->
+          <div v-if="index === 2" class="mt-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm text-content-secondary">规格参数</span>
+              <UButton v-if="!specEditing" size="xs" variant="ghost" color="primary" icon="i-lucide-pen-line" @click="startEditSpecs">编辑规格</UButton>
+            </div>
+
+            <!-- 查看模式 -->
+            <div v-if="!specEditing">
+              <div v-if="specsLoading" class="text-center py-8 text-content-muted text-sm">加载中...</div>
+              <div v-else-if="!productSpecs.length" class="text-center py-12 text-content-muted">
+                <UIcon name="i-lucide-file-text" class="w-10 h-10 mx-auto mb-2 text-line" />
+                <p class="text-sm">还没有填写规格</p>
+              </div>
+              <div v-else class="em-card">
+                <div v-for="group in [...new Set(productSpecs.map(s => s.specTemplate))]" :key="group" class="mb-4 last:mb-0">
+                  <h4 class="text-xs font-medium text-content-muted mb-2">{{ specTemplateOptions.find(o => o.value === group)?.label || group }}</h4>
+                  <div class="space-y-1.5">
+                    <div v-for="s in productSpecs.filter(s => s.specTemplate === group)" :key="s.id" class="flex items-center gap-3 text-sm">
+                      <span class="text-content-muted w-24 shrink-0">{{ s.specKey }}</span>
+                      <span class="text-content-primary">{{ s.specValue }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 编辑模式 -->
+            <div v-else class="em-card">
+              <div class="mb-3"><EnumSelect v-model="editSpecTemplate" :options="specTemplateOptions" placeholder="选择规格模板" /></div>
+              <div v-if="editSpecItems.length" class="space-y-2 mb-4">
+                <div v-for="item in editSpecItems" :key="item.key" class="flex items-center gap-2">
+                  <span class="text-sm text-content-secondary w-24 shrink-0">{{ item.label }}</span>
+                  <input v-model="editSpecValues[item.key]" type="text" :placeholder="`填写${item.label}`" class="flex-1 input-base focus-ring text-sm" />
+                </div>
+              </div>
+              <div class="flex justify-end gap-2">
+                <UButton size="xs" variant="ghost" color="neutral" @click="specEditing = false">算了</UButton>
+                <UButton size="xs" color="primary" :loading="specSaving" @click="saveSpecs">保存规格</UButton>
+              </div>
+            </div>
+          </div>
+
+          <!-- 库存流水 -->
+          <div v-if="index === 3" class="mt-4">
             <div class="flex items-center justify-between mb-3">
               <span class="text-sm text-content-muted">出入库记录</span>
               <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="showInventoryModal = true; inventoryForm = { type: 'inbound', quantity: 1, unitPrice: 0, batchNo: '', remark: '' }">登记流水</UButton>
