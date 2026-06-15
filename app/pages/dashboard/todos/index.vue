@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// @ts-nocheck
 import type { TodoList, Todo, TodoTag } from '~/types/models'
 import { TODO_PRIORITY_CONFIG, TODO_STATUS_CONFIG, LIST_COLOR_CONFIG } from '~/utils/constants'
 import type { TodoPriority, TodoStatus, ListColor } from '~/types/models'

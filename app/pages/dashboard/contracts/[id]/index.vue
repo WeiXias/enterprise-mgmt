@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PdfSignaturePlacement, SealInfo } from '~/types/pdf'
 import { useSealStore } from '~/stores/seal'
+import { sanitizeHtml } from '~/utils/sanitize'
 
 definePageMeta({ layout: 'dashboard', title: '合同详情', middleware: ['auth'], watermark: true })
 
@@ -501,12 +502,21 @@ async function handleSaveSubcontract() {
   finally { subLoading.value = false }
 }
 
-async function deleteSubcontract(sc: any) {
-  if (!confirm('确定要删除分包合同吗？')) return
+const showDeleteSubDialog = ref(false)
+const deleteSubTarget = ref<any>(null)
+
+function promptDeleteSubcontract(sc: any) {
+  deleteSubTarget.value = sc
+  showDeleteSubDialog.value = true
+}
+
+async function handleDeleteSubcontractConfirmed() {
+  if (!deleteSubTarget.value) return
   try {
-    await $api(`/api/subcontracts/${sc.id}`, { method: 'DELETE' })
+    await $api(`/api/subcontracts/${deleteSubTarget.value.id}`, { method: 'DELETE' })
     toast.add({ title: '已删除', color: 'success' }); fetchSubcontracts()
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteSubDialog.value = false }
 }
 </script>
 
@@ -659,7 +669,7 @@ async function deleteSubcontract(sc: any) {
             <p>还没起草正文</p>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="primary" size="sm" class="mt-2" :to="`/dashboard/contracts/${contract.id}/edit`">点击编辑开始撰写</UButton>
           </div>
-          <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="contract.content" />
+          <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="sanitizeHtml(contract.content)" />
         </div>
       </template>
       <template #products>
@@ -801,7 +811,7 @@ async function deleteSubcontract(sc: any) {
               <div class="flex-1"><span class="text-sm text-content-primary font-medium">{{ sc.name }}</span><span :class="['ml-2 text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[sc.status]?.color || '']">{{ statusConfig[sc.status]?.label || sc.status }}</span><p class="text-xs text-content-muted mt-0.5">{{ sc.subcontractPartyName || '-' }} · {{ formatMoney(sc.totalAmount) }} · 税费 {{ (sc.taxRate * 100).toFixed(0) }}%</p></div>
               <div class="flex gap-1">
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditSubcontract(sc)" />
-                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteSubcontract(sc)" />
+                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDeleteSubcontract(sc)" />
               </div>
             </div>
           </div>
@@ -1188,6 +1198,14 @@ async function deleteSubcontract(sc: any) {
       :open="showHandSignaturePad"
       @update:open="showHandSignaturePad = $event"
       @confirm="onHandSignatureConfirm"
+    />
+
+    <ConfirmDialog
+      v-model:open="showDeleteSubDialog"
+      :danger="true"
+      title="删除分包合同"
+      message="确定要删除这个分包合同吗？"
+      @confirm="handleDeleteSubcontractConfirmed"
     />
   </div>
 </template>

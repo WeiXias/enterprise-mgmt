@@ -12,9 +12,10 @@ export default defineEventHandler(async (event) => {
      coalesce(sum(case when type = 'income' then amount else 0 end), 0) as income,
      coalesce(sum(case when type = 'expense' then amount else 0 end), 0) as expense
      from finance_transactions
-     where deleted_at is null and transaction_date like '${year}%'
+     where deleted_at is null and transaction_date like ?1
      group by strftime('%Y-%m', transaction_date)
-     order by month`
+     order by month`,
+    `${year}%`
   ) as { month: string; income: number; expense: number; profit: number }[]
 
   const items = rows.map((r: { month: string; income: number; expense: number; profit: number }) => ({
@@ -24,12 +25,12 @@ export default defineEventHandler(async (event) => {
     profit: Number(r.income) - Number(r.expense),
   }))
 
-  const totals = items.reduce((acc: { totalIncome: number; totalExpense: number; totalProfit: number }, r: { month: string; income: number; expense: number; profit: number }) => {
-    acc.income += r.income
-    acc.expense += r.expense
-    acc.profit += r.profit
+  const totals = items.reduce((acc, r) => {
+    acc.totalIncome += r.income
+    acc.totalExpense += r.expense
+    acc.totalProfit += r.profit
     return acc
-  }, { income: 0, expense: 0, profit: 0 })
+  }, { totalIncome: 0, totalExpense: 0, totalProfit: 0 })
 
   return { code: 0, data: { year, items, totals } }
 })

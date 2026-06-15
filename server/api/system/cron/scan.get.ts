@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import { db } from '#database'
-import { notifications, contracts, paymentPlans, projects, products, opportunities, invoices, todos } from '#schema'
-import { eq, and, lte, gte, lt, isNull } from 'drizzle-orm'
+import { notifications, contracts, paymentPlans, projects, products, opportunities, invoices, todos, users } from '#schema'
+import { eq, and, lte, gte, lt, isNull, inArray } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 
 export default defineEventHandler(async () => {
@@ -33,13 +33,17 @@ export default defineEventHandler(async () => {
     if (c.createdBy) add(c.createdBy, 'remind', '合同即将到期', `合同「${c.name}」将于 ${c.endDate} 到期`, c.id, 'contract')
   }
 
-  // 2. 回款逾期
+  // 2. 回款逾期（检测 + 更新状态）
   const overduePlans = await db.select({
     id: paymentPlans.id, amount: paymentPlans.amount, contractId: paymentPlans.contractId, planDate: paymentPlans.planDate,
   }).from(paymentPlans).where(and(
     lt(paymentPlans.planDate, today),
     eq(paymentPlans.status, 'pending'),
   ))
+  if (overduePlans.length > 0) {
+    const planIds = overduePlans.map(p => p.id)
+    await db.update(paymentPlans).set({ status: 'overdue' }).where(inArray(paymentPlans.id, planIds))
+  }
   for (const p of overduePlans) {
     const contract = await db.select({ name: contracts.name, createdBy: contracts.createdBy }).from(contracts).where(eq(contracts.id, p.contractId)).limit(1)
     const c = contract[0]
@@ -61,7 +65,7 @@ export default defineEventHandler(async () => {
   // 库存不足 → 通知所有 admin
   const admins = await db.select({ id: notifications.userId }).from(notifications).where(eq(notifications.type, 'system')).limit(1) // 兜底
   if (lowStock.length > 0) {
-    const adminUsers = await db.all('select id from users where role = \'admin\'') as { id: string }[]
+    const adminUsers = await db.select({ id: users.id }).from(users).where(eq(users.role, 'admin'))
     for (const p of lowStock) {
       for (const a of adminUsers) {
         add(a.id, 'remind', '库存不足', `产品「${p.name}」当前库存仅剩 ${p.stockQuantity}`, p.id, 'product')

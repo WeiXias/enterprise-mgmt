@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   },
 
   devtools: {
-    enabled: true
+    enabled: process.env.NODE_ENV !== 'production'
   },
 
   css: [
@@ -59,13 +59,6 @@ export default defineNuxtConfig({
       '#schema/ai': resolve(__dirname, 'server/database/schema/ai'),
       '#schema/im': resolve(__dirname, 'server/database/schema/im'),
       '#schema/todos': resolve(__dirname, 'server/database/schema/todos'),
-      '#schema/seals': resolve(__dirname, 'server/database/schema/seals'),
-      '#schema/suppliers': resolve(__dirname, 'server/database/schema/suppliers'),
-      '#schema/purchases': resolve(__dirname, 'server/database/schema/purchases'),
-      '#schema/sales': resolve(__dirname, 'server/database/schema/sales'),
-      '#schema/workflow': resolve(__dirname, 'server/database/schema/workflow'),
-      '#schema/accounting': resolve(__dirname, 'server/database/schema/accounting'),
-      '#schema/reports': resolve(__dirname, 'server/database/schema/reports'),
       '#enums': resolve(__dirname, 'server/database/schema/enums'),
       '#server-utils': resolve(__dirname, 'server/utils'),
       '#ai-utils': resolve(__dirname, 'server/utils/ai')
@@ -82,6 +75,7 @@ export default defineNuxtConfig({
           'X-XSS-Protection': '0',
           'Referrer-Policy': 'strict-origin-when-cross-origin',
           'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
+          'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'",
         },
       },
       // 静态资源缓存

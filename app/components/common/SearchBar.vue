@@ -15,6 +15,10 @@ const emit = defineEmits<{
 
 let timer: ReturnType<typeof setTimeout> | null = null
 
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
+
 function onInput(e: Event) {
   const value = (e.target as HTMLInputElement).value
   emit('update:modelValue', value)

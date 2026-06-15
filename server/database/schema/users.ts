@@ -13,6 +13,8 @@ export const users = sqliteTable('users', {
   roleId: text('role_id'),
   departmentId: text('department_id'),
   status: text('status', { enum: ['active', 'disabled', 'pending'] }).notNull().default('active'),
+  tokenVersion: integer('token_version').notNull().default(0),
+  deletedAt: text('deleted_at'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 })
@@ -37,6 +39,7 @@ export const roles = sqliteTable('roles', {
   description: text('description'),
   isSystem: integer('is_system', { mode: 'boolean' }).notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
+  deletedAt: text('deleted_at'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
 })
 

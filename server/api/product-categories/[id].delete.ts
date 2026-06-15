@@ -2,6 +2,7 @@ import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { dictEntries } from '#schema'
 import { eq } from 'drizzle-orm'
+import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -12,6 +13,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(dictEntries.id, id)).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '分类不存在' })
 
-  await db.delete(dictEntries).where(eq(dictEntries.id, id))
+  const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
+  await db.update(dictEntries).set({ deletedAt: now } as any).where(eq(dictEntries.id, id))
   return { code: 0, message: '分类已删除' }
 })

@@ -86,13 +86,23 @@ async function handleSave() {
   finally { saving.value = false }
 }
 
-async function handleDelete(t: any) {
-  if (!confirm('确定删除？库存将回退')) return
+// 删除确认
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<any>(null)
+
+function promptDelete(t: any) {
+  deleteTarget.value = t
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
   try {
-    await $api(`/api/inventory/transactions/${t.id}`, { method: 'DELETE' })
+    await $api(`/api/inventory/transactions/${deleteTarget.value.id}`, { method: 'DELETE' })
     toast.add({ title: '已删除', color: 'success' })
     fetchItems()
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteDialog.value = false }
 }
 
 onMounted(() => { fetchItems(); fetchProducts() })
@@ -181,7 +191,7 @@ onMounted(() => { fetchItems(); fetchProducts() })
             <td class="py-2 px-3 text-xs text-content-secondary max-w-[150px] truncate">{{ t.remark || '-' }}</td>
             <td class="py-2 px-3 text-xs text-content-secondary">{{ (t.createdAt || '').slice(0, 10) }}</td>
             <td class="py-2 px-3">
-              <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(t)" />
+              <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)" />
             </td>
           </tr>
         </tbody>
@@ -223,5 +233,13 @@ onMounted(() => { fetchItems(); fetchProducts() })
         <input v-model="form.remark" type="text" class="w-full input-base focus-ring" />
       </div>
     </FormModal>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      title="删除库存记录"
+      message="删除后库存将回退，确定要删吗？"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
 </template>

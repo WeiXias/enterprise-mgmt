@@ -10,7 +10,7 @@ const schema = z.object({ toUserId: z.string(), reason: z.string().optional() })
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
-  if (user.role === 'sales') throw createError({ statusCode: 403, statusMessage: '这个需要管理员才能操作' })
+  if (user.role === 'sales_member') throw createError({ statusCode: 403, statusMessage: '这个需要管理员才能操作' })
 
   const { id } = getRouterParams(event)
   const body = await readBody(event)

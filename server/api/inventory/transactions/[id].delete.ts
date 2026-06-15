@@ -1,17 +1,20 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions, products } from '#schema'
-import { eq } from 'drizzle-orm'
+import { eq, and, isNull } from 'drizzle-orm'
+import dayjs from 'dayjs'
+import { logOperation } from '#server-utils/log'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)
-  const [record] = await db.select().from(inventoryTransactions).where(eq(inventoryTransactions.id, id)).limit(1)
+  const [record] = await db.select().from(inventoryTransactions).where(and(eq(inventoryTransactions.id, id), isNull(inventoryTransactions.deletedAt))).limit(1)
   if (!record) throw createError({ statusCode: 404, statusMessage: '记录不存在' })
 
-  const delta = -record.quantity // 反向冲正
+  // 反向冲正库存
+  const delta = -record.quantity
   const [product] = await db.select({ stockQuantity: products.stockQuantity }).from(products).where(eq(products.id, record.productId)).limit(1)
   if (product) {
     if (record.type === 'outbound' && product.stockQuantity + (delta > 0 ? delta : 0) < 0) {
@@ -20,6 +23,8 @@ export default defineEventHandler(async (event) => {
     await db.update(products).set({ stockQuantity: product.stockQuantity + delta }).where(eq(products.id, record.productId))
   }
 
-  await db.delete(inventoryTransactions).where(eq(inventoryTransactions.id, id))
-  return { code: 0, message: '记录已删除，库存已回退' }
+  const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
+  await db.update(inventoryTransactions).set({ deletedAt: now }).where(eq(inventoryTransactions.id, id))
+  await logOperation(event, { action: 'DELETE', module: 'inventory', targetId: id, detail: '删除了库存记录并回退库存' })
+  return { code: 0, data: null, message: '记录已删除，库存已回退' }
 })

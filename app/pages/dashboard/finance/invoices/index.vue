@@ -81,13 +81,23 @@ async function handleSave() {
   finally { saving.value = false }
 }
 
-async function handleVoid(inv: any) {
-  if (!confirm('确定作废此发票吗？')) return
+const showVoidDialog = ref(false)
+const showBatchVoidDialog = ref(false)
+const voidTarget = ref<any>(null)
+
+function promptVoid(inv: any) {
+  voidTarget.value = inv
+  showVoidDialog.value = true
+}
+
+async function handleVoidConfirmed() {
+  if (!voidTarget.value) return
   try {
-    await $api(`/api/invoices/${inv.id}/void`, { method: 'POST' })
+    await $api(`/api/invoices/${voidTarget.value.id}/void`, { method: 'POST' })
     toast.add({ title: '已作废', color: 'success' })
     fetchItems()
   } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
+  finally { showVoidDialog.value = false }
 }
 
 function toggleVoidSelect(id: string) {
@@ -98,7 +108,10 @@ function toggleVoidSelect(id: string) {
 
 async function handleBatchVoid() {
   if (selectedForVoid.value.size === 0) { toast.add({ title: '至少选一张', color: 'warning' }); return }
-  if (!confirm(`确定作废这 ${selectedForVoid.value.size} 张发票吗？`)) return
+  showBatchVoidDialog.value = true
+}
+
+async function handleBatchVoidConfirmed() {
   batchVoidLoading.value = true
   try {
     await Promise.all([...selectedForVoid.value].map(id => $api(`/api/invoices/${id}/void`, { method: 'POST' })))
@@ -106,7 +119,7 @@ async function handleBatchVoid() {
     selectedForVoid.value = new Set()
     fetchItems()
   } catch { toast.add({ title: '部分作废失败', color: 'error' }) }
-  finally { batchVoidLoading.value = false }
+  finally { batchVoidLoading.value = false; showBatchVoidDialog.value = false }
 }
 
 function formatMoney(v: any) {
@@ -160,7 +173,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
         </div>
         <div class="flex gap-1">
           <UButton v-if="inv.status === 'pending'" icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(inv)" />
-          <UButton v-if="inv.status !== 'voided'" icon="i-lucide-x-circle" variant="ghost" color="error" size="xs" @click="handleVoid(inv)" />
+          <UButton v-if="inv.status !== 'voided'" icon="i-lucide-x-circle" variant="ghost" color="error" size="xs" @click="promptVoid(inv)" />
         </div>
       </div>
     </div>
@@ -224,5 +237,8 @@ onMounted(() => { fetchItems(); fetchOptions() })
         </div>
       </form>
     </FormModal>
+
+    <ConfirmDialog v-model:open="showVoidDialog" :danger="false" title="作废发票" :message="`确定作废「${voidTarget?.invoiceNo}」吗？`" @confirm="handleVoidConfirmed" />
+    <ConfirmDialog v-model:open="showBatchVoidDialog" :danger="false" title="批量作废" :message="`确定作废这 ${selectedForVoid.size} 张发票吗？`" @confirm="handleBatchVoidConfirmed" />
   </div>
 </template>

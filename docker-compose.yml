@@ -6,7 +6,7 @@ services:
     container_name: enterprise-mgmt
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "127.0.0.1:${PORT:-3000}:3000"
     volumes:
       - enterprise_data:/opt/enterprise-mgmt/data
     environment:

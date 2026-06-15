@@ -7,6 +7,7 @@
 import { and, like } from 'drizzle-orm'
 import { users, notifications } from '#schema/users'
 import { generateId } from '#server-utils/id'
+import type { DB } from '#database'
 
 const MENTION_REGEX = /@(\S+)/g
 
@@ -27,7 +28,7 @@ export function parseMentions(content: string): string[] {
  * Names not found in the database are silently dropped.
  */
 export async function resolveMentionUserIds(
-  db: ReturnType<typeof import('#database').db>,
+  db: DB,
   usernames: string[],
 ): Promise<string[]> {
   if (usernames.length === 0) return []
@@ -50,7 +51,7 @@ export async function resolveMentionUserIds(
  * project, task), so the notification can link back to it.
  */
 export async function notifyMentions(
-  db: ReturnType<typeof import('#database').db>,
+  db: DB,
   userIds: string[],
   commentId: string,
   targetType: string,

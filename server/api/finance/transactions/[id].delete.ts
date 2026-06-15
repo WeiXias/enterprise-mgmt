@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
 
 export default defineEventHandler(async (event) => {
+  const user = event.context.user
+  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id } = getRouterParams(event)
   const existing = await db.select({ id: financeTransactions.id, sourceType: financeTransactions.sourceType })
     .from(financeTransactions).where(eq(financeTransactions.id, id)).limit(1)

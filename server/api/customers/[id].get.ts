@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   if (custResult.length === 0) throw createError({ statusCode: 404, statusMessage: '客户不存在' })
 
   // 权限检查
-  if (user.role === 'sales' && custResult[0].ownerUserId !== user.userId) {
+  if (user.role === 'sales_member' && custResult[0].ownerUserId !== user.userId) {
     throw createError({ statusCode: 403, statusMessage: '这个客户不是你负责的' })
   }
 

@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   if (keyword) where.push(like(customers.name, `%${keyword}%`))
   if (status) where.push(eq(customers.status, status))
   if (industry) where.push(eq(customers.industry, industry))
-  if (user.role === 'sales' || user.role === 'sales_member') where.push(eq(customers.ownerUserId, user.userId))
+  if (user.role === 'sales_member') where.push(eq(customers.ownerUserId, user.userId))
 
   const [list, totalResult] = await Promise.all([
     db.select({
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   // 批量获取主联系人和标签
   const customerIds = list.map((c: any) => c.id)
   let primaryContacts: { customerId: string, name: string, phone: string }[] = []
-  let allTags: { customerId: string, name: string, color: string }[] = []
+  let allTags: { customerId: string, name: string, color: string, id?: string }[] = []
 
   if (customerIds.length > 0) {
     [primaryContacts, allTags] = await Promise.all([

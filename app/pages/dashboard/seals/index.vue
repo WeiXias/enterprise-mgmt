@@ -1,7 +1,4 @@
 <script setup lang="ts">
-/**
- * 印章管理页 — 上传、删除印章
- */
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth',
@@ -10,6 +7,10 @@ definePageMeta({
 const store = useSealStore()
 const toast = useToast()
 const uploading = ref(false)
+
+// 删除确认
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<{ id: string; name: string } | null>(null)
 
 onMounted(() => {
   store.fetchSeals()
@@ -34,15 +35,20 @@ async function handleUpload(e: Event) {
     }
   } finally {
     uploading.value = false
-    // 重置 file input
     ;(e.target as HTMLInputElement).value = ''
   }
 }
 
-async function handleDelete(sealId: string) {
-  if (!confirm('确定删除这个印章？')) return
-  await store.deleteSeal(sealId)
+function promptDelete(seal: any) {
+  deleteTarget.value = seal
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
+  await store.deleteSeal(deleteTarget.value.id)
   toast.add({ title: '印章已删除', color: 'success' })
+  showDeleteDialog.value = false
 }
 </script>
 
@@ -60,7 +66,6 @@ async function handleDelete(sealId: string) {
       </label>
     </div>
 
-    <!-- 印章列表 -->
     <div v-if="store.loading" class="text-center py-12 text-xs text-content-muted">加载中...</div>
 
     <div v-else-if="store.seals.length === 0" class="text-center py-16">
@@ -92,9 +97,17 @@ async function handleDelete(sealId: string) {
           color="error"
           size="xs"
           class="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          @click="handleDelete(seal.id)"
+          @click="promptDelete(seal)"
         />
       </div>
     </div>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      :title="`删除「${deleteTarget?.name}」`"
+      message="印章删除后无法恢复，确定要删吗？"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
 </template>

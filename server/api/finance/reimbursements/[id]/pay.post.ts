@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { requirePermission } from '#server-utils/permission'
+import { requireTransition } from '#server-utils/workflow'
 import { z } from 'zod'
 
 const schema = z.object({ paymentMethod: z.string().optional() })
@@ -19,12 +20,12 @@ export default defineEventHandler(async (event) => {
 
   const existing = await db.select().from(reimbursements).where(eq(reimbursements.id, id)).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '报销单不存在' })
-  if (existing[0].status !== 'approved') throw createError({ statusCode: 400, statusMessage: '只有已通过的才能打款' })
+  requireTransition('reimbursements', existing[0].status, 'paid')
 
   const r = existing[0]
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
-  // Create expense transaction
+  // 创建支出记录
   const txId = generateId()
   await db.insert(financeTransactions).values({
     id: txId,
@@ -41,13 +42,13 @@ export default defineEventHandler(async (event) => {
     createdAt: now,
   })
 
-  // Mark reimbursement as paid
+  // 标记为已打款
   await db.update(reimbursements).set({
     status: 'paid',
     paidAt: now,
     paidTransactionId: txId,
   }).where(eq(reimbursements.id, id))
 
-  await logOperation(event, { action: 'APPROVE', module: 'reimbursement', targetId: id, detail: '支付了报销款' })
+  await logOperation(event, { action: 'PAY', module: 'reimbursement', targetId: id, detail: '支付了报销款' })
   return { code: 0, data: null, message: '打款完成，已生成支出记录' }
 })

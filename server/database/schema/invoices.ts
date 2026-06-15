@@ -1,4 +1,4 @@
-import { sqliteTable, text, real } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, real, integer } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const invoices = sqliteTable('invoices', {
@@ -7,9 +7,9 @@ export const invoices = sqliteTable('invoices', {
   type: text('type', { enum: ['vat_special', 'vat_normal', 'electronic'] }).notNull().default('vat_normal'),
   contractId: text('contract_id'),
   customerId: text('customer_id'),
-  amount: real('amount').notNull().default(0),
+  amount: integer('amount').notNull().default(0),
   taxRate: real('tax_rate').notNull().default(0),
-  taxAmount: real('tax_amount').notNull().default(0),
+  taxAmount: integer('tax_amount').notNull().default(0),
   status: text('status', { enum: ['pending', 'issued', 'voided'] }).notNull().default('pending'),
   issuedAt: text('issued_at'),
   dueDate: text('due_date'),

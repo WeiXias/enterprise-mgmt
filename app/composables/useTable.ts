@@ -25,6 +25,13 @@ export function useTable<T = unknown>(options: TableOptions) {
 
   let searchTimer: ReturnType<typeof setTimeout> | null = null
 
+  // 组件卸载时清理 timer
+  if (import.meta.client) {
+    onUnmounted(() => {
+      if (searchTimer) clearTimeout(searchTimer)
+    })
+  }
+
   async function fetchList() {
     loading.value = true
     try {
@@ -60,7 +67,7 @@ export function useTable<T = unknown>(options: TableOptions) {
         total.value = res.data.total || 0
       }
     } catch {
-      // 错误由调用方处理
+      // 静默：列表加载失败时由业务调用方处理
     } finally {
       loading.value = false
     }

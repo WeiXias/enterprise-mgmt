@@ -26,14 +26,18 @@ export const contacts = sqliteTable('contacts', {
   email: text('email'),
   isPrimary: integer('is_primary', { mode: 'boolean' }).notNull().default(false),
   remark: text('remark'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
 })
 
 export const tags = sqliteTable('tags', {
   id: text('id').primaryKey(),
   name: text('name').notNull().unique(),
   color: text('color'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
 })
 
 export const customerTags = sqliteTable('customer_tags', {
@@ -49,7 +53,8 @@ export const followUps = sqliteTable('follow_ups', {
   type: text('type', { enum: ['phone', 'visit', 'wechat', 'email', 'other'] }).notNull().default('phone'),
   content: text('content').notNull(),
   nextFollowUpAt: text('next_follow_up_at'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
 })
 
 export const customerTransfers = sqliteTable('customer_transfers', {

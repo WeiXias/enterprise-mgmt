@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
     status: users.status,
     avatar: users.avatar,
     password: users.password,
+    tokenVersion: users.tokenVersion,
   }).from(users)
     .where(eq(users.username, username))
     .limit(1)
@@ -38,8 +39,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '用户名或密码不对' })
   }
 
-  const accessToken = await generateAccessToken({ userId: user!.id, role: user.role, name: user.name })
-  const refreshToken = await generateRefreshToken({ userId: user!.id })
+  const accessToken = await generateAccessToken({ userId: user!.id, role: user.role, name: user.name, tokenVersion: user!.tokenVersion })
+  const refreshToken = await generateRefreshToken({ userId: user!.id, tokenVersion: user!.tokenVersion })
 
   return {
     code: 0,

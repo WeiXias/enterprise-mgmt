@@ -64,7 +64,7 @@ defineExpose({ search, selectedId })
         class="flex items-start gap-2 px-3 py-2 rounded-md bg-brand-50 text-sm text-brand-700 mb-4"
       >
         <UIcon name="i-lucide-info" class="w-4 h-4 mt-0.5 shrink-0" />
-        <span v-html="impactHint" />
+        <span>{{ impactHint }}</span>
       </div>
 
       <!-- 搜索 -->

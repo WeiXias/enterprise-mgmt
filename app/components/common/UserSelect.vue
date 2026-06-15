@@ -39,6 +39,9 @@ async function load() {
 }
 
 let timer: any = null
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
 function onSearch() {
   clearTimeout(timer)
   timer = setTimeout(load, 250)

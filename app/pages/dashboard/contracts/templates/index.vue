@@ -111,10 +111,19 @@ async function handleSave() {
   }
 }
 
-async function handleDelete(t: any) {
-  if (!confirm(`确定删除模板「${t.name}」？删了就找不回来了。`)) return
+// 删除确认
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<any>(null)
+
+function promptDelete(t: any) {
+  deleteTarget.value = t
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
   try {
-    const res = await $api(`/api/contracts/templates/${t.id}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/contracts/templates/${deleteTarget.value.id}`, { method: 'DELETE' }) as any
     if (res?.code === 0) {
       toast.add({ title: '模板已删除', color: 'success' })
       fetchTemplates()
@@ -122,6 +131,7 @@ async function handleDelete(t: any) {
   } catch (err: any) {
     toast.add({ title: err?.data?.message || '删除失败', color: 'error' })
   }
+  finally { showDeleteDialog.value = false }
 }
 
 async function handleAIGenerate() {
@@ -255,7 +265,7 @@ onMounted(fetchTemplates)
         </div>
         <div class="flex items-center gap-1 pt-2 border-t border-line-light">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(t)">编辑</UButton>
-          <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDelete(t)">删除</UButton>
+          <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)">删除</UButton>
         </div>
       </div>
     </div>
@@ -365,5 +375,13 @@ onMounted(fetchTemplates)
           <p class="text-xs text-content-muted mt-1">越详细效果越好，最长 1000 字</p>
         </div>
     </FormModal>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      :title="`删除「${deleteTarget?.name}」`"
+      message="模板删了就找不回来了，确定要删吗？"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
 </template>

@@ -1,4 +1,5 @@
-import { defineEventHandler, createError, getHeader, getQuery } from 'h3'
+import { defineEventHandler, createError, getHeader } from 'h3'
+import { eq } from 'drizzle-orm'
 
 // 不需要认证的公共路由
 const PUBLIC_API_ROUTES = [
@@ -80,7 +81,7 @@ export default defineEventHandler(async (event) => {
   if (!url.startsWith('/api/')) return
 
   // API 路由需要认证
-  const token = getHeader(event, 'authorization')?.replace('Bearer ', '') || (getQuery(event)?.token as string)
+  const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
   if (!token) {
     throw createError({ statusCode: 401, statusMessage: '请先登录' })
   }
@@ -92,6 +93,16 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 401, statusMessage: '登录已过期，请重新登录' })
     }
     event.context.user = payload
+
+    // token 版本号校验：登出后旧 token 自动失效
+    if (payload.tokenVersion !== undefined) {
+      const { db: authDb } = await import('#database')
+      const { users: authUsers } = await import('#schema')
+      const userRows = await authDb.select({ tokenVersion: authUsers.tokenVersion }).from(authUsers).where(eq(authUsers.id, payload.userId)).limit(1)
+      if (userRows[0] && payload.tokenVersion !== userRows[0].tokenVersion) {
+        throw createError({ statusCode: 401, statusMessage: '登录已过期，请重新登录' })
+      }
+    }
 
     // 角色权限检查
     checkRolePrefix(url, payload)

@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
         `select coalesce(sum(amount), 0) as total from finance_transactions
          where deleted_at is null and type = 'income' and contract_id = ?`,
         [p.contractId]
-      ) as { projectId: string; projectName: string }[]
+      ) as { projectId: string; projectName: string; total?: number }[]
       income = Number(incomeResult[0]?.total || 0)
     }
 

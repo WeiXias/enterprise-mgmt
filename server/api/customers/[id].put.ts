@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   const existing = await db.select({ id: customers.id, ownerUserId: customers.ownerUserId }).from(customers)
     .where(and(eq(customers.id, id), isNull(customers.deletedAt))).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '客户不存在' })
-  if (user.role === 'sales' && existing[0].ownerUserId !== user.userId) {
+  if (user.role === 'sales_member' && existing[0].ownerUserId !== user.userId) {
     throw createError({ statusCode: 403, statusMessage: '这个客户不是你负责的' })
   }
 

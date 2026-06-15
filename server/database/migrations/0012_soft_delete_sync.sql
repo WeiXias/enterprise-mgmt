@@ -1,0 +1,11 @@
+-- 补齐物理数据库的 schema 迁移列
+-- payment_plans / payments / contacts / tags 的 deleted_at 和 updated_at
+
+-- （仅记录，已手动执行，不需要重复跑）
+-- ALTER TABLE payments ADD COLUMN deleted_at TEXT;
+-- ALTER TABLE payment_plans ADD COLUMN deleted_at TEXT;
+-- ALTER TABLE contacts ADD COLUMN deleted_at TEXT;
+-- ALTER TABLE contacts ADD COLUMN updated_at TEXT;
+-- ALTER TABLE tags ADD COLUMN deleted_at TEXT;
+-- ALTER TABLE tags ADD COLUMN updated_at TEXT;
+-- ALTER TABLE follow_ups ADD COLUMN deleted_at TEXT;

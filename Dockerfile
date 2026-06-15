@@ -41,6 +41,11 @@ RUN corepack enable && corepack prepare pnpm@latest --activate && \
 RUN mkdir -p data/backups data/uploads
 VOLUME /opt/enterprise-mgmt/data
 
+# If running as non-root user, set ownership
+RUN chown -R node:node /opt/enterprise-mgmt
+
+USER node
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

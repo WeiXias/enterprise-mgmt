@@ -9,7 +9,7 @@ export const opportunities = sqliteTable('opportunities', {
   name: text('name').notNull(),
   customerId: text('customer_id').notNull().references(() => customers.id),
   ownerUserId: text('owner_user_id').notNull().references(() => users.id),
-  estimatedAmount: real('estimated_amount').notNull().default(0),
+  estimatedAmount: integer('estimated_amount').notNull().default(0),
   estimatedCloseDate: text('estimated_close_date'),
   source: text('source'),
   competitor: text('competitor'),
@@ -25,7 +25,7 @@ export const opportunityProducts = sqliteTable('opportunity_products', {
   opportunityId: text('opportunity_id').notNull().references(() => opportunities.id),
   productId: text('product_id').notNull().references(() => products.id),
   quantity: integer('quantity').notNull().default(1),
-  unitPrice: real('unit_price').notNull().default(0),
+  unitPrice: integer('unit_price').notNull().default(0),
   discount: real('discount').notNull().default(1)
 })
 
@@ -33,12 +33,13 @@ export const quotes = sqliteTable('quotes', {
   id: text('id').primaryKey(),
   opportunityId: text('opportunity_id').notNull().references(() => opportunities.id),
   name: text('name').notNull(),
-  totalAmount: real('total_amount').notNull().default(0),
+  totalAmount: integer('total_amount').notNull().default(0),
   status: text('status', { enum: ['draft', 'sent', 'accepted', 'rejected'] }).notNull().default('draft'),
   pdfPath: text('pdf_path'),
   validUntil: text('valid_until'),
   remark: text('remark'),
   createdBy: text('created_by').notNull().references(() => users.id),
+  deletedAt: text('deleted_at'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`)
 })
@@ -48,6 +49,6 @@ export const quoteProducts = sqliteTable('quote_products', {
   quoteId: text('quote_id').notNull().references(() => quotes.id),
   productId: text('product_id').notNull().references(() => products.id),
   quantity: integer('quantity').notNull().default(1),
-  unitPrice: real('unit_price').notNull().default(0),
+  unitPrice: integer('unit_price').notNull().default(0),
   discount: real('discount').notNull().default(1)
 })

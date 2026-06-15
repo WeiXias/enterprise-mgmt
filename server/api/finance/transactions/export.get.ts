@@ -1,9 +1,11 @@
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { financeTransactions, contracts } from '#schema'
 import { eq, like, and, isNull, desc, gte, lte } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
+  const user = event.context.user
+  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const query = getQuery(event)
   const where: any[] = [isNull(financeTransactions.deletedAt)]
   if (query.keyword) where.push(like(financeTransactions.description, `%${query.keyword}%`))

@@ -153,13 +153,21 @@ async function handleSendQuote(q: any) {
   finally { sendLoading.value = false }
 }
 
-// 删除报价
-async function handleDeleteQuote(quoteId: string) {
-  if (!confirm('确定要删除这个报价吗？')) return
+// 删除报价确认
+const showDeleteQuoteDialog = ref(false)
+const deleteQuoteId = ref('')
+
+function promptDeleteQuote(quoteId: string) {
+  deleteQuoteId.value = quoteId
+  showDeleteQuoteDialog.value = true
+}
+
+async function handleDeleteQuoteConfirmed() {
   try {
-    const res = await $api(`/api/quotes/${quoteId}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/quotes/${deleteQuoteId.value}`, { method: 'DELETE' }) as any
     if (res?.code === 0) { toast.add({ title: '报价已删除', color: 'success' }); fetchDetail() }
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteQuoteDialog.value = false }
 }
 
 async function handleCreateQuote() {
@@ -526,7 +534,7 @@ onMounted(() => {
                   <UButton v-if="q.status === 'sent'" size="xs" variant="ghost" color="error" icon="i-lucide-x" @click="handleQuoteStatus(q.id, 'rejected')">拒绝</UButton>
                   <UButton v-if="q.id" size="xs" variant="ghost" color="warning" icon="i-lucide-eye" @click="openQuotePreview(q.id)">预览</UButton>
                   <UButton v-if="q.pdfUrl" size="xs" variant="ghost" color="neutral" icon="i-lucide-download" @click="openPdf(q.pdfUrl)">下载 PDF</UButton>
-                  <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="handleDeleteQuote(q.id)">删除</UButton>
+                  <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="promptDeleteQuote(q.id)">删除</UButton>
                 </div>
               </div>
             </div>
@@ -886,5 +894,13 @@ onMounted(() => {
         <UButton color="primary" :loading="sendLoading" @click="handleSendQuote(null as any)">发送</UButton>
       </template>
     </FormModal>
+
+    <ConfirmDialog
+      v-model:open="showDeleteQuoteDialog"
+      :danger="true"
+      title="删除报价"
+      message="确定要删除这个报价吗？删了就找不回来了。"
+      @confirm="handleDeleteQuoteConfirmed"
+    />
   </div>
 </template>

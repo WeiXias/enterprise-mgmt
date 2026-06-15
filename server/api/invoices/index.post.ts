@@ -2,13 +2,29 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { db } from '#database'
 import { invoices } from '#schema'
 import { generateId } from '#server-utils/id'
+import { z } from 'zod'
+
+const createSchema = z.object({
+  invoiceNo: z.string().min(1, '发票号不能为空'),
+  type: z.string().optional(),
+  contractId: z.string().optional(),
+  customerId: z.string().optional(),
+  amount: z.number().min(0, '金额不能为负'),
+  taxRate: z.number().min(0).optional(),
+  issuedAt: z.string().optional(),
+  dueDate: z.string().optional(),
+  remark: z.string().optional(),
+})
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)
-  const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark } = body || {}
+  const parsed = createSchema.safeParse(body)
+  if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
+
+  const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark } = parsed.data
   if (!invoiceNo || !amount) throw createError({ statusCode: 422, statusMessage: '发票号和金额不能为空' })
 
   const taxAmount = Math.round(amount * (taxRate || 0) * 100) / 100

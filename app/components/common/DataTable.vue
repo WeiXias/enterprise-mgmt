@@ -210,8 +210,7 @@ const skeletonRows = computed(() => Math.min(props.pageSize!, 5))
               :style="col.width ? `max-width: ${col.width}` : ''"
             >
               <slot :name="`cell-${col.key}`" :row="row" :value="row[col.key]" :index="i">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <span v-if="col.render" v-html="col.render(row[col.key], row, i)" />
+                <span v-if="col.render" v-text="col.render(row[col.key], row, i)" />
                 <span v-else class="text-sm text-content-secondary truncate block">
                   {{ getCellValue(row, col) }}
                 </span>

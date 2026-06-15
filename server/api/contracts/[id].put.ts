@@ -32,8 +32,9 @@ export default defineEventHandler(async (event) => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const updateData: Record<string, unknown> = { updatedAt: now }
 
-  for (const key of ['name', 'ownerUserId', 'totalAmount', 'partyA', 'partyB', 'paymentMethod', 'remark'] as const) {
-    if (parsed.data[key] !== undefined) updateData[key] = parsed.data[key]
+  for (const key of ['name', 'ownerUserId', 'totalAmount', 'partyA', 'partyB', 'paymentMethod', 'remark']) {
+    const val = parsed.data[key as keyof typeof parsed.data]
+    if (val !== undefined) updateData[key] = val
   }
   for (const key of ['startDate', 'endDate']) {
     if (parsed.data[key] === '') updateData[key] = null

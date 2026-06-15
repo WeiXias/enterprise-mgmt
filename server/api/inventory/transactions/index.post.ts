@@ -2,7 +2,7 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions, products } from '#schema'
 import { generateId } from '#server-utils/id'
-import { eq } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -18,8 +18,20 @@ export default defineEventHandler(async (event) => {
 
   const delta = type === 'inbound' ? Math.abs(quantity) : type === 'outbound' ? -Math.abs(quantity) : quantity
 
-  if (type === 'outbound' && product.stockQuantity + delta < 0) {
-    throw createError({ statusCode: 422, statusMessage: `库存不足（当前库存 ${product.stockQuantity}）` })
+  // 原子操作：在 UPDATE 语句中直接检查库存，避免并发竞态
+  const stockResult = await db.update(products).set({
+    stockQuantity: sql`stock_quantity + ${delta}`,
+    updatedAt: sql`(datetime('now'))`,
+  }).where(and(
+    eq(products.id, productId),
+    type === 'outbound' ? sql`stock_quantity >= ${Math.abs(delta)}` : undefined,
+  ))
+
+  if (stockResult.changes === 0) {
+    // 重新检查是产品不存在还是库存不足
+    const [recheck] = await db.select({ stockQuantity: products.stockQuantity }).from(products).where(eq(products.id, productId)).limit(1)
+    if (!recheck) throw createError({ statusCode: 404, statusMessage: '产品不存在' })
+    throw createError({ statusCode: 422, statusMessage: `库存不足（当前库存 ${recheck.stockQuantity}）` })
   }
 
   const result = await db.insert(inventoryTransactions).values({

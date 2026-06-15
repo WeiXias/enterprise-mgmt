@@ -1554,18 +1554,45 @@ GET /enums
 
 | 模块 | 接口数 | 主要端点 |
 |------|--------|----------|
-| 认证 | 4 | login, logout, refresh, password |
-| 用户 | 6 | CRUD, me, avatar |
-| 通知 | 4 | list, read, read-all, unread-count |
-| 客户 | 12 | CRUD, transfer, tags, contacts, follow-ups, stats |
-| 商机 | 10 | CRUD, win/lose, funnel, stats, 从客户创建 |
-| 报价 | 5 | CRUD, export-pdf |
-| 产品 | 7 | CRUD, categories, import, toggle, stats |
-| 合同 | 12 | CRUD, approve/reject, payments, plans, attachments, ledger, stats |
-| 项目 | 9 | CRUD, members, tasks, gantt, deliverables, 从合同创建 |
-| 提成 | 7 | rules, calculate, list, approve, adjust, payouts, stats |
-| 系统 | 6 | config, code-rules, backup, logs |
+| AI 功能 | 14 | employees CRUD, providers CRUD, models, test, settings |
+| 附件 | 1 | delete |
+| 认证 | 5 | login, logout, refresh, password, register |
+| 预算 | 4 | CRUD |
+| 评论 | 2 | delete, update |
+| 提成发放 | 3 | list, create, confirm |
+| 提成规则 | 4 | CRUD |
+| 提成 | 9 | list, calculate, approve, reject, adjust, export, stats |
+| 联系人 | 3 | delete, update, primary |
+| 合同 | 36 | CRUD, approve/reject, payments, plans, ledger, project, AI review, subcontracts, export, transfer |
+| 客户 | 15 | CRUD, transfer, tags, contacts, follow-ups, stats, export |
 | 看板 | 1 | dashboard |
-| 枚举 | 1 | enums |
-| 导出 | 4 | customers, contracts, commissions, opportunities |
-| **合计** | **88** | |
+| 交付物 | 2 | status, upload |
+| 部门 | 6 | CRUD, users |
+| 数据字典 | 3 | get, put, types |
+| 文件 | 2 | preview, logo |
+| 财务 | 21 | transactions CRUD, categories CRUD, reimbursements CRUD+approve/reject/pay, reports, settings |
+| 跟进 | 2 | delete, update |
+| 即时通讯 | 15 | conversations CRUD, messages, members, attachments, search, unread |
+| 进销存 | 4 | transactions CRUD |
+| 发票 | 5 | CRUD, void |
+| 里程碑 | 2 | delete, update |
+| 通知 | 4 | list, read, read-all, unread-count |
+| 商机 | 13 | CRUD, win/lose, quotes, funnel, stats, export |
+| 付款计划 | 3 | CRUD |
+| 付款 | 3 | CRUD |
+| 权限 | 2 | list, me |
+| 产品分类 | 4 | CRUD |
+| 产品 | 8 | CRUD, toggle, transactions, stats |
+| 项目 | 29 | CRUD, members, tasks, milestones, deliverables, time-logs, risks, comments, gantt, burndown, budget, templates |
+| 报价 | 5 | CRUD, export-pdf, send |
+| 风险 | 2 | delete, update |
+| 角色 | 6 | CRUD, permissions |
+| 分包方 | 4 | CRUD |
+| 分包 | 3 | list, update, delete |
+| 系统 | 21 | config, code-rules, backups, security, smtp, logs, cron, sidebar |
+| 标签 | 4 | CRUD |
+| 任务 | 10 | CRUD, comments, dependencies, batch, reorder |
+| 工时 | 2 | delete, update |
+| 待办 | 21 | CRUD, subtasks, lists, tags, batch, reorder |
+| 用户 | 8 | CRUD, me, reset-password |
+| **合计** | **313** | |

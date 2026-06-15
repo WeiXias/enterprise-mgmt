@@ -342,6 +342,8 @@ async function selectDept(d: any) {
 }
 function openCreateDept(parentId?: string) { editingDeptId.value = null; deptForm.value = { name: '', parentId: parentId || '', managerId: '', description: '', sortOrder: 0 }; showDeptModal.value = true }
 function openEditDept(d: any) { editingDeptId.value = d.id; deptForm.value = { name: d.name, parentId: d.parentId || '', managerId: d.managerId || '', description: d.description || '', sortOrder: d.sortOrder || 0 }; showDeptModal.value = true }
+function promptDeleteDept(d: any) { promptDelete({ id: d.id, name: d.name, type: 'dept' }) }
+
 async function handleDeptSave() {
   if (!deptForm.value.name) { toast.add({ title: '部门名称还没填呢', color: 'warning' }); return }
   deptLoading.value = true
@@ -352,10 +354,37 @@ async function handleDeptSave() {
   } catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
   finally { deptLoading.value = false }
 }
-async function handleDeleteDept(d: any) {
-  if (!confirm(`确定删除「${d.name}」吗？`)) return
-  try { await $api(`/api/departments/${d.id}`, { method: 'DELETE' }); toast.add({ title: '部门已删除', color: 'success' }); if (selectedDept.value?.id === d.id) selectedDept.value = null; fetchOrgTree() }
-  catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+// 删除确认对话框
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<{ id: string; name: string; type: string } | null>(null)
+
+function promptDelete(target: { id: string; name: string; type: string }) {
+  deleteTarget.value = target
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
+  const { id, type } = deleteTarget.value
+  try {
+    if (type === 'dept') {
+      await $api(`/api/departments/${id}`, { method: 'DELETE' })
+      if (selectedDept.value?.id === id) selectedDept.value = null
+      fetchOrgTree()
+    } else if (type === 'role') {
+      await $api(`/api/roles/${id}`, { method: 'DELETE' })
+      if (selectedRole.value?.id === id) selectedRole.value = null
+      fetchRoles()
+    } else if (type === 'provider') {
+      await deleteProvider(id)
+      fetchProviders(); fetchEmployees()
+    } else if (type === 'employee') {
+      await deleteEmployee(id)
+      fetchEmployees()
+    }
+    toast.add({ title: '已删除', color: 'success' })
+  } catch (e: any) { toast.add({ title: e?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteDialog.value = false }
 }
 async function openMemberModal(d: any) {
   selectedDept.value = d; selectedUserIds.value = new Set(deptMembers.value.map((m: any) => m.id))
@@ -399,7 +428,7 @@ async function handleRoleSave() {
   catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
   finally { roleSaving.value = false }
 }
-async function handleDeleteRole(r: any) { if (r.isSystem) { toast.add({ title: '内置角色不能删除', color: 'warning' }); return }; if (!confirm(`确定删除「${r.name}」吗？`)) return; try { await $api(`/api/roles/${r.id}`, { method: 'DELETE' }); toast.add({ title: '角色已删除', color: 'success' }); if (selectedRole.value?.id === r.id) selectedRole.value = null; fetchRoles() } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) } }
+async function handleDeleteRole(r: any) { if (r.isSystem) { toast.add({ title: '内置角色不能删除', color: 'warning' }); return }; promptDelete({ id: r.id, name: r.name, type: 'role' }) }
 
 
 // ==================== AI 设置 ====================
@@ -467,9 +496,8 @@ async function handleTestProvider() {
   finally { testingProvider.value = false }
 }
 async function handleDeleteProvider(id: string) {
-  if (!confirm('确定删除这个供应商吗？')) return
-  try { await deleteProvider(id); toast.add({ title: '供应商已删除', color: 'success' }); fetchProviders(); fetchEmployees() }
-  catch (e: any) { toast.add({ title: e?.data?.message || '删除失败', color: 'error' }) }
+  const p = providers.value.find((x: any) => x.id === id)
+  promptDelete({ id, name: p?.name || '供应商', type: 'provider' })
 }
 async function handleFetchModels() {
   if (!editingProviderId.value) { toast.add({ title: '请先保存供应商', color: 'warning' }); return }
@@ -543,9 +571,8 @@ async function handleSaveEmployee() {
   finally { employeeLoading.value = false }
 }
 async function handleDeleteEmployee(id: string) {
-  if (!confirm('确定删除这个 AI 员工吗？')) return
-  try { await deleteEmployee(id); toast.add({ title: 'AI 员工已删除', color: 'success' }); fetchEmployees() }
-  catch (e: any) { toast.add({ title: e?.data?.message || '删除失败', color: 'error' }) }
+  const e = employees.value.find((x: any) => x.id === id)
+  promptDelete({ id, name: e?.name || 'AI 员工', type: 'employee' })
 }
 watch(() => employeeForm.value.providerId, async (pid) => {
   if (!pid) { availableModels.value = []; return }
@@ -891,7 +918,7 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
               <div class="hidden group-hover:flex items-center gap-0.5">
                 <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click.stop="openCreateDept(node.id)" />
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEditDept(node)" />
-                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click.stop="handleDeleteDept(node)" />
+                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click.stop="promptDeleteDept(node)" />
               </div>
             </div>
           </div>
@@ -1487,6 +1514,14 @@ onMounted(() => { fetchAll(); fetchOrgTree(); fetchRoles(); fetchAIData(); loadS
         </div>
       </div>
     </FormModal>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      :title="`删除「${deleteTarget?.name}」`"
+      message="确定要删吗？删除后无法恢复。"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
   </div>
   </div>

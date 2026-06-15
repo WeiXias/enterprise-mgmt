@@ -8,7 +8,7 @@ import { logOperation } from '#server-utils/log'
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
-  if (user.role === 'sales') throw createError({ statusCode: 403, statusMessage: '销售成员不能删除客户' })
+  if (user.role === 'sales_member') throw createError({ statusCode: 403, statusMessage: '销售成员不能删除客户' })
 
   const { id } = getRouterParams(event)
   const existing = await db.select({ id: customers.id, ownerUserId: customers.ownerUserId }).from(customers)

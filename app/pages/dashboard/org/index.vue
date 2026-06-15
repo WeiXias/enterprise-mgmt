@@ -81,14 +81,23 @@ async function handleDeptSave() {
   finally { deptLoading.value = false }
 }
 
-async function handleDelete(dept: any) {
-  if (!confirm(`确定删除「${dept.name}」吗？`)) return
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<any>(null)
+
+function promptDelete(dept: any) {
+  deleteTarget.value = dept
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
   try {
-    await $api(`/api/departments/${dept.id}`, { method: 'DELETE' })
+    await $api(`/api/departments/${deleteTarget.value.id}`, { method: 'DELETE' })
     toast.add({ title: '部门已删除', color: 'success' })
-    if (selectedDept.value?.id === dept.id) selectedDept.value = null
+    if (selectedDept.value?.id === deleteTarget.value.id) selectedDept.value = null
     fetchTree()
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteDialog.value = false }
 }
 
 async function openMemberModal(dept: any) {
@@ -185,7 +194,7 @@ onMounted(fetchTree)
               <div class="hidden group-hover:flex items-center gap-0.5">
                 <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click.stop="openCreate(node.id)" />
                 <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click.stop="openEdit(node)" />
-                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click.stop="handleDelete(node)" />
+                <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click.stop="promptDelete(node)" />
               </div>
             </div>
           </div>
@@ -269,5 +278,13 @@ onMounted(fetchTree)
           </label>
         </div>
     </FormModal>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      :title="`删除「${deleteTarget?.name}」`"
+      message="删除后成员将解除关联，确定要删吗？"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
 </template>

@@ -27,23 +27,23 @@ const riskBadgeColors: Record<string, string> = {
   <div class="space-y-4">
     <!-- 无审核记录 -->
     <div v-if="!loading && !reviewing && !latestReview" class="em-card text-center py-6">
-      <UIcon name="i-lucide-bot" class="w-10 h-10 text-content-muted mx-auto mb-3" />
-      <p class="text-sm text-content-muted mb-2">还没有 AI 审核记录</p>
-      <p class="text-xs text-content-muted mb-4">让 AI 数字员工帮你审核合同条款，评估风险</p>
+      <UIcon name="i-lucide-user-check" class="w-10 h-10 text-content-muted mx-auto mb-3" />
+      <p class="text-sm text-content-muted mb-2">还没有审阅记录</p>
+      <p class="text-xs text-content-muted mb-4">让数字员工帮你审一审合同条款，检查风险</p>
       <UButton
-        icon="i-lucide-sparkles"
+        icon="i-lucide-file-check"
         color="primary"
         size="sm"
         @click="handleTrigger"
       >
-        开始 AI 审核
+        让数字员工审一审
       </UButton>
     </div>
 
     <!-- 审核中 -->
     <div v-else-if="reviewing" class="em-card text-center py-8">
       <UIcon name="i-lucide-loader-circle" class="w-8 h-8 text-brand-500 mx-auto mb-3 animate-spin" />
-      <p class="text-sm text-content-muted">AI 正在审核中...</p>
+      <p class="text-sm text-content-muted">正在审阅合同内容...</p>
       <p class="text-xs text-content-muted mt-1">这可能需要几十秒</p>
     </div>
 
@@ -57,7 +57,7 @@ const riskBadgeColors: Record<string, string> = {
       <!-- 失败 -->
       <div v-if="latestReview.status === 'failed'" class="em-card text-center py-6">
         <UIcon name="i-lucide-triangle-alert" class="w-10 h-10 text-red-300 mx-auto mb-3" />
-        <p class="text-sm text-red-600 mb-2">AI 审核出错了</p>
+        <p class="text-sm text-red-600 mb-2">审阅出错了</p>
         <p class="text-xs text-content-muted mb-4">{{ latestReview.errorMessage || '未知错误' }}</p>
         <UButton
           icon="i-lucide-rotate-cw"
@@ -65,7 +65,7 @@ const riskBadgeColors: Record<string, string> = {
           size="sm"
           @click="handleTrigger"
         >
-          重新审核
+          重新审阅
         </UButton>
       </div>
 
@@ -75,8 +75,8 @@ const riskBadgeColors: Record<string, string> = {
         <div class="em-card">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-bot" class="w-5 h-5 text-brand-500" />
-              <span class="text-sm font-medium text-content-secondary">AI 审核结果</span>
+              <UIcon name="i-lucide-user-check" class="w-5 h-5 text-brand-500" />
+              <span class="text-sm font-medium text-content-secondary">数字员工审阅结果</span>
             </div>
             <UButton
               icon="i-lucide-rotate-cw"
@@ -85,7 +85,7 @@ const riskBadgeColors: Record<string, string> = {
               size="sm"
               @click="handleTrigger"
             >
-              重新审核
+              重新审阅
             </UButton>
           </div>
 

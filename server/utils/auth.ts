@@ -10,14 +10,14 @@ function getSecret(name: string) {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  return hash(password, 10)
+  return hash(password, 12)
 }
 
 export async function verifyPassword(password: string, hashed: string): Promise<boolean> {
   return compare(password, hashed)
 }
 
-export async function generateAccessToken(payload: { userId: string; role: string; name?: string }) {
+export async function generateAccessToken(payload: { userId: string; role: string; name?: string; tokenVersion?: number }) {
   return new SignJWT({ ...payload, type: 'access' })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -25,7 +25,7 @@ export async function generateAccessToken(payload: { userId: string; role: strin
     .sign(getSecret('jwtSecret'))
 }
 
-export async function generateRefreshToken(payload: { userId: string }) {
+export async function generateRefreshToken(payload: { userId: string; tokenVersion?: number }) {
   return new SignJWT({ ...payload, type: 'refresh' })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -46,7 +46,7 @@ export async function verifyAccessToken(token: string) {
 export async function verifyRefreshToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, getSecret('jwtRefreshSecret'))
-    return payload as { userId: string; type: string }
+    return payload as { userId: string; type: string; tokenVersion?: number }
   }
   catch {
     return null

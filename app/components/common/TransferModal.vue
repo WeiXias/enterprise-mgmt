@@ -39,6 +39,9 @@ async function loadUsers() {
 }
 
 let userSearchTimer: ReturnType<typeof setTimeout> | null = null
+onUnmounted(() => {
+  if (userSearchTimer) clearTimeout(userSearchTimer)
+})
 function onUserSearch() {
   clearTimeout(userSearchTimer!)
   userSearchTimer = setTimeout(loadUsers, 250)

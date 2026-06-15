@@ -112,15 +112,24 @@ async function handleRoleSave() {
   finally { roleLoading.value = false }
 }
 
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<any>(null)
+
 async function handleDelete(role: any) {
   if (role.isSystem) { toast.add({ title: '内置角色不能删除', color: 'warning' }); return }
-  if (!confirm(`确定删除「${role.name}」吗？`)) return
+  deleteTarget.value = role
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
   try {
-    await $api(`/api/roles/${role.id}`, { method: 'DELETE' })
+    await $api(`/api/roles/${deleteTarget.value.id}`, { method: 'DELETE' })
     toast.add({ title: '角色已删除', color: 'success' })
-    if (selectedRole.value?.id === role.id) selectedRole.value = null
+    if (selectedRole.value?.id === deleteTarget.value.id) selectedRole.value = null
     fetchRoles()
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteDialog.value = false }
 }
 
 const { getLabel } = useEnum()
@@ -231,5 +240,13 @@ onMounted(fetchRoles)
         </div>
       </template>
     </FormModal>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      :title="`删除「${deleteTarget?.name}」`"
+      message="删除后不可恢复，相关用户的权限会被移除。"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
 </template>

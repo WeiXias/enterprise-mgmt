@@ -123,14 +123,23 @@ async function handleSaveInventory() {
   finally { inventorySaving.value = false }
 }
 
-async function handleDeleteTransaction(t: any) {
-  if (!confirm('确定删除此记录吗？库存将回退')) return
+const showDeleteDialog = ref(false)
+const deleteTarget = ref<any>(null)
+
+function promptDelete(t: any) {
+  deleteTarget.value = t
+  showDeleteDialog.value = true
+}
+
+async function handleDeleteConfirmed() {
+  if (!deleteTarget.value) return
   try {
-    await $api(`/api/inventory/transactions/${t.id}`, { method: 'DELETE' })
+    await $api(`/api/inventory/transactions/${deleteTarget.value.id}`, { method: 'DELETE' })
     toast.add({ title: '已删除', color: 'success' })
     fetchTransactions()
     fetchDetail()
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { showDeleteDialog.value = false }
 }
 
 onMounted(() => { fetchDetail(); fetchTransactions() })
@@ -217,7 +226,7 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
                     <td class="py-2 px-3 text-xs text-content-muted">{{ t.batchNo || '-' }}</td>
                     <td class="py-2 px-3 text-xs text-content-muted max-w-[120px] truncate">{{ t.remark || '-' }}</td>
                     <td class="py-2 px-3 text-xs text-content-muted">{{ formatDate(t.createdAt) }}</td>
-                    <td class="py-2 px-3"><UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="handleDeleteTransaction(t)" /></td>
+                    <td class="py-2 px-3"><UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)" /></td>
                   </tr>
                 </tbody>
               </table>
@@ -267,5 +276,13 @@ onMounted(() => { fetchDetail(); fetchTransactions() })
         @confirm="handleDelete"
       />
     </template>
+
+    <ConfirmDialog
+      v-model:open="showDeleteDialog"
+      :danger="true"
+      title="删除库存记录"
+      message="删除后库存将回退，确定要删吗？"
+      @confirm="handleDeleteConfirmed"
+    />
   </div>
 </template>

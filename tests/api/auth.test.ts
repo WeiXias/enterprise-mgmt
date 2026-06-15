@@ -11,7 +11,7 @@ const SECRET = new TextEncoder().encode('auth-integration-test-secret')
 
 function createTables() {
   const ddl = [
-    `create table if not exists users (id text primary key, username text not null, password text not null, name text not null, phone text, email text, avatar text, status text not null default 'active', role text not null default 'sales_member', role_id text, department_id text, created_at text not null default (datetime('now')), updated_at text not null default (datetime('now')), deleted_at text)`,
+    `create table if not exists users (id text primary key, username text not null, password text not null, name text not null, phone text, email text, avatar text, status text not null default 'active', role text not null default 'sales_member', role_id text, department_id text, token_version integer not null default 0, created_at text not null default (datetime('now')), updated_at text not null default (datetime('now')), deleted_at text)`,
   ]
   for (const s of ddl) sqlite.exec(s)
 }

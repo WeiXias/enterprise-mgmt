@@ -16,7 +16,7 @@ const schema = z.object({
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
-  if (user.role === 'sales' || user.role === 'sales_member') throw createError({ statusCode: 403, statusMessage: '这个需要管理员或销售负责人才能操作' })
+  if (user.role === 'sales_member') throw createError({ statusCode: 403, statusMessage: '这个需要管理员或销售负责人才能操作' })
 
   const body = await readBody(event)
   const parsed = schema.safeParse(body)

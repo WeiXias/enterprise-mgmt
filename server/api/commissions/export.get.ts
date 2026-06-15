@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
   const where: any[] = [isNull(commissions.deletedAt)]
-  if (user.role === 'sales') where.push(eq(commissions.userId, user.userId))
+  if (user.role === 'sales_member') where.push(eq(commissions.userId, user.userId))
   const [list, totalResult] = await Promise.all([
     db.select({ id: commissions.id, userName: users.name, contractCode: contracts.code,
       baseAmount: commissions.baseAmount, rate: commissions.rate, amount: commissions.amount,

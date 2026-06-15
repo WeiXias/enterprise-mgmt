@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
     updatedAt: now,
   }).returning()
 
-  await logOperation(event, { action: 'CREATE', module: 'task', targetId: result[0].id, detail: `创建了任务「${parsed.data.name || parsed.data.title}」` })
+  await logOperation(event, { action: 'CREATE', module: 'task', targetId: result[0].id, detail: `创建了任务「${parsed.data.name}」` })
 
   return { code: 0, data: result[0], message: '任务已创建' }
 })

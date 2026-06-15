@@ -8,6 +8,8 @@ import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ reason: z.string().min(1, '驳回原因还没填呢') })
 
+import { requireTransition } from '#server-utils/workflow'
+
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'contract:approve')
   const { id } = getRouterParams(event)
@@ -18,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const existing = await db.select({ id: contracts.id, status: contracts.status }).from(contracts)
     .where(and(eq(contracts.id, id), isNull(contracts.deletedAt))).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '合同不存在' })
-  if (existing[0].status !== 'approved') throw createError({ statusCode: 400, statusMessage: '只有已审批状态才能驳回' })
+  requireTransition('contracts', existing[0].status, 'draft')
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   await db.update(contracts).set({

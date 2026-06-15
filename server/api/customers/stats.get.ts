@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const where: any[] = [isNull(customers.deletedAt)]
-  if (user.role === 'sales') where.push(eq(customers.ownerUserId, user.userId))
+  if (user.role === 'sales_member') where.push(eq(customers.ownerUserId, user.userId))
 
   const [statusRows, ownerRows, industryRows] = await Promise.all([
     db.select({ status: customers.status, count: count() }).from(customers)

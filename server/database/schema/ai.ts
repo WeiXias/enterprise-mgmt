@@ -12,6 +12,7 @@ export const aiProviders = sqliteTable('ai_providers', {
   models: text('models').notNull(),  // JSON 数组字符串
   isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
   isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(true),
+  deletedAt: text('deleted_at'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 })
@@ -31,6 +32,7 @@ export const aiEmployees = sqliteTable('ai_employees', {
   maxTokens: integer('max_tokens').notNull().default(4096),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdBy: text('created_by').notNull(),
+  deletedAt: text('deleted_at'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
 })

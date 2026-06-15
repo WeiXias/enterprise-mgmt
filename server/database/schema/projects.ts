@@ -10,7 +10,7 @@ export const projects = sqliteTable('projects', {
   ownerUserId: text('owner_user_id').notNull().references(() => users.id),
   startDate: text('start_date'),
   endDate: text('end_date'),
-  budget: real('budget').notNull().default(0),
+  budget: integer('budget').notNull().default(0),
   status: text('status', { enum: ['not_started', 'in_progress', 'completed', 'delayed'] }).notNull().default('not_started'),
   remark: text('remark'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),

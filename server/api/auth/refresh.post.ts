@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     return { code: 1, message: '凭证已过期，重新登录一下吧' }
   }
 
-  const rows = await db.select({ id: users.id, status: users.status, role: users.role })
+  const rows = await db.select({ id: users.id, status: users.status, role: users.role, tokenVersion: users.tokenVersion })
     .from(users).where(eq(users.id, payload.userId)).limit(1)
   const user = rows[0]
 
@@ -24,8 +24,13 @@ export default defineEventHandler(async (event) => {
     return { code: 1, message: '账号已被禁用' }
   }
 
-  const newAccessToken = await generateAccessToken({ userId: user.id, role: user.role })
-  const newRefreshToken = await generateRefreshToken({ userId: user.id })
+  // 校验 refresh token 中的 version 与数据库一致
+  if (payload.tokenVersion !== undefined && payload.tokenVersion !== user.tokenVersion) {
+    return { code: 1, message: '凭证已过期，重新登录一下吧' }
+  }
+
+  const newAccessToken = await generateAccessToken({ userId: user.id, role: user.role, tokenVersion: user.tokenVersion })
+  const newRefreshToken = await generateRefreshToken({ userId: user.id, tokenVersion: user.tokenVersion })
 
   return {
     code: 0,

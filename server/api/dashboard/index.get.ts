@@ -12,44 +12,58 @@ export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
+  // 构建角色隔离条件
+  const isSalesMember = user.role === 'sales_member'
+  const isFinance = user.role === 'finance'
+
+  // 销售成员只能看自己负责的数据
+  const ownerWhere = isSalesMember ? eq(opportunities.ownerUserId, user.userId) : undefined
+
   const today = new Date().toISOString().slice(0, 10)
   const monthStart = today.slice(0, 8) + '01'
 
   const [customerCount, oppCount, contractThisMonth, receivedThisMonth, followUpCount, taskCount, expiringCount,
-    newCustomerThisMonth, newOppThisMonth, oppTotalAmount, // 新增 KPI
-    contractClosedThisMonth, // 成交合同额
-    pendingCollection, invoicedUnpaid, invoicedPaid, // 回款相关
-    commissionTotal, commissionUnpaid, commissionPaid, // 提成相关
+    newCustomerThisMonth, newOppThisMonth, oppTotalAmount,
+    contractClosedThisMonth,
+    pendingCollection, invoicedUnpaid, invoicedPaid,
+    commissionTotal, commissionUnpaid, commissionPaid,
   ] = await Promise.all([
-    // 原有
     db.select({ count: sql<number>`count(*)` }).from(customers).where(isNull(customers.deletedAt)),
-    db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), ne(opportunities.status, 'closed_won'), ne(opportunities.status, 'closed_lost'))),
-    db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(and(isNull(contracts.deletedAt), gte(contracts.createdAt, monthStart))),
+    db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(
+      isNull(opportunities.deletedAt),
+      ne(opportunities.status, 'closed_won'),
+      ne(opportunities.status, 'closed_lost'),
+      ownerWhere,
+    )),
+    db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(and(
+      isNull(contracts.deletedAt),
+      gte(contracts.createdAt, monthStart),
+    )),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(gte(payments.paymentDate, monthStart)),
     db.select({ count: sql<number>`count(*)` }).from(followUps).where(lte(followUps.nextFollowUpAt, today)),
     db.select({ count: sql<number>`count(*)` }).from(tasks).where(and(eq(tasks.status, 'todo'), isNotNull(tasks.endDate))),
     db.select({ count: sql<number>`count(*)` }).from(contracts).where(and(isNull(contracts.deletedAt), isNotNull(contracts.endDate), gte(contracts.endDate, today), lte(contracts.endDate, new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10)))),
-    // 新增 KPI
     db.select({ count: sql<number>`count(*)` }).from(customers).where(and(isNull(customers.deletedAt), gte(customers.createdAt, monthStart))),
-    db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), gte(opportunities.createdAt, monthStart))),
-    db.select({ total: sql<number>`coalesce(sum(estimated_amount), 0)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), ne(opportunities.status, 'closed_lost'))),
-    // 成交合同额
+    db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(
+      isNull(opportunities.deletedAt),
+      gte(opportunities.createdAt, monthStart),
+      ownerWhere,
+    )),
+    db.select({ total: sql<number>`coalesce(sum(estimated_amount), 0)` }).from(opportunities).where(and(
+      isNull(opportunities.deletedAt),
+      ne(opportunities.status, 'closed_lost'),
+      ownerWhere,
+    )),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(and(isNull(contracts.deletedAt), eq(contracts.status, 'completed'), gte(contracts.updatedAt, monthStart))),
-    // 回款相关
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments),
-    // 已开票未回款（发票状态 issued，但对应合同没有付款记录）
-    db.select({ total: sql<number>`coalesce(sum(invoices.amount), 0)` }).from(invoices)
-      .where(and(
-        eq(invoices.status, 'issued'),
-        eq(sql`(select count(*) from payments where payments.contract_id = invoices.contract_id)`, 0),
-      )),
-    // 已开票已回款（发票状态 issued，且对应合同有付款记录）
-    db.select({ total: sql<number>`coalesce(sum(invoices.amount), 0)` }).from(invoices)
-      .where(and(
-        eq(invoices.status, 'issued'),
-        sql`(select count(*) from payments where payments.contract_id = invoices.contract_id) > 0`,
-      )),
-    // 提成相关
+    db.select({ total: sql<number>`coalesce(sum(invoices.amount), 0)` }).from(invoices).where(and(
+      eq(invoices.status, 'issued'),
+      eq(sql`(select count(*) from payments where payments.contract_id = invoices.contract_id)`, 0),
+    )),
+    db.select({ total: sql<number>`coalesce(sum(invoices.amount), 0)` }).from(invoices).where(and(
+      eq(invoices.status, 'issued'),
+      sql`(select count(*) from payments where payments.contract_id = invoices.contract_id) > 0`,
+    )),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(commissions).where(eq(commissions.status, 'approved')),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(commissions).where(eq(commissions.status, 'pending')),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(commissions).where(eq(commissions.status, 'paid')),
@@ -64,13 +78,21 @@ export default defineEventHandler(async (event) => {
       amount: opportunities.estimatedAmount,
       status: opportunities.status,
     }).from(opportunities).leftJoin(customers, eq(opportunities.customerId, customers.id))
-      .where(and(isNull(opportunities.deletedAt), ne(opportunities.status, 'closed_won'), ne(opportunities.status, 'closed_lost')))
+      .where(and(
+        isNull(opportunities.deletedAt),
+        ne(opportunities.status, 'closed_won'),
+        ne(opportunities.status, 'closed_lost'),
+        ownerWhere,
+      ))
       .orderBy(desc(opportunities.createdAt)).limit(5),
     db.select({
       status: opportunities.status,
       count: sql<number>`count(*)`,
       total: sql<number>`coalesce(sum(estimated_amount), 0)`,
-    }).from(opportunities).where(isNull(opportunities.deletedAt)).groupBy(opportunities.status),
+    }).from(opportunities).where(and(
+      isNull(opportunities.deletedAt),
+      ownerWhere,
+    )).groupBy(opportunities.status),
   ])
 
   const funnelTotal = funnelRows.reduce((sum: number, r: any) => sum + Number(r.count), 0)
