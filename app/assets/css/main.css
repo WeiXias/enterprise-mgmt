@@ -165,6 +165,38 @@
   --color-info: #B07010;
 }
 
+/* ── Nuxt UI 原生组件颜色跟随品牌色 ── */
+/* 使用 Tailwind v4 的颜色引用机制，让 Nuxt UI 的 primary color
+   读取我们自定义的 --color-brand-* 变量 */
+:root {
+  --ui-primary: var(--color-brand-500);
+  --ui-primary-50: var(--color-brand-50);
+  --ui-primary-100: var(--color-brand-100);
+  --ui-primary-200: var(--color-brand-200);
+  --ui-primary-300: var(--color-brand-300);
+  --ui-primary-400: var(--color-brand-400);
+  --ui-primary-500: var(--color-brand-500);
+  --ui-primary-600: var(--color-brand-600);
+  --ui-primary-700: var(--color-brand-700);
+  --ui-primary-800: var(--color-brand-800);
+  --ui-primary-900: var(--color-brand-900);
+}
+
+/* checkbox / radio / switch / select 的选中态、聚焦态跟随品牌色 */
+[type='checkbox']:checked,
+[type='radio']:checked {
+  accent-color: var(--color-brand-500);
+}
+
+/* select / input 聚焦态用品牌色（全局生效） */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-brand-400);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-400) 15%, transparent);
+  outline: none;
+}
+
 body {
   background-color: var(--color-surface-page);
   color: var(--color-content-primary);
@@ -286,6 +318,18 @@ select {
   --color-brand-500: #EF9F27;
   --color-brand-600: #D4891A;
   --color-brand-700: #B07010;
+  /* Nuxt UI 组件颜色跟随品牌色 */
+  --ui-primary: #EF9F27;
+  --ui-primary-50: #FFF9F0;
+  --ui-primary-100: #FEF0D7;
+  --ui-primary-200: #FDE2AB;
+  --ui-primary-300: #FCD07D;
+  --ui-primary-400: #FABC30;
+  --ui-primary-500: #EF9F27;
+  --ui-primary-600: #D4891A;
+  --ui-primary-700: #B07010;
+  --ui-primary-800: #8C580A;
+  --ui-primary-900: #6B4305;
 }
 
 /* 蓝色备用主题 */
@@ -299,9 +343,26 @@ select {
   --color-line-light: #F3F4F6;
   --color-brand-50: #EFF6FF;
   --color-brand-100: #DBEAFE;
+  --color-brand-200: #BFDBFE;
+  --color-brand-300: #93C5FD;
+  --color-brand-400: #60A5FA;
   --color-brand-500: #3B82F6;
   --color-brand-600: #2563EB;
   --color-brand-700: #1D4ED8;
+  --color-brand-800: #1E40AF;
+  --color-brand-900: #1E3A8A;
+  /* Nuxt UI 组件颜色跟随蓝色主题 */
+  --ui-primary: #3B82F6;
+  --ui-primary-50: #EFF6FF;
+  --ui-primary-100: #DBEAFE;
+  --ui-primary-200: #BFDBFE;
+  --ui-primary-300: #93C5FD;
+  --ui-primary-400: #60A5FA;
+  --ui-primary-500: #3B82F6;
+  --ui-primary-600: #2563EB;
+  --ui-primary-700: #1D4ED8;
+  --ui-primary-800: #1E40AF;
+  --ui-primary-900: #1E3A8A;
 }
 
 /* 暖色备用主题 */
@@ -318,4 +379,16 @@ select {
   --color-brand-500: #F59E0B;
   --color-brand-600: #D97706;
   --color-brand-700: #B45309;
+  /* Nuxt UI 组件颜色跟随暖色主题 */
+  --ui-primary: #F59E0B;
+  --ui-primary-50: #FFFBEB;
+  --ui-primary-100: #FEF3C7;
+  --ui-primary-200: #FDE68A;
+  --ui-primary-300: #FCD34D;
+  --ui-primary-400: #FBBF24;
+  --ui-primary-500: #F59E0B;
+  --ui-primary-600: #D97706;
+  --ui-primary-700: #B45309;
+  --ui-primary-800: #92400E;
+  --ui-primary-900: #78350F;
 }

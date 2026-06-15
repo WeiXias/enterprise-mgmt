@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   enterprise-mgmt:
+    build: .
     image: ${IMAGE_NAME:-enterprise-mgmt:latest}
     container_name: enterprise-mgmt
     restart: unless-stopped
