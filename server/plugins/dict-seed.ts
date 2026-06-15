@@ -108,4 +108,29 @@ export default defineNitroPlugin(async () => {
     }
     console.log(`[dict-seed] 报销类型初始化 (${reimbSeeds.length} 条)`)
   }
+
+  // 6. 产品规格模板
+  const specSeeds: { dict_type: string; items: string[] }[] = [
+    { dict_type: 'spec_template_hardware', items: ['CPU', '内存', '硬盘', '显卡', '主板', '电源', '机箱', '散热器'] },
+    { dict_type: 'spec_template_software', items: ['版本号', '授权方式', '支持系统', '语言', '位数'] },
+    { dict_type: 'spec_template_service', items: ['服务内容', '服务周期', '响应时间', '交付物'] },
+  ]
+  for (const spec of specSeeds) {
+    const existingSpec = await db.select().from(dictEntries).where(eq(dictEntries.dict_type, spec.dict_type)).limit(1)
+    if (existingSpec.length === 0) {
+      for (let i = 0; i < spec.items.length; i++) {
+        await db.insert(dictEntries).values({
+          id: generateId(),
+          dict_type: spec.dict_type,
+          value: spec.items[i],
+          label: spec.items[i],
+          sort: String(i),
+          is_active: '1',
+          createdAt: now,
+          updatedAt: now,
+        }).catch(() => {})
+      }
+      console.log(`[dict-seed] ${spec.dict_type} 初始化 (${spec.items.length} 条)`)
+    }
+  }
 })
