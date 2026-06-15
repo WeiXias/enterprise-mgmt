@@ -3,7 +3,13 @@ useHead({
   htmlAttrs: { lang: 'zh-CN' },
   link: [
     { rel: 'icon', href: '/favicon.ico' }
-  ]
+  ],
+  script: [
+    {
+      innerHTML: `(function(){try{var t=localStorage.getItem('app-theme');document.documentElement.classList.add('theme-'+(t==='blue'?t:'warm'))}catch(e){}})()`,
+      type: 'text/javascript',
+    },
+  ],
 })
 
 useSeoMeta({

@@ -176,14 +176,17 @@ export function useGlobalSearch() {
 
 export function useTheme() {
   function init() {
-    if (import.meta.server) return
+    current.value = getSavedTheme()
+    apply()
+  }
+
+  function getSavedTheme(): ThemeName {
+    if (import.meta.server) return 'warm'
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved === 'warm' || saved === 'blue') {
-        current.value = saved
-      }
+      if (saved === 'warm' || saved === 'blue') return saved
     } catch { /* ignore */ }
-    apply()
+    return 'warm'
   }
 
   function setTheme(name: ThemeName) {
