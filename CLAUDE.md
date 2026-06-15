@@ -161,6 +161,7 @@ enterprise-mgmt/              # 主应用目录
 - 颜色禁止硬编码 `gray-*` / `red-*`，必须用语义令牌：`text-content-secondary`、`border-line`、`bg-surface-page`、`text-danger-500` 等
 - 关闭按钮只调 `close()`，不要重复 emit `cancel` 和 `update:open`
 - 取消按钮文案用"算了"（非危险确认）或"再想想"（危险确认），确认按钮文案按业务场景用动词
+- **弹窗底部按钮顺序**：确认按钮在左，取消/关闭按钮在右（`[确认] [算了]`），居右对齐；危险确认弹窗同理（`[确认删除] [再想想]`）
 
 ### 组件规范
 
