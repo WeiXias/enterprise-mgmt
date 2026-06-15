@@ -223,7 +223,6 @@ watch(editSpecTemplate, loadSpecTemplate)
 
 function startEditSpecs() {
   specEditing.value = true
-  // 尝试匹配已有规格类型
   const existing = productSpecs.value[0]
   editSpecTemplate.value = existing?.specTemplate || ''
   setTimeout(() => loadSpecTemplate(editSpecTemplate.value), 200)
@@ -252,183 +251,183 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="!product" class="text-center py-12 text-content-muted">产品不存在</div>
     <template v-else>
-      <UTabs :items="[{ label: '基本信息' }, { label: '产品图片' }, { label: '规格参数' }, { label: '库存流水' }]" :default-value="'0'" :unmount-on-hide="false">
-        <template #content="{ index }">
-          <!-- 基本信息 -->
-          <div v-if="index === 0" class="mt-4">
-            <!-- 头部 -->
-            <div class="mb-6">
-              <div class="flex items-center gap-2 mb-2">
-                <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/products')" />
-                <h1 class="text-lg font-medium text-content-primary">{{ product.name }}</h1>
-                <span class="text-xs text-content-muted">{{ product.code }}</span>
-                <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(product.status)]">{{ getStatusLabel(product.status) }}</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <UButton size="xs" :icon="product.status === 'on_sale' ? 'i-lucide-eye-off' : 'i-lucide-eye'" :color="product.status === 'on_sale' ? 'neutral' : 'success'" variant="ghost" @click="toggleStatus">{{ product.status === 'on_sale' ? '下架' : '上架' }}</UButton>
-                <div class="flex-1" />
-                <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-pen-line" @click="openEditModal">编辑</UButton>
-                <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="showDeleteModal = true">删除</UButton>
-              </div>
-            </div>
+      <!-- 返回 -->
+      <div class="mb-6">
+        <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/products')" />
+      </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div class="lg:col-span-2 space-y-4">
-                <div class="em-card">
-                  <h3 class="text-sm font-medium text-content-secondary mb-3">价格与库存</h3>
-                  <div class="grid grid-cols-4 gap-4">
-                    <div><span class="text-xs text-content-muted">标准价格</span><p class="text-lg text-content-primary font-medium">{{ formatPrice(product.standardPrice) }}</p></div>
-                    <div><span class="text-xs text-content-muted">成本价格</span><p class="text-lg text-content-primary">{{ formatPrice(product.costPrice) }}</p></div>
-                    <div><span class="text-xs text-content-muted">利润率</span><p class="text-lg" :class="profitMargin && Number(profitMargin) > 0 ? 'text-teal-600' : 'text-content-muted'">{{ profitMargin !== null ? profitMargin + '%' : '-' }}</p></div>
-                    <div><span class="text-xs text-content-muted">当前库存</span><p class="text-lg font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-red-400'">{{ product.stockQuantity ?? 0 }}</p></div>
-                  </div>
-                </div>
-                <div class="em-card">
-                  <h3 class="text-sm font-medium text-content-secondary mb-3">产品描述</h3>
-                  <p v-if="product.description" class="text-sm text-content-secondary whitespace-pre-wrap">{{ product.description }}</p>
-                  <p v-else class="text-xs text-content-muted">暂无描述</p>
-                </div>
-              </div>
-              <div class="space-y-4">
-                <div class="em-card">
-                  <h3 class="text-sm font-medium text-content-secondary mb-3">产品分类</h3>
-                  <div v-if="product.category"><div class="flex items-center gap-2 text-sm"><UIcon name="i-lucide-tag" class="w-4 h-4 text-brand-500" /><span class="text-content-primary">{{ product.category.name }}</span></div></div>
-                  <p v-else class="text-xs text-content-muted">未分类</p>
-                </div>
-                <div class="em-card">
-                  <h3 class="text-sm font-medium text-content-secondary mb-3">时间线</h3>
-                  <div class="space-y-2 text-xs text-content-muted">
-                    <div class="flex justify-between"><span>创建时间</span><span class="text-content-secondary">{{ formatDate(product.createdAt) }}</span></div>
-                    <div class="flex justify-between"><span>更新时间</span><span class="text-content-secondary">{{ formatDate(product.updatedAt) }}</span></div>
-                  </div>
-                </div>
-              </div>
+      <!-- 顶部：图片 + 基本信息 -->
+      <div class="em-card mb-5">
+        <div class="flex gap-6">
+          <!-- 左侧图片 -->
+          <div class="w-72 shrink-0">
+            <div v-if="productImages.length" class="rounded-xl overflow-hidden bg-black/[0.02] aspect-square">
+              <img :src="getImageUrl(productImages[0])" class="w-full h-full object-cover" />
             </div>
-          </div>
-
-          <!-- 产品图片 -->
-          <div v-if="index === 1" class="mt-4">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-sm text-content-secondary">{{ productImages.length }} 张图片</span>
-              <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-upload" :loading="imageUploading" @click="document.getElementById('product-image-input')?.click()">上传图片</UButton>
-              <input id="product-image-input" type="file" accept="image/*" class="hidden" @change="onImageSelect" />
+            <div v-else class="rounded-xl bg-surface-hover aspect-square flex items-center justify-center">
+              <UIcon name="i-lucide-package" class="w-12 h-12 text-content-muted" />
             </div>
-            <div v-if="imagesLoading" class="text-center py-8 text-content-muted text-sm">加载中...</div>
-            <div v-else-if="!productImages.length" class="text-center py-12 text-content-muted">
-              <UIcon name="i-lucide-image" class="w-10 h-10 mx-auto mb-2 text-line" />
-              <p class="text-sm">还没有图片，上传一张？</p>
-            </div>
-            <div v-else class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-              <div v-for="img in productImages" :key="img.id" class="relative group rounded-lg border border-line overflow-hidden aspect-square">
+            <div v-if="productImages.length > 1" class="flex gap-2 mt-2">
+              <div v-for="(img, idx) in productImages.slice(1, 5)" :key="img.id" class="w-14 h-14 rounded-lg overflow-hidden border border-line">
                 <img :src="getImageUrl(img)" class="w-full h-full object-cover" />
-                <button class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" @click="deleteImage(img.id)"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+              </div>
+              <div v-if="productImages.length > 5" class="w-14 h-14 rounded-lg bg-surface-hover flex items-center justify-center text-xs text-content-muted">
+                +{{ productImages.length - 5 }}
               </div>
             </div>
           </div>
 
-          <!-- 规格参数 -->
-          <div v-if="index === 2" class="mt-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-sm text-content-secondary">规格参数</span>
-              <UButton v-if="!specEditing" size="xs" variant="ghost" color="primary" icon="i-lucide-pen-line" @click="startEditSpecs">编辑规格</UButton>
+          <!-- 右侧信息 -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-3">
+              <h1 class="text-xl font-medium text-content-primary">{{ product.name }}</h1>
+              <span :class="['text-[11px] px-2 py-0.5 rounded-full', getStatusColor(product.status)]">{{ getStatusLabel(product.status) }}</span>
+            </div>
+            <p class="text-xs text-content-muted mb-4">编码 {{ product.code }} {{ product.category ? ' · ' + product.category.name : '' }}</p>
+
+            <!-- 价格库存 -->
+            <div class="grid grid-cols-4 gap-4 mb-5">
+              <div><span class="text-xs text-content-muted">标准价格</span><p class="text-base font-medium text-content-primary">{{ formatPrice(product.standardPrice) }}</p></div>
+              <div><span class="text-xs text-content-muted">成本价格</span><p class="text-base text-content-secondary">{{ formatPrice(product.costPrice) }}</p></div>
+              <div><span class="text-xs text-content-muted">利润率</span><p class="text-base" :class="profitMargin && Number(profitMargin) > 0 ? 'text-teal-600' : 'text-content-muted'">{{ profitMargin !== null ? profitMargin + '%' : '-' }}</p></div>
+              <div><span class="text-xs text-content-muted">当前库存</span><p class="text-base font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-red-400'">{{ product.stockQuantity ?? 0 }}</p></div>
             </div>
 
-            <!-- 查看模式 -->
-            <div v-if="!specEditing">
-              <div v-if="specsLoading" class="text-center py-8 text-content-muted text-sm">加载中...</div>
-              <div v-else-if="!productSpecs.length" class="text-center py-12 text-content-muted">
-                <UIcon name="i-lucide-file-text" class="w-10 h-10 mx-auto mb-2 text-line" />
-                <p class="text-sm">还没有填写规格</p>
+            <!-- 操作按钮 -->
+            <div class="flex items-center gap-2">
+              <UButton size="xs" color="primary" icon="i-lucide-pen-line" @click="openEditModal">编辑</UButton>
+              <UButton size="xs" :icon="product.status === 'on_sale' ? 'i-lucide-eye-off' : 'i-lucide-eye'" :color="product.status === 'on_sale' ? 'neutral' : 'success'" variant="ghost" @click="toggleStatus">{{ product.status === 'on_sale' ? '下架' : '上架' }}</UButton>
+              <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-upload" :loading="imageUploading" @click="document.getElementById('product-image-input')?.click()">上传图片</UButton>
+              <input id="product-image-input" type="file" accept="image/*" class="hidden" @change="onImageSelect" />
+              <div class="flex-1" />
+              <UButton size="xs" variant="ghost" color="error" icon="i-lucide-trash-2" @click="showDeleteModal = true">删除</UButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 全部图片 -->
+      <div v-if="productImages.length > 1" class="mb-5">
+        <h3 class="text-sm font-medium text-content-secondary mb-3">全部图片 ({{ productImages.length }})</h3>
+        <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+          <div v-for="img in productImages" :key="img.id" class="relative group rounded-lg border border-line overflow-hidden aspect-square">
+            <img :src="getImageUrl(img)" class="w-full h-full object-cover" />
+            <button class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" @click="deleteImage(img.id)"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 描述 + 规格（双栏）-->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        <!-- 产品描述 -->
+        <div class="em-card">
+          <h3 class="text-sm font-medium text-content-secondary mb-3">产品描述</h3>
+          <p v-if="product.description" class="text-sm text-content-secondary whitespace-pre-wrap leading-relaxed">{{ product.description }}</p>
+          <p v-else class="text-xs text-content-muted">暂无描述</p>
+        </div>
+
+        <!-- 规格参数 -->
+        <div class="em-card">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-medium text-content-secondary">规格参数</h3>
+            <UButton v-if="!specEditing" size="xs" variant="ghost" color="primary" icon="i-lucide-pen-line" @click="startEditSpecs">编辑</UButton>
+          </div>
+
+          <div v-if="specEditing" class="space-y-3">
+            <EnumSelect v-model="editSpecTemplate" :options="specTemplateOptions" placeholder="选择规格模板" />
+            <div v-if="editSpecItems.length" class="space-y-2">
+              <div v-for="item in editSpecItems" :key="item.key" class="flex items-center gap-2">
+                <span class="text-sm text-content-secondary w-20 shrink-0">{{ item.label }}</span>
+                <input v-model="editSpecValues[item.key]" type="text" :placeholder="`填写${item.label}`" class="flex-1 input-base focus-ring text-sm" />
               </div>
-              <div v-else class="em-card">
-                <div v-for="group in [...new Set(productSpecs.map(s => s.specTemplate))]" :key="group" class="mb-4 last:mb-0">
-                  <h4 class="text-xs font-medium text-content-muted mb-2">{{ specTemplateOptions.find(o => o.value === group)?.label || group }}</h4>
-                  <div class="space-y-1.5">
-                    <div v-for="s in productSpecs.filter(s => s.specTemplate === group)" :key="s.id" class="flex items-center gap-3 text-sm">
-                      <span class="text-content-muted w-24 shrink-0">{{ s.specKey }}</span>
-                      <span class="text-content-primary">{{ s.specValue }}</span>
-                    </div>
+            </div>
+            <div class="flex justify-end gap-2">
+              <UButton size="xs" variant="ghost" color="neutral" @click="specEditing = false">算了</UButton>
+              <UButton size="xs" color="primary" :loading="specSaving" @click="saveSpecs">保存</UButton>
+            </div>
+          </div>
+
+          <div v-else>
+            <div v-if="specsLoading" class="text-center py-4 text-content-muted text-xs">加载中...</div>
+            <div v-else-if="!productSpecs.length" class="text-xs text-content-muted py-4">暂无规格，点击编辑添加</div>
+            <div v-else>
+              <div v-for="group in [...new Set(productSpecs.map(s => s.specTemplate))]" :key="group" class="mb-3 last:mb-0">
+                <h4 class="text-[10px] font-medium text-content-muted uppercase tracking-wide mb-1.5">{{ specTemplateOptions.find(o => o.value === group)?.label || group }}</h4>
+                <div class="space-y-1">
+                  <div v-for="s in productSpecs.filter(s => s.specTemplate === group)" :key="s.id" class="flex items-center gap-3 text-sm">
+                    <span class="text-content-muted w-20 shrink-0">{{ s.specKey }}</span>
+                    <span class="text-content-primary">{{ s.specValue }}</span>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- 编辑模式 -->
-            <div v-else class="em-card">
-              <div class="mb-3"><EnumSelect v-model="editSpecTemplate" :options="specTemplateOptions" placeholder="选择规格模板" /></div>
-              <div v-if="editSpecItems.length" class="space-y-2 mb-4">
-                <div v-for="item in editSpecItems" :key="item.key" class="flex items-center gap-2">
-                  <span class="text-sm text-content-secondary w-24 shrink-0">{{ item.label }}</span>
-                  <input v-model="editSpecValues[item.key]" type="text" :placeholder="`填写${item.label}`" class="flex-1 input-base focus-ring text-sm" />
-                </div>
-              </div>
-              <div class="flex justify-end gap-2">
-                <UButton size="xs" variant="ghost" color="neutral" @click="specEditing = false">算了</UButton>
-                <UButton size="xs" color="primary" :loading="specSaving" @click="saveSpecs">保存规格</UButton>
-              </div>
-            </div>
           </div>
+        </div>
+      </div>
 
-          <!-- 库存流水 -->
-          <div v-if="index === 3" class="mt-4">
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-sm text-content-muted">出入库记录</span>
-              <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="showInventoryModal = true; inventoryForm = { type: 'inbound', quantity: 1, unitPrice: 0, batchNo: '', remark: '' }">登记流水</UButton>
-            </div>
-            <div v-if="!transactions?.length" class="text-center py-8 text-content-muted text-sm">暂无库存流水</div>
-            <div v-else class="em-card overflow-hidden">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-line-light text-left text-xs text-content-muted">
-                    <th class="py-2 px-3">类型</th><th class="py-2 px-3 text-right">数量</th><th class="py-2 px-3 text-right">单价</th><th class="py-2 px-3">批次</th><th class="py-2 px-3">备注</th><th class="py-2 px-3">时间</th><th class="py-2 px-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="t in transactions" :key="t.id" class="border-b border-line-light">
-                    <td class="py-2 px-3"><span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-surface-hover text-content-muted']">{{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}</span></td>
-                    <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-red-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
-                    <td class="py-2 px-3 text-right text-content-secondary">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
-                    <td class="py-2 px-3 text-xs text-content-muted">{{ t.batchNo || '-' }}</td>
-                    <td class="py-2 px-3 text-xs text-content-muted max-w-[120px] truncate">{{ t.remark || '-' }}</td>
-                    <td class="py-2 px-3 text-xs text-content-muted">{{ formatDate(t.createdAt) }}</td>
-                    <td class="py-2 px-3"><UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)" /></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+      <!-- 库存流水 -->
+      <div class="em-card mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-medium text-content-secondary">库存流水</h3>
+          <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="showInventoryModal = true; inventoryForm = { type: 'inbound', quantity: 1, unitPrice: 0, batchNo: '', remark: '' }">登记流水</UButton>
+        </div>
+        <div v-if="!transactions?.length" class="text-center py-8 text-content-muted text-sm">暂无库存流水</div>
+        <div v-else class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-line-light text-left text-xs text-content-muted">
+                <th class="py-2 px-3">类型</th><th class="py-2 px-3 text-right">数量</th><th class="py-2 px-3 text-right">单价</th><th class="py-2 px-3">批次</th><th class="py-2 px-3">备注</th><th class="py-2 px-3">时间</th><th class="py-2 px-3" />
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="t in transactions" :key="t.id" class="border-b border-line-light">
+                <td class="py-2 px-3"><span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-surface-hover text-content-muted']">{{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}</span></td>
+                <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-red-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
+                <td class="py-2 px-3 text-right text-content-secondary">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
+                <td class="py-2 px-3 text-xs text-content-muted">{{ t.batchNo || '-' }}</td>
+                <td class="py-2 px-3 text-xs text-content-muted max-w-[120px] truncate">{{ t.remark || '-' }}</td>
+                <td class="py-2 px-3 text-xs text-content-muted">{{ formatDate(t.createdAt) }}</td>
+                <td class="py-2 px-3"><UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 时间线 -->
+      <div class="flex items-center gap-4 text-xs text-content-muted">
+        <span>创建于 {{ formatDate(product.createdAt) }}</span>
+        <span>最近更新 {{ formatDate(product.updatedAt) }}</span>
+      </div>
+
+      <!-- 弹窗 -->
+      <FormModal v-if="showInventoryModal" v-model:open="showInventoryModal" title="登记库存流水" size="compact" :loading="inventorySaving" @confirm="handleSaveInventory">
+        <form class="space-y-3" @submit.prevent="handleSaveInventory">
+          <div><label class="block text-sm text-content-secondary mb-1">类型</label><EnumSelect v-model="inventoryForm.type" dict="inventoryTransactionType" placeholder="选择类型" /></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm text-content-secondary mb-1">数量 <span class="text-danger-500">*</span></label><input v-model.number="inventoryForm.quantity" type="number" step="1" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">单价</label><input v-model.number="inventoryForm.unitPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
           </div>
-        </template>
-      </UTabs>
-      <!-- 库存流水弹窗 -->
-      <FormModal v-if="showInventoryModal" v-model:open="showInventoryModal" title="登记库存流水" size="compact" :loading="inventorySaving" @confirm="handleSaveInventory" @cancel="showInventoryModal = false">
-          <form class="space-y-3" @submit.prevent="handleSaveInventory">
-            <div><label class="block text-sm text-content-secondary mb-1">类型</label><EnumSelect v-model="inventoryForm.type" dict="inventoryTransactionType" placeholder="选择类型" /></div>
-            <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-content-secondary mb-1">数量 <span class="text-red-400">*</span></label><input v-model.number="inventoryForm.quantity" type="number" step="1" class="w-full input-base focus-ring" /></div>
-              <div><label class="block text-sm text-content-secondary mb-1">单价</label><input v-model.number="inventoryForm.unitPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
-            </div>
-            <div><label class="block text-sm text-content-secondary mb-1">批次号</label><input v-model="inventoryForm.batchNo" type="text" class="w-full input-base focus-ring" /></div>
-            <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="inventoryForm.remark" type="text" class="w-full input-base focus-ring" /></div>
-          </form>
+          <div><label class="block text-sm text-content-secondary mb-1">批次号</label><input v-model="inventoryForm.batchNo" type="text" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="inventoryForm.remark" type="text" class="w-full input-base focus-ring" /></div>
+        </form>
       </FormModal>
 
-      <!-- 编辑弹窗 -->
-      <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑产品" size="standard" :loading="editLoading" @confirm="handleEdit" @cancel="showEditModal = false">
-          <form class="space-y-4" @submit.prevent="handleEdit">
-            <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-content-secondary mb-1">产品名称 <span class="text-red-400">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
-              <div><label class="block text-sm text-content-secondary mb-1">产品编码</label><input v-model="editForm.code" type="text" disabled class="w-full input-base bg-surface-page text-content-muted" /></div>
-            </div>
-            <div><label class="block text-sm text-content-secondary mb-1">产品分类</label><EnumSelect v-model="editForm.categoryId" :options="categoryOptions.map(c => ({ value: c.id, label: c.name }))" placeholder="未分类" /></div>
-            <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm text-content-secondary mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
-              <div><label class="block text-sm text-content-secondary mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
-            </div>
-            <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
-          </form>
+      <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑产品" size="standard" :loading="editLoading" @confirm="handleEdit">
+        <form class="space-y-4" @submit.prevent="handleEdit">
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm text-content-secondary mb-1">产品名称 <span class="text-danger-500">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">产品编码</label><input v-model="editForm.code" type="text" disabled class="w-full input-base bg-surface-page text-content-muted" /></div>
+          </div>
+          <div><label class="block text-sm text-content-secondary mb-1">产品分类</label><EnumSelect v-model="editForm.categoryId" :options="categoryOptions.map(c => ({ value: c.id, label: c.name }))" placeholder="未分类" /></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-sm text-content-secondary mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+          </div>
+          <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
+        </form>
       </FormModal>
 
-      <!-- 删除弹窗 -->
       <ConfirmDialog
         v-if="showDeleteModal"
         v-model:open="showDeleteModal"
@@ -440,14 +439,14 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
         danger
         @confirm="handleDelete"
       />
-    </template>
 
-    <ConfirmDialog
-      v-model:open="showDeleteDialog"
-      :danger="true"
-      title="删除库存记录"
-      message="删除后库存将回退，确定要删吗？"
-      @confirm="handleDeleteConfirmed"
-    />
+      <ConfirmDialog
+        v-model:open="showDeleteDialog"
+        :danger="true"
+        title="删除库存记录"
+        message="删除后库存将回退，确定要删吗？"
+        @confirm="handleDeletedConfirmed"
+      />
+    </template>
   </div>
 </template>
