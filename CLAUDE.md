@@ -108,6 +108,13 @@ enterprise-mgmt/              # 主应用目录
 
 > ★ Drizzle ORM schema 实现在 `server/database/schema/`，Nuxt alias `#database` → `server/database`、`#schema/*` → `server/database/schema/*`。
 
+**Schema 变更流程**：修改 schema 文件后，必须执行以下两步生成增量迁移 SQL：
+```bash
+cd enterprise-mgmt && npx drizzle-kit generate   # 生成迁移 SQL
+cd enterprise-mgmt && npx drizzle-kit migrate     # 应用到本地数据库
+```
+生成的迁移文件（`server/database/migrations/xxxx.sql`）会随补丁包一起部署到服务器。跳过此流程会导致数据库缺列，引发运行时 SQL 错误。
+
 ## 设计约束（核心）
 
 ### 视觉原则：温暖人性化，拒绝 AI 感

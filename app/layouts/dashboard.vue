@@ -417,13 +417,13 @@ function formatTime(dateStr: string): string {
                 ref="inputRef"
                 v-model="query"
                 type="text"
-                placeholder='搜索... (⌘K)'
+                :placeholder="navigator?.platform?.includes('Mac') ? '搜索... (⌘K)' : '搜索... (Ctrl+K)'"
                 class="w-full pl-9 pr-10 py-1.5 text-sm rounded-md border border-line bg-surface-hover focus-ring focus:bg-surface-card transition-all placeholder:text-content-muted"
                 @focus="open = true"
                 @blur="open = false"
                 @keydown="handleKeydown"
               />
-              <kbd v-if="!query" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-content-muted bg-surface-hover px-1.5 py-0.5 rounded-md">⌘K</kbd>
+              <kbd v-if="!query" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-content-muted bg-surface-hover px-1.5 py-0.5 rounded-md">{{ navigator?.platform?.includes('Mac') ? '⌘K' : 'Ctrl+K' }}</kbd>
             </div>
             <!-- 下拉面板 -->
             <div v-if="open && query.trim()" class="absolute top-full mt-1.5 w-full bg-surface-card border border-line rounded-xl shadow-lg z-50 overflow-hidden">

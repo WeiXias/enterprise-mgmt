@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '设置 · 方案A', middleware: ['auth'] })
+definePageMeta({ layout: 'dashboard', title: '设置', middleware: ['auth'] })
 const activeTab = ref('basic')
 const tabs = [
   { key: 'basic', label: '基本信息', icon: 'i-lucide-info' },
@@ -14,6 +14,15 @@ const tabs = [
   { key: 'datadict', label: '数据字典', icon: 'i-lucide-database' },
   { key: 'logs', label: '操作日志', icon: 'i-lucide-clock' },
 ]
+
+const appVersion = ref('')
+async function loadVersion() {
+  try {
+    const res = await $api('/api/system/version') as any
+    if (res?.code === 0) appVersion.value = res.data.version
+  } catch { }
+}
+loadVersion()
 const tabDescs: Record<string, string> = {
   basic: '公司名称、Logo、系统名称等基础信息配置',
   organizations: '部门树管理与成员分配，支持多层级组织架构',
@@ -29,6 +38,32 @@ const tabDescs: Record<string, string> = {
 }
 const toast = useToast()
 const { $api } = useNuxtApp()
+
+// ---- 基本信息 ----
+const config = ref<Record<string, string>>({})
+const saving = ref<Record<string, boolean>>({})
+const basicFields = [
+  { key: 'company_name', label: '公司名称', placeholder: '输入公司名称' },
+  { key: 'system_name', label: '系统名称', placeholder: '输入系统显示名称' },
+  { key: 'system_subtitle', label: '系统副标题', placeholder: '登录页显示的副标题' },
+]
+
+async function loadConfig() {
+  try {
+    const res = await $api('/api/system/config') as any
+    if (res?.code === 0) config.value = res.data
+  } catch { }
+}
+async function saveConfig(key: string) {
+  if (saving.value[key]) return
+  saving.value[key] = true
+  try {
+    await $api(`/api/system/config/${key}`, { method: 'PUT', body: { value: config.value[key] || '' } })
+    toast.add({ title: '搞定了！', color: 'success' })
+  } catch { }
+  finally { saving.value[key] = false }
+}
+loadConfig()
 
 // ---- 数据字典管理 ----
 const dictSearch = ref('')
@@ -179,7 +214,7 @@ loadDictTypes()
     <div class="mb-10">
       <h1 class="text-2xl font-medium text-content-primary tracking-tight">系统设置</h1>
       <p class="text-sm text-content-muted mt-1.5 max-w-lg leading-relaxed">
-        这里管着整个系统的运行参数。每一项调整都会即时生效，改之前可以多看一眼。
+        这里管着整个系统的运行参数。当前版本 <span class="text-brand-600 font-medium">{{ appVersion }}</span>，每一项调整都会即时生效，改之前可以多看一眼。
       </p>
     </div>
 
@@ -214,38 +249,16 @@ loadDictTypes()
 
         <!-- 基本信息 -->
         <div v-show="activeTab === 'basic'" class="grid grid-cols-2 gap-5">
-          <div class="em-card">
+          <div v-for="field in basicFields" :key="field.key" class="em-card">
             <div class="flex items-start gap-4">
               <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0"><UIcon name="i-lucide-building-2" class="w-5 h-5 text-brand-600" /></div>
               <div class="flex-1">
-                <label class="text-sm font-medium text-content-primary">公司名称</label>
-                <p class="text-[11px] text-content-muted mt-0.5">对外展示的企业全称</p>
-                <input type="text" placeholder="输入公司名称" value="星辰科技有限公司" class="w-full mt-2.5 input-base focus-ring text-sm" />
+                <label class="text-sm font-medium text-content-primary">{{ field.label }}</label>
+                <p class="text-[11px] text-content-muted mt-0.5">{{ field.key === 'company_name' ? '对外展示的企业全称' : field.key === 'system_name' ? '浏览器标签页显示的名称' : '一句简短的口号或说明' }}</p>
+                <input v-model="config[field.key]" type="text" :placeholder="field.placeholder" class="w-full mt-2.5 input-base focus-ring text-sm" />
               </div>
             </div>
-            <div class="flex justify-end mt-3"><UButton size="xs" color="primary">保存</UButton></div>
-          </div>
-          <div class="em-card">
-            <div class="flex items-start gap-4">
-              <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0"><UIcon name="i-lucide-type" class="w-5 h-5 text-brand-600" /></div>
-              <div class="flex-1">
-                <label class="text-sm font-medium text-content-primary">系统名称</label>
-                <p class="text-[11px] text-content-muted mt-0.5">浏览器标签页显示的名称</p>
-                <input type="text" placeholder="一体化管理" value="企业一体化管理" class="w-full mt-2.5 input-base focus-ring text-sm" />
-              </div>
-            </div>
-            <div class="flex justify-end mt-3"><UButton size="xs" color="primary">保存</UButton></div>
-          </div>
-          <div class="em-card">
-            <div class="flex items-start gap-4">
-              <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0"><UIcon name="i-lucide-message-square-text" class="w-5 h-5 text-brand-600" /></div>
-              <div class="flex-1">
-                <label class="text-sm font-medium text-content-primary">系统副标题</label>
-                <p class="text-[11px] text-content-muted mt-0.5">一句简短的口号或说明</p>
-                <input type="text" placeholder="小团队的一站式业务管理工具" value="小团队的一站式业务管理工具" class="w-full mt-2.5 input-base focus-ring text-sm" />
-              </div>
-            </div>
-            <div class="flex justify-end mt-3"><UButton size="xs" color="primary">保存</UButton></div>
+            <div class="flex justify-end mt-3"><UButton size="xs" color="primary" :loading="saving[field.key]" @click="saveConfig(field.key)">保存</UButton></div>
           </div>
           <div class="em-card">
             <div class="flex items-start gap-4">
@@ -259,7 +272,6 @@ loadDictTypes()
                 </div>
               </div>
             </div>
-            <div class="flex justify-end mt-3"><UButton size="xs" color="primary">保存</UButton></div>
           </div>
         </div>
 

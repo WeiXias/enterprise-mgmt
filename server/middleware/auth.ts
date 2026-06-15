@@ -5,9 +5,12 @@ import { eq } from 'drizzle-orm'
 const PUBLIC_API_ROUTES = [
   '/api/auth/login',
   '/api/auth/refresh',
+  '/api/auth/config',
   '/api/enums',
   '/api/files/logo',
   '/api/health',
+  '/api/system/config',
+  '/api/system/version',
 ]
 
 const PUBLIC_API_PREFIXES = [

@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody, createError } from 'h3'
+import { defineEventHandler, readBody, createError, setCookie } from 'h3'
 import { db } from '#database'
 import { users } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
@@ -42,18 +42,24 @@ export default defineEventHandler(async (event) => {
   const accessToken = await generateAccessToken({ userId: user!.id, role: user.role, name: user.name, tokenVersion: user!.tokenVersion })
   const refreshToken = await generateRefreshToken({ userId: user!.id, tokenVersion: user!.tokenVersion })
 
+  const userInfo = {
+    id: user!.id,
+    name: user!.name,
+    username: user!.username,
+    role: user!.role,
+    avatar: user!.avatar,
+  }
+
+  // 写 cookie 让 SSR 能读取用户状态，避免 hydration mismatch
+  const cookieOpts = { maxAge: 60 * 60 * 24 * 7, path: '/', httpOnly: false, sameSite: 'lax' as const }
+  setCookie(event, 'auth_user', JSON.stringify(userInfo), cookieOpts)
+
   return {
     code: 0,
     data: {
       accessToken,
       refreshToken,
-      user: {
-        id: user!.id,
-        name: user!.name,
-        username: user!.username,
-        role: user!.role,
-        avatar: user!.avatar,
-      }
+      user: userInfo,
     },
     message: '登录成功！'
   }

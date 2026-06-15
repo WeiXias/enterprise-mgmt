@@ -1,5 +1,5 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
-import { requirePermission } from '#server-utils/permission'
+import { requireAuth } from '#server-utils/permission'
 import { db } from '#database'
 import { systemConfig } from '#schema'
 import { eq } from 'drizzle-orm'
@@ -9,7 +9,7 @@ import { generateId } from '#server-utils/id'
 const schema = z.object({ value: z.string() })
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'system:config')
+  await requireAuth(event)
   const { key } = getRouterParams(event)
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
