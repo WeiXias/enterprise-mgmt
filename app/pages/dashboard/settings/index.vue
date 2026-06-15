@@ -39,7 +39,6 @@ const hasDictChanges = ref(false)
 const dictSaveLoading = ref(false)
 const originalDictItems = ref<typeof currentDictItems.value>([])
 const dictTypesList = ref<any[]>([])
-const enumDictData = ref<Record<string, { label: string; value: string }[]>>({})
 const editingDictItemIdx = ref<number | null>(null)
 const editingDictItemValue = ref('')
 const editingDictItemLabel = ref('')
@@ -47,21 +46,19 @@ const translating = ref(false)
 
 const dictCategories = computed(() => {
   const bizTypes = dictTypesList.value.map((t: any) => ({ key: t.key, label: t.label, category: t.category }))
-  const enumTypes = Object.keys(enumDictData.value).map(k => ({ key: k, label: k, category: '状态枚举' }))
   return [
     { name: '业务字典', types: bizTypes.filter((t: any) => t.category === '业务字典') },
     { name: '产品规格模板', types: bizTypes.filter((t: any) => t.category === '产品规格模板') },
     { name: '财务', types: bizTypes.filter((t: any) => t.category === '财务') },
-    { name: '状态枚举', types: enumTypes },
   ]
 })
 const currentDictTypeCategory = computed(() => {
   const dt = dictTypesList.value.find((t: any) => t.key === selectedDictType.value)
-  return dt?.category || '状态枚举'
+  return dt?.category || ''
 })
 const selectedDictLabel = computed(() => {
   const dt = dictTypesList.value.find((t: any) => t.key === selectedDictType.value)
-  return dt?.label || Object.keys(enumDictData.value).find(k => k === selectedDictType.value) || selectedDictType.value
+  return dt?.label || selectedDictType.value
 })
 const filteredDictTypes = computed(() => {
   const all = dictCategories.value.flatMap(c => c.types)
@@ -79,30 +76,15 @@ async function loadDictTypes() {
     if (res?.code === 0) dictTypesList.value = res.data
   } catch { }
 }
-async function loadEnumData() {
-  try {
-    const res = await $api('/api/enums') as any
-    if (res?.code === 0) enumDictData.value = res.data
-  } catch { }
-}
 async function selectDictType(key: string) {
   selectedDictType.value = key
-  const cat = currentDictTypeCategory.value
-  if (cat !== '状态枚举') {
-    try {
-      const res = await $api(`/api/dict/${key}`) as any
-      if (res?.code === 0) {
-        currentDictItems.value = (res.data as any[]).map((item: any) => ({ ...item, _original: JSON.stringify(item) }))
-        originalDictItems.value = JSON.parse(JSON.stringify(currentDictItems.value))
-      }
-    } catch { }
-  } else {
-    const options = enumDictData.value[key] || []
-    currentDictItems.value = options.map((opt, i) => ({
-      id: undefined, value: opt.value, label: opt.label, sort: i, isActive: true, _original: JSON.stringify(opt),
-    }))
-    originalDictItems.value = JSON.parse(JSON.stringify(currentDictItems.value))
-  }
+  try {
+    const res = await $api(`/api/dict/${key}`) as any
+    if (res?.code === 0) {
+      currentDictItems.value = (res.data as any[]).map((item: any) => ({ ...item, _original: JSON.stringify(item) }))
+      originalDictItems.value = JSON.parse(JSON.stringify(currentDictItems.value))
+    }
+  } catch { }
   hasDictChanges.value = false
 }
 function addDictItem() {
@@ -172,29 +154,15 @@ async function saveCurrentDict() {
   if (!selectedDictType.value) return
   dictSaveLoading.value = true
   try {
-    const cat = currentDictTypeCategory.value
-    if (cat !== '状态枚举') {
-      const items = currentDictItems.value.map((item, idx) => ({
-        id: item.id, value: item.value, label: item.label, sort: idx, isActive: item.isActive,
-      }))
-      const originalIds = new Set(originalDictItems.value.map((i: any) => i.id).filter(Boolean))
-      const currentIds = new Set(items.map(i => i.id).filter(Boolean))
-      const removedIds = [...originalIds].filter(id => !currentIds.has(id))
-      await $api(`/api/dict/${selectedDictType.value}`, { method: 'PUT', body: { items, removedIds } })
-      toast.add({ title: '字典已保存', color: 'success' })
-    } else {
-      const overrides: Record<string, string> = {}
-      for (const item of currentDictItems.value) {
-        const orig = originalDictItems.value.find((o: any) => o.value === item.value)
-        if (orig && orig.label !== item.label) { overrides[item.value] = item.label }
-      }
-      for (const [value, label] of Object.entries(overrides)) {
-        await $api('/api/system/config/dict_override', { method: 'PUT', body: { enumType: selectedDictType.value, value, label } })
-      }
-      toast.add({ title: '标签已保存', color: 'success' })
-    }
+    const items = currentDictItems.value.map((item, idx) => ({
+      id: item.id, value: item.value, label: item.label, sort: idx, isActive: item.isActive,
+    }))
+    const originalIds = new Set(originalDictItems.value.map((i: any) => i.id).filter(Boolean))
+    const currentIds = new Set(items.map(i => i.id).filter(Boolean))
+    const removedIds = [...originalIds].filter(id => !currentIds.has(id))
+    await $api(`/api/dict/${selectedDictType.value}`, { method: 'PUT', body: { items, removedIds } })
+    toast.add({ title: '字典已保存', color: 'success' })
     await selectDictType(selectedDictType.value)
-    await loadEnumData()
   } catch (err: any) {
     toast.add({ title: err?.data?.message || '保存失败', color: 'error' })
   } finally {
@@ -203,7 +171,6 @@ async function saveCurrentDict() {
 }
 function loadDictItems() { if (selectedDictType.value) selectDictType(selectedDictType.value) }
 loadDictTypes()
-loadEnumData()
 </script>
 
 <template>
@@ -392,12 +359,12 @@ loadEnumData()
                         class="px-2.5 py-1 rounded-md text-xs transition-all cursor-pointer select-none border"
                         :class="item.isActive === false ? 'bg-surface-hover text-content-muted border-line line-through' : 'bg-brand-50 text-brand-700 border-brand-100 hover:shadow-sm'"
                       >{{ item.label }}</span>
-                      <button v-if="currentDictTypeCategory !== '状态枚举'"
+                      <button
                         class="w-4 h-4 flex items-center justify-center rounded text-content-muted opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-50"
                         @click="removeDictItem(idx)"
                       ><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
                     </div>
-                    <button v-if="currentDictTypeCategory !== '状态枚举'"
+                    <button
                       class="px-2.5 py-1 rounded-md text-xs border border-dashed border-line text-content-muted hover:border-brand-400 hover:text-brand-600 transition-colors flex items-center gap-1"
                       @click="addDictItem()"
                     ><UIcon name="i-lucide-plus" class="w-3 h-3" />添加</button>
