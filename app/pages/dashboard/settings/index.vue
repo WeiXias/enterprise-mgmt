@@ -19,7 +19,7 @@ const tabs = [
 const appVersion = ref('')
 async function loadVersion() {
   try {
-    const res = await $api('/api/system/version') as any
+    const res = await $fetch('/api/system/version') as any
     if (res?.code === 0) appVersion.value = res.data.version
   } catch { }
 }
@@ -957,13 +957,13 @@ onUnmounted(() => {
         <!-- 版本升级 -->
         <div v-show="activeTab === 'upgrade'" class="em-card max-w-2xl">
           <h3 class="text-sm font-medium text-content-primary mb-4">版本升级</h3>
-          <div v-if="appVersion" class="flex items-center gap-3 mb-5 p-4 rounded-xl bg-surface-hover">
+          <div class="flex items-center gap-3 mb-5 p-4 rounded-xl bg-surface-hover">
             <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
               <UIcon name="i-lucide-rocket" class="w-5 h-5 text-brand-600" />
             </div>
             <div>
               <p class="text-[11px] text-content-muted">当前版本</p>
-              <p class="text-lg font-medium text-content-primary">v{{ appVersion }}</p>
+              <p class="text-lg font-medium text-content-primary">{{ appVersion || '加载中...' }}</p>
             </div>
           </div>
           <p class="text-xs text-content-muted mb-5">
