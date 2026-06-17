@@ -11,7 +11,7 @@ export const productCategories = sqliteTable('product_categories', {
 
 export const products = sqliteTable('products', {
   id: text('id').primaryKey(),
-  categoryId: text('category_id').references(() => productCategories.id),
+  categoryId: text('category_id'),
   name: text('name').notNull(),
   code: text('code').notNull().unique(),
   standardPrice: integer('standard_price').notNull().default(0),
