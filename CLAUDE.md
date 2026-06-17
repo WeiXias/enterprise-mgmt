@@ -206,6 +206,70 @@ cd enterprise-mgmt && npx drizzle-kit migrate     # 应用到本地数据库
 | 销售成员 | 仅自己负责的数据 |
 | 财务 | 合同/提成/回款完整权限，其余只读 |
 
+## 生产服务器
+
+| 项目 | 值 |
+|------|-----|
+| 地址 | 172.16.100.250 |
+| 用户 | root |
+| 密码 | Xiaona.1314 |
+| 部署路径 | /opt/enterprise-mgmt |
+| Web 访问 | Nginx 反代，`http://172.16.100.250`（80 端口）→ `http://127.0.0.1:3000` |
+| 进程管理 | nohup node .output/server/index.mjs（非 systemd） |
+
+### 架构说明
+
+- Nuxt 应用监听 `127.0.0.1:3000`（仅本地）
+- Nginx 反代 `http://172.16.100.250`（80） → `http://127.0.0.1:3000`，路径直接透传
+- 静态资源 `/api/_nuxt/` 由 Nginx 处理，其余透传到 Node 进程
+- 实际部署命令：`sshpass` 代替 `ssh`/`scp`（SSH 无密钥，需密码认证）
+- **部署前必须用 curl 逐 API 验证通过再上报**，禁止未验证就说完成
+
+### 生产环境 API 验证清单
+
+部署后按顺序跑一遍，任何 API 非 200 / code ≠ 0 就停：
+
+```bash
+# 基础
+curl -s http://172.16.100.250/api/health
+# 登录
+curl -s -X POST http://172.16.100.250/api/auth/login -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin123"}'
+# 核心业务（带 token）
+curl -s http://172.16.100.250/api/customers?pageSize=5 -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/opportunities?pageSize=5 -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/contracts?pageSize=5 -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/products?pageSize=5 -H "Authorization: Bearer $TOKEN"
+# 设置
+curl -s http://172.16.100.250/api/roles -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/permissions -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/departments -H "Authorization: Bearer $TOKEN"
+# 配置
+curl -s http://172.16.100.250/api/system/config -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/system/smtp -H "Authorization: Bearer $TOKEN"
+curl -s http://172.16.100.250/api/system/security -H "Authorization: Bearer $TOKEN"
+```
+
+### 部署流程
+
+```bash
+# 1. 本机打包
+cd enterprise-mgmt && bash scripts/make-patch.sh
+
+# 2. 上传到服务器
+sshpass -p 'Xiaona.1314' scp -o StrictHostKeyChecking=no \
+  releases/enterprise-mgmt-*.tar.gz root@172.16.100.250:/tmp/
+
+# 3. 解压
+sshpass -p 'Xiaona.1314' ssh -o StrictHostKeyChecking=no root@172.16.100.250 \
+  "cd /opt/enterprise-mgmt && tar xzf /tmp/enterprise-mgmt-*.tar.gz --strip-components=1"
+
+# 4. 升级（备份 → install → migrate → 停旧 → 启新 → 健康检查）
+sshpass -p 'Xiaona.1314' ssh -o StrictHostKeyChecking=no root@172.16.100.250 \
+  "cd /opt/enterprise-mgmt && bash scripts/apply-patch.sh"
+```
+
+> 每次部署需确认版本号和补丁包文件名。Nginx 已处理 SSL 终结。
+
 ## 验证流程
 
 改代码后按顺序验证：

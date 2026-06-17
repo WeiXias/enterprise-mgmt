@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "enterprise-mgmt", "runtimeExecutable": "pnpm", "runtimeArgs": ["run", "dev"], "port": 3000 }
+    { "name": "enterprise-mgmt", "command": "pnpm run dev", "port": 3000 }
   ]
 }
