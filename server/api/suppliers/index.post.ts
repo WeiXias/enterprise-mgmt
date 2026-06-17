@@ -1,9 +1,8 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import Database from 'better-sqlite3'
+import { db } from '#database'
+import { suppliers } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
-
-const DB_PATH = process.env.DB_PATH || './data/enterprise.db'
 
 const schema = z.object({
   name: z.string().min(1).max(200),
@@ -25,11 +24,11 @@ export default defineEventHandler(async (event) => {
   const id = generateId()
   const code = parsed.data.code || `SUP-${id.slice(0, 8).toUpperCase()}`
 
-  const sqlite = new Database(DB_PATH)
-  sqlite.pragma('foreign_keys = ON')
-  const stmt = sqlite.prepare(`INSERT INTO suppliers (id, name, code, contact_person, phone, address, remark, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')`)
-  stmt.run(id, parsed.data.name, code, parsed.data.contactPerson, parsed.data.phone, parsed.data.address, parsed.data.remark)
-  sqlite.close()
+  await db.insert(suppliers).values({
+    id, name: parsed.data.name, code, contactPerson: parsed.data.contactPerson,
+    phone: parsed.data.phone, address: parsed.data.address, remark: parsed.data.remark,
+    status: 'active',
+  })
 
   return { code: 0, data: { id }, message: '搞定了！供应商已添加' }
 })

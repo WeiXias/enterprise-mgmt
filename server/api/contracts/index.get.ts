@@ -2,7 +2,6 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { contracts, customers, users } from '#schema'
 import { eq, like, and, isNull, count, desc } from 'drizzle-orm'
-import Database from 'better-sqlite3'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user

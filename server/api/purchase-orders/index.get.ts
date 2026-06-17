@@ -1,29 +1,28 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
+import { purchaseOrders } from '#schema'
+import { eq, and, isNull, desc, count } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
-  try {
-    const query = getQuery(event)
-    const page = Number(query.page) || 1
-    const pageSize = Math.min(Number(query.pageSize) || 20, 100)
-    const supplierId = query.supplierId as string | undefined
+  const query = getQuery(event)
+  const page = Number(query.page) || 1
+  const pageSize = Math.min(Number(query.pageSize) || 20, 100)
+  const supplierId = query.supplierId as string | undefined
 
-    const whereParts = ["deleted_at IS NULL"]
-    const params: any[] = []
-    if (supplierId) { whereParts.push("supplier_id = ?"); params.push(supplierId) }
-    const where = whereParts.join(" AND ")
+  const where: any[] = [isNull(purchaseOrders.deletedAt)]
+  if (supplierId) where.push(eq(purchaseOrders.supplierId, supplierId))
 
-    const totalRow = db.get(`SELECT count(*) as cnt FROM purchase_orders WHERE ${where}`, ...params) as { cnt: number } | undefined
-    const total = Number(totalRow?.cnt || 0)
+  const [list, totalResult] = await Promise.all([
+    db.select().from(purchaseOrders)
+      .where(and(...where))
+      .limit(pageSize).offset((page - 1) * pageSize)
+      .orderBy(desc(purchaseOrders.createdAt)),
+    db.select({ count: count() }).from(purchaseOrders).where(and(...where)),
+  ])
 
-    const offset = (page - 1) * pageSize
-    const list = db.all(`SELECT * FROM purchase_orders WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, ...params, pageSize, offset) as any[]
-
-    return { code: 0, data: { items: list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) } }
-  } catch (err: any) {
-    return { code: 500, data: null, message: err.message || '服务器错误' }
-  }
+  const total = Number(totalResult[0]?.count || 0)
+  return { code: 0, data: { items: list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) } }
 })

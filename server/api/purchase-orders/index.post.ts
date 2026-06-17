@@ -1,5 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import Database from 'better-sqlite3'
+import { db } from '#database'
+import { purchaseOrders } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 
@@ -19,10 +20,14 @@ export default defineEventHandler(async (event) => {
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
   const id = generateId()
-  const sqlite = new Database(process.env.DB_PATH || './data/enterprise.db')
-  sqlite.pragma('foreign_keys = ON')
-  sqlite.prepare(`INSERT INTO purchase_orders (id, name, supplier_id, total_amount, remark, status) VALUES (?, ?, ?, ?, ?, 'draft')`)
-    .run(id, parsed.data.name, parsed.data.supplierId, parsed.data.totalAmount, parsed.data.remark)
-  sqlite.close()
+  await db.insert(purchaseOrders).values({
+    id,
+    name: parsed.data.name || '',
+    supplierId: parsed.data.supplierId,
+    totalAmount: parsed.data.totalAmount,
+    remark: parsed.data.remark,
+    status: 'draft',
+  })
+
   return { code: 0, data: { id }, message: '采购订单已创建' }
 })

@@ -1,4 +1,4 @@
-import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const suppliers = sqliteTable('suppliers', {
@@ -13,6 +13,18 @@ export const suppliers = sqliteTable('suppliers', {
   bankAccount: text('bank_account'),
   taxId: text('tax_id'),
   status: text('status').notNull().default('active'),
+  remark: text('remark'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
+})
+
+export const purchaseOrders = sqliteTable('purchase_orders', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  supplierId: text('supplier_id'),
+  totalAmount: integer('total_amount').notNull().default(0),
+  status: text('status').notNull().default('draft'),
   remark: text('remark'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),

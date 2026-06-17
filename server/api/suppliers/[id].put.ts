@@ -1,6 +1,9 @@
 import { defineEventHandler, readBody, getRouterParams, createError } from 'h3'
-import Database from 'better-sqlite3'
+import { db } from '#database'
+import { suppliers } from '#schema'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import dayjs from 'dayjs'
 
 const schema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -25,26 +28,13 @@ export default defineEventHandler(async (event) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
-  const sets: string[] = []
-  const params: any[] = []
-  if (parsed.data.name !== undefined) { sets.push('name = ?'); params.push(parsed.data.name) }
-  if (parsed.data.code !== undefined) { sets.push('code = ?'); params.push(parsed.data.code) }
-  if (parsed.data.contactPerson !== undefined) { sets.push('contact_person = ?'); params.push(parsed.data.contactPerson) }
-  if (parsed.data.phone !== undefined) { sets.push('phone = ?'); params.push(parsed.data.phone) }
-  if (parsed.data.email !== undefined) { sets.push('email = ?'); params.push(parsed.data.email) }
-  if (parsed.data.address !== undefined) { sets.push('address = ?'); params.push(parsed.data.address) }
-  if (parsed.data.bankName !== undefined) { sets.push('bank_name = ?'); params.push(parsed.data.bankName) }
-  if (parsed.data.bankAccount !== undefined) { sets.push('bank_account = ?'); params.push(parsed.data.bankAccount) }
-  if (parsed.data.taxId !== undefined) { sets.push('tax_id = ?'); params.push(parsed.data.taxId) }
-  if (parsed.data.status !== undefined) { sets.push('status = ?'); params.push(parsed.data.status) }
-  if (parsed.data.remark !== undefined) { sets.push('remark = ?'); params.push(parsed.data.remark) }
+  const data: Record<string, any> = { updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss') }
+  for (const [k, v] of Object.entries(parsed.data)) {
+    if (v !== undefined) data[k] = v
+  }
 
-  if (sets.length > 0) {
-    const sqlite = new Database(process.env.DB_PATH || './data/enterprise.db')
-    sqlite.pragma('foreign_keys = ON')
-    const stmt = sqlite.prepare(`UPDATE suppliers SET ${sets.join(', ')} WHERE id = ?`)
-    stmt.run(...params, id)
-    sqlite.close()
+  if (Object.keys(data).length > 0) {
+    await db.update(suppliers).set(data).where(eq(suppliers.id, id))
   }
 
   return { code: 0, data: null, message: '已保存' }

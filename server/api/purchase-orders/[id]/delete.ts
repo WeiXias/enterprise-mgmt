@@ -1,5 +1,7 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
-import Database from 'better-sqlite3'
+import { db } from '#database'
+import { purchaseOrders } from '#schema'
+import { eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
 
 export default defineEventHandler(async (event) => {
@@ -8,9 +10,6 @@ export default defineEventHandler(async (event) => {
 
   const { id } = getRouterParams(event)
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
-  const sqlite = new Database(process.env.DB_PATH || './data/enterprise.db')
-  sqlite.pragma('foreign_keys = ON')
-  sqlite.prepare('UPDATE purchase_orders SET deleted_at = ? WHERE id = ?').run(now, id)
-  sqlite.close()
+  await db.update(purchaseOrders).set({ deletedAt: now }).where(eq(purchaseOrders.id, id))
   return { code: 0, data: null, message: '已删除' }
 })
