@@ -88,7 +88,8 @@ export const contractAttachments = sqliteTable('contract_attachments', {
   filePath: text('file_path').notNull(),
   fileSize: integer('file_size').notNull().default(0),
   uploadedBy: text('uploaded_by').notNull().references(() => users.id),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`)
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  contentHash: text('content_hash'),
 })
 
 // 合同模板表

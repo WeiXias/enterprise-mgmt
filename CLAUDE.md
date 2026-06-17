@@ -195,7 +195,7 @@ cd enterprise-mgmt && npx drizzle-kit migrate     # 应用到本地数据库
 - Drizzle ORM schema 实现在 `server/database/schema/`，通过 `#schema/xxx` alias 引用
 - 新增 schema 后需在 `server/database/schema/index.ts` 中统一导出
 - schema 别名通过 `nuxt.config.ts` 中 `nitro.alias` 配置（`#schema/xxx`、`#database`、`#enums`、`#server-utils`）
-- 数据库文件位于 `enterprise-mgmt/data/enterprise.db`（`DB_PATH` 环境变量可覆盖）
+- 数据库文件位于 `enterprise-mgmt/data/db/enterprise.db`（`DB_PATH` 环境变量可覆盖，旧路径 `data/enterprise.db` 也兼容）
 
 ## 角色权限
 

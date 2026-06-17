@@ -3,7 +3,12 @@ import Database from 'better-sqlite3'
 import { hash } from 'bcryptjs'
 import { randomUUID } from 'crypto'
 
-const DB_PATH = './data/enterprise.db'
+const DB_PATH = process.env.DB_PATH || (() => {
+  const fs = require('fs')
+  const newPath = './data/db/enterprise.db'
+  const oldPath = './data/enterprise.db'
+  try { return fs.existsSync(oldPath) ? oldPath : newPath } catch { return newPath }
+})()
 
 async function seed() {
   const sqlite = new Database(DB_PATH)

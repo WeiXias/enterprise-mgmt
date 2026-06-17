@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
   await db.insert(imAttachments).values({
     id: attId, messageId: msgId, fileName: saved.safeName,
     filePath: saved.dbPath, fileSize: saved.fileSize, fileType: saved.mimeType,
+    contentHash: saved.contentHash,
     uploadedBy: user.userId, createdAt: now,
   })
 

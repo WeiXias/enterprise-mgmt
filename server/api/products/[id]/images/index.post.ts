@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
     fileSize: saved.fileSize,
     sort: nextSort,
     uploadedBy: user.userId,
+    contentHash: saved.contentHash,
     createdAt: new Date().toISOString(),
   }).returning()
 

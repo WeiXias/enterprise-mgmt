@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     fileName: saved.safeName,
     filePath: saved.dbPath,
     fileSize: saved.fileSize,
+    contentHash: saved.contentHash,
     uploadedBy: user.userId,
     createdAt: new Date().toISOString(),
   }).returning()

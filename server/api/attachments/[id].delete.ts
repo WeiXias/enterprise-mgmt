@@ -21,13 +21,21 @@ export default defineEventHandler(async (event) => {
 
   const row = existing[0]!
 
-  // 清理物理文件
-  try {
-    const uploadDir = await getUploadDir()
-    const relativePath = row.filePath.replace(/^\/uploads\//, '')
-    const filePath = path.join(uploadDir, relativePath)
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
-  } catch { /* 文件不存在无所谓 */ }
+  // 检查是否还有其他记录引用同一文件，没有才删物理文件（去重保护）
+  const refs = await db.select({ id: contractAttachments.id }).from(contractAttachments)
+    .where(and(
+      eq(contractAttachments.filePath, row.filePath),
+      isNull(contractAttachments.deletedAt),
+    ))
+
+  if (refs.length <= 1) {
+    try {
+      const uploadDir = await getUploadDir()
+      const relativePath = row.filePath.replace(/^\/uploads\//, '')
+      const filePath = path.join(uploadDir, relativePath)
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+    } catch { /* 文件不存在无所谓 */ }
+  }
 
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
   await db.update(contractAttachments).set({ deletedAt: now } as any).where(eq(contractAttachments.id, id))

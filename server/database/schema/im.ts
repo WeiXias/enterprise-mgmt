@@ -42,6 +42,7 @@ export const imAttachments = sqliteTable('im_attachments', {
   fileType: text('file_type').notNull(),
   uploadedBy: text('uploaded_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  contentHash: text('content_hash'),
 })
 
 export const imReadCursors = sqliteTable('im_read_cursors', {

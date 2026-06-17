@@ -38,7 +38,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate && \
     cd node_modules/better-sqlite3 && npx --yes node-gyp rebuild && cd ../..
 
 # 数据目录挂载点
-RUN mkdir -p data/backups data/uploads
+RUN mkdir -p data/db data/uploads data/backups data/tmp
 VOLUME /opt/enterprise-mgmt/data
 
 # If running as non-root user, set ownership

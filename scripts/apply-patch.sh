@@ -32,8 +32,15 @@ fi
 echo "[1/5] 备份当前数据库..."
 mkdir -p "$BACKUP_DIR"
 if [ -f "data/enterprise.db" ]; then
-  cp "data/enterprise.db" "$BACKUP_DIR/pre-patch-${TIMESTAMP}.db"
-  echo "  ✓ 已备份到 data/backups/pre-patch-${TIMESTAMP}.db"
+  db_file="data/enterprise.db"
+elif [ -f "data/db/enterprise.db" ]; then
+  db_file="data/db/enterprise.db"
+else
+  db_file=""
+fi
+if [ -n "$db_file" ]; then
+  cp "$db_file" "$BACKUP_DIR/pre-patch-${TIMESTAMP}.db"
+  echo "  ✓ 已备份到 $BACKUP_DIR/pre-patch-${TIMESTAMP}.db"
 else
   echo "  ⚠ 数据库文件不存在（可能是首次安装）"
 fi

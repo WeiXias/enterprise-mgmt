@@ -111,7 +111,7 @@ echo "  ✓ 迁移完成"
 
 # 创建管理员（如不存在）
 echo "  检查管理员账号..."
-HAS_ADMIN=$(run_ssh "cd $REMOTE_DIR && node -e \"const D=require('better-sqlite3');const d=new D('data/enterprise.db');const r=d.prepare('select count(*) as c from users where role=?').get('admin');console.log(r.c);d.close()\" 2>/dev/null || echo '0'")
+HAS_ADMIN=$(run_ssh "cd $REMOTE_DIR && node -e \"const D=require('better-sqlite3');const d=new D('data/db/enterprise.db');const r=d.prepare('select count(*) as c from users where role=?').get('admin');console.log(r.c);d.close()\" 2>/dev/null || echo '0'")
 if [ "$HAS_ADMIN" = "0" ]; then
   echo "  创建默认管理员 (admin / admin123)..."
   run_ssh "cd $REMOTE_DIR && npx tsx scripts/create-admin.ts" 2>&1 | tail -3

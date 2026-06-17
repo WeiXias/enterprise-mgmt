@@ -48,6 +48,7 @@ const basicFields = [
   { key: 'company_name', label: '公司名称', placeholder: '输入公司名称' },
   { key: 'system_name', label: '系统名称', placeholder: '输入系统显示名称' },
   { key: 'system_subtitle', label: '系统副标题', placeholder: '登录页显示的副标题' },
+  { key: 'upload_path', label: '文件上传路径', placeholder: '例如 data/uploads' },
 ]
 
 async function loadConfig() {
@@ -58,10 +59,15 @@ async function loadConfig() {
 }
 async function saveConfig(key: string) {
   if (saving.value[key]) return
+  if (key === 'upload_path') {
+    const val = (config.value.upload_path || '').trim()
+    if (!val) { toast.add({ title: '路径不能为空，填个有效的路径吧', color: 'warning' }); return }
+    if (!/^[a-zA-Z0-9_/.-]+$/.test(val)) { toast.add({ title: '路径里有不合规的字符，换一个试试？', color: 'warning' }); return }
+  }
   saving.value[key] = true
   try {
     await $api(`/api/system/config/${key}`, { method: 'PUT', body: { value: config.value[key] || '' } })
-    toast.add({ title: '搞定了！', color: 'success' })
+    toast.add({ title: key === 'upload_path' ? '路径已保存，建议重启服务确保所有模块一致' : '搞定了！', color: 'success' })
   } catch { }
   finally { saving.value[key] = false }
 }
@@ -600,7 +606,7 @@ onUnmounted(() => {
               <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0"><UIcon name="i-lucide-building-2" class="w-5 h-5 text-brand-600" /></div>
               <div class="flex-1">
                 <label class="text-sm font-medium text-content-primary">{{ field.label }}</label>
-                <p class="text-[11px] text-content-muted mt-0.5">{{ field.key === 'company_name' ? '对外展示的企业全称' : field.key === 'system_name' ? '浏览器标签页显示的名称' : '一句简短的口号或说明' }}</p>
+                <p class="text-[11px] text-content-muted mt-0.5">{{ field.key === 'company_name' ? '对外展示的企业全称' : field.key === 'system_name' ? '浏览器标签页显示的名称' : field.key === 'system_subtitle' ? '一句简短的口号或说明' : '附件和图片存放的位置，相对路径相对于项目目录' }}</p>
                 <input v-model="config[field.key]" type="text" :placeholder="field.placeholder" class="w-full mt-2.5 input-base focus-ring text-sm" />
               </div>
             </div>

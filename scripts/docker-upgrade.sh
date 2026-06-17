@@ -22,8 +22,8 @@ docker pull "$IMAGE"
 # 2. 备份数据库
 echo "[2/5] 备份数据库..."
 mkdir -p "$BACKUP_DIR"
-if docker exec "$CONTAINER" test -f /opt/enterprise-mgmt/data/enterprise.db 2>/dev/null; then
-  docker cp "$CONTAINER:/opt/enterprise-mgmt/data/enterprise.db" "$BACKUP_DIR/enterprise-pre-upgrade-${TIMESTAMP}.db"
+if docker exec "$CONTAINER" test -f /opt/enterprise-mgmt/data/db/enterprise.db 2>/dev/null; then
+  docker cp "$CONTAINER:/opt/enterprise-mgmt/data/db/enterprise.db" "$BACKUP_DIR/enterprise-pre-upgrade-${TIMESTAMP}.db"
   echo "  ✓ 已备份到 $BACKUP_DIR/enterprise-pre-upgrade-${TIMESTAMP}.db"
 else
   echo "  ⚠ 数据库不存在（首次部署？）"
@@ -63,7 +63,7 @@ else
     docker run --rm -d --name enterprise-restore \
       -v enterprise_data:/opt/enterprise-mgmt/data \
       "$IMAGE" sh -c "sleep 3600" 2>/dev/null || true
-    docker cp "$BACKUP_DIR/enterprise-pre-upgrade-${TIMESTAMP}.db" enterprise-restore:/opt/enterprise-mgmt/data/enterprise.db
+    docker cp "$BACKUP_DIR/enterprise-pre-upgrade-${TIMESTAMP}.db" enterprise-restore:/opt/enterprise-mgmt/data/db/enterprise.db
     docker stop enterprise-restore 2>/dev/null || true
     echo "  ✓ 数据库已回滚"
   fi

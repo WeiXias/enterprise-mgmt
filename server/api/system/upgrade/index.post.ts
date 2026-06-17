@@ -7,6 +7,13 @@ import { getUpgradeStatus, setUpgradeStatus } from '#server-utils/upgrade-state'
 
 export { getUpgradeStatus } from '#server-utils/upgrade-state'
 
+function resolveDbPath(projectDir: string): string {
+  if (process.env.DB_PATH) return path.isAbsolute(process.env.DB_PATH) ? process.env.DB_PATH : path.join(projectDir, process.env.DB_PATH)
+  const newPath = path.join(projectDir, 'data', 'db', 'enterprise.db')
+  const oldPath = path.join(projectDir, 'data', 'enterprise.db')
+  return fs.existsSync(oldPath) ? oldPath : newPath
+}
+
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'system:upgrade')
 
@@ -26,7 +33,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const projectDir = path.resolve('.')
-  const tmpDir = path.join(projectDir, 'data', '.upgrade-tmp')
+  const tmpDir = path.join(projectDir, 'data', 'tmp', 'upgrade')
   const backupDir = path.join(projectDir, 'data', 'backups')
   const startedAt = new Date().toISOString()
   setUpgradeStatus({ step: 'extracting', startedAt, message: '正在解压补丁包...' })
@@ -56,7 +63,7 @@ export default defineEventHandler(async (event) => {
     // 2. 备份数据库
     setUpgradeStatus({ step: 'backing-up', message: '正在备份数据库...', version })
     fs.mkdirSync(backupDir, { recursive: true })
-    const dbPath = path.join(projectDir, 'data', 'enterprise.db')
+    const dbPath = resolveDbPath(projectDir)
     const ts = new Date().toISOString().slice(0, 19).replace(/T/, '_').replace(/:/g, '-')
     if (fs.existsSync(dbPath)) {
       fs.copyFileSync(dbPath, path.join(backupDir, `pre-upgrade-${ts}.db`))
@@ -191,7 +198,7 @@ function rebuildBetterSqlite3(projectDir: string) {
 }
 
 function spawnRestart(projectDir: string) {
-  const script = path.join(projectDir, 'data', '.upgrade-restart.sh')
+  const script = path.join(projectDir, 'data', 'tmp', 'restart.sh')
   fs.writeFileSync(script, `#!/bin/bash
 sleep 2
 pkill -f "node .output/server/index.mjs" 2>/dev/null || true

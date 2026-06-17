@@ -34,6 +34,7 @@ export const productImages = sqliteTable('product_images', {
   sort: integer('sort').notNull().default(0),
   uploadedBy: text('uploaded_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  contentHash: text('content_hash'),
 })
 
 // 产品规格

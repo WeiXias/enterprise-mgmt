@@ -8,19 +8,25 @@ import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 
+function resolveDbPath(): string {
+  if (process.env.DB_PATH) return path.resolve(process.env.DB_PATH)
+  const newPath = path.resolve('data/db/enterprise.db')
+  const oldPath = path.resolve('data/enterprise.db')
+  return fs.existsSync(oldPath) ? oldPath : newPath
+}
+
 export default defineEventHandler(async (event) => {
   const user = await requirePermission(event, 'system:backup')
 
   const now = new Date()
   const dateStr = now.toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-')
-  const fileName = `backup-${dateStr}.db`
+  const fileName = `enterprise-manual-${dateStr}.db`
 
-  const backupDir = path.resolve('data/backups')
+  const backupDir = process.env.DB_BACKUP_DIR || path.resolve('data/backups')
   fs.mkdirSync(backupDir, { recursive: true })
   const filePath = path.join(backupDir, fileName)
 
-  // 尝试复制 SQLite 数据库文件
-  const dbPath = path.resolve('data/enterprise.db')
+  const dbPath = resolveDbPath()
   if (!fs.existsSync(dbPath)) {
     throw createError({ statusCode: 500, statusMessage: '数据库文件不存在' })
   }

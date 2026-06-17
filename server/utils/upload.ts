@@ -1,5 +1,6 @@
 import path from 'path'
 import fs from 'fs'
+import crypto from 'crypto'
 import { readMultipartFormData, createError, H3Event } from 'h3'
 import { db } from '#database'
 import { systemConfig } from '#schema/system'
@@ -55,6 +56,11 @@ export interface SavedFile {
   absolutePath: string
   fileSize: number
   mimeType: string
+  contentHash: string
+}
+
+export function computeContentHash(data: Buffer): string {
+  return crypto.createHash('sha256').update(data).digest('hex')
 }
 
 export async function saveUploadedFile(opts: SaveUploadedFileOptions): Promise<SavedFile> {
@@ -94,13 +100,17 @@ export async function saveUploadedFile(opts: SaveUploadedFileOptions): Promise<S
     fs.mkdirSync(targetDir, { recursive: true })
   }
 
-  // 生成文件名
+  // 生成文件名（hash 前缀去重）
   const safeName = safeFileName(file.filename)
-  const diskName = typeof opts.fixedName === 'function' ? opts.fixedName(safeName) : opts.fixedName ?? `${Date.now()}-${safeName}`
+  const contentHash = computeContentHash(file.data)
+  const hashPrefix = contentHash.slice(0, 16)
+  const diskName = typeof opts.fixedName === 'function' ? opts.fixedName(safeName) : opts.fixedName ?? `${hashPrefix}-${safeName}`
   const absolutePath = path.join(targetDir, diskName)
 
-  // 写磁盘
-  fs.writeFileSync(absolutePath, file.data)
+  // 写磁盘（文件已存在则跳过，去重）
+  if (!fs.existsSync(absolutePath)) {
+    fs.writeFileSync(absolutePath, file.data)
+  }
 
   // 构建路径
   let relativePath: string
@@ -119,6 +129,7 @@ export async function saveUploadedFile(opts: SaveUploadedFileOptions): Promise<S
     absolutePath,
     fileSize: file.data.length,
     mimeType: file.type || 'application/octet-stream',
+    contentHash,
   }
 }
 

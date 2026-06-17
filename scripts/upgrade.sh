@@ -56,8 +56,8 @@ fi
 echo ""
 echo "[2/6] 备份数据库..."
 mkdir -p "$BACKUP_DIR"
-if [ -f "$PROJECT_DIR/data/enterprise.db" ]; then
-  cp "$PROJECT_DIR/data/enterprise.db" "$BACKUP_FILE"
+if [ -f "$PROJECT_DIR/data/db/enterprise.db" ]; then
+  cp "$PROJECT_DIR/data/db/enterprise.db" "$BACKUP_FILE"
   echo "  ✓ 已备份到 $BACKUP_FILE"
 else
   echo "  ⚠ 没有现有数据库，跳过备份"
@@ -95,7 +95,7 @@ else
     echo "  ✓ 已回滚到旧版本"
   fi
   if [ -f "$BACKUP_FILE" ]; then
-    cp "$BACKUP_FILE" "$PROJECT_DIR/data/enterprise.db"
+    cp "$BACKUP_FILE" "$PROJECT_DIR/data/db/enterprise.db"
     echo "  ✓ 数据库已回滚"
   fi
   exit 1
