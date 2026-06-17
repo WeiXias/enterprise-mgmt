@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
   if (Number(memberCount[0]?.count || 0) > 0) throw createError({ statusCode: 409, statusMessage: '还有成员在使用这个角色，先给他们换个角色' })
 
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
-  await db.update(rolePermissions).set({ deletedAt: now } as any).where(eq(rolePermissions.roleId, id))
+  await db.delete(rolePermissions).where(eq(rolePermissions.roleId, id))
   await db.update(roles).set({ deletedAt: now }).where(eq(roles.id, id))
   await logOperation(event, { action: 'DELETE', module: 'role', targetId: id, detail: '删除了角色' })
   return { code: 0, data: null, message: '角色已删除' }

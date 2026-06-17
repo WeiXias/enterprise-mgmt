@@ -16,13 +16,11 @@ export default defineEventHandler(async (event) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: '权限数据格式不对' })
 
-  // 先删后插，包装在事务中
-  await db.transaction(async (tx: any) => {
-    await tx.delete(rolePermissions).where(eq(rolePermissions.roleId, id))
-    if (parsed.data.permissionIds.length > 0) {
-      await tx.insert(rolePermissions).values(parsed.data.permissionIds.map(permissionId => ({ roleId: id, permissionId })))
-    }
-  })
+  // better-sqlite3 不支持 Promise 形式的 transaction，改为顺序操作
+  await db.delete(rolePermissions).where(eq(rolePermissions.roleId, id))
+  if (parsed.data.permissionIds.length > 0) {
+    await db.insert(rolePermissions).values(parsed.data.permissionIds.map(permissionId => ({ roleId: id, permissionId })))
+  }
 
   return { code: 0, data: null, message: '权限已保存' }
 })
