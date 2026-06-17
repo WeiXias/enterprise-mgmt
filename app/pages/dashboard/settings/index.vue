@@ -1,6 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', title: '设置', middleware: ['auth'] })
 const { $api } = useNuxtApp()
+const toast = useToast()
 const activeTab = ref('basic')
 const tabs = [
   { key: 'basic', label: '基本信息', icon: 'i-lucide-info' },
@@ -39,8 +40,6 @@ const tabDescs: Record<string, string> = {
   datadict: '业务枚举与分类维护，统一管理下拉选项',
   logs: '系统操作审计记录，谁在什么时间做了什么',
 }
-const { $api } = useNuxtApp()
-const toast = useToast()
 
 // ---- 基本信息 ----
 const config = ref<Record<string, string>>({})
