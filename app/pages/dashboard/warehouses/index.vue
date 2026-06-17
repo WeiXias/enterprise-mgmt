@@ -87,7 +87,7 @@ async function handleEdit() {
   editLoading.value = true
   try {
     const { id, ...data } = editForm.value
-    const res = await $api(`/api/warehouses/${id}`, { method: 'PUT', body: data }) as any
+    const res = await $api(`/api/warehouses/${id}/put`, { method: 'PUT', body: data }) as any
     if (res?.code === 0) {
       toast.add({ title: '已保存', color: 'success' })
       showEditModal.value = false
@@ -101,7 +101,7 @@ async function handleDelete() {
   if (!deleteTarget.value) return
   deleteLoading.value = true
   try {
-    const res = await $api(`/api/warehouses/${deleteTarget.value.id}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/warehouses/${deleteTarget.value.id}/delete`, { method: 'DELETE' }) as any
     if (res?.code === 0) {
       toast.add({ title: '已删除', color: 'success' })
       showDeleteModal.value = false
