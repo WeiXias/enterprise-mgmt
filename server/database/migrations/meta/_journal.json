@@ -57,6 +57,13 @@
       "when": 1781627810273,
       "tag": "0007_sad_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1781674728995,
+      "tag": "0008_greedy_miss_america",
+      "breakpoints": true
     }
   ]
 }
