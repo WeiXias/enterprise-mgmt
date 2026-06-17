@@ -35,9 +35,6 @@ const createForm = ref({
   competitor: '',
 })
 
-// 客户列表（供选择）
-const customerOptions = ref<any[]>([])
-
 // 编辑商机弹窗
 const showEditModal = ref(false)
 const editLoading = ref(false)
@@ -69,17 +66,6 @@ async function fetchSourceOptions() {
 
 // 阶段流转选项（从前一阶段可以往后一阶段推）
 const stageFlow = ['initial_contact', 'requirement_confirmed', 'proposal_submitted', 'business_negotiation']
-
-async function fetchCustomerOptions() {
-  try {
-    const res = await $api('/api/customers', { params: { pageSize: 200 } }) as any
-    if (res?.code === 0) {
-      customerOptions.value = res.data.items
-    }
-  } catch (e) {
-    // 静默处理
-  }
-}
 
 async function handleCreate() {
   if (!createForm.value.name) {
@@ -270,7 +256,6 @@ function formatAmount(amount: number | null) {
 
 onMounted(() => {
   fetchOpportunities()
-  fetchCustomerOptions()
   fetchSourceOptions()
 })
 </script>
@@ -282,7 +267,7 @@ onMounted(() => {
       <template #actions>
         <div class="flex items-center gap-2">
           <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
-          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCustomerOptions()">
+          <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">
             添加商机
           </UButton>
         </div>
@@ -314,7 +299,7 @@ onMounted(() => {
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">
       <UIcon name="i-lucide-target" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">还没有商机，加一个？</p>
-      <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm(); fetchCustomerOptions()">添加商机</UButton>
+      <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm()">添加商机</UButton>
     </div>
     <div v-else class="space-y-2">
       <div

@@ -62,7 +62,7 @@ onMounted(async () => {
         />
       </div>
 
-      <div v-if="!preselectedCustomer && customerOptions.length > 0" class="mb-3">
+      <div v-if="!preselectedCustomer" class="mb-3">
         <label class="block text-sm text-content-secondary mb-1">所属客户 <span class="text-danger-600">*</span></label>
         <CustomerSelect
           :model-value="modelValue.customerId"

@@ -19,12 +19,21 @@ const emit = defineEmits<{
   select: [product: { id: string; name: string; code: string; price: number }]
 }>()
 
-const { $api } = useNuxtApp()
+const { $api, $toast } = useNuxtApp()
 const options = ref<{ id: string; name: string; code: string; price: number }[]>([])
-const loaded = ref(false)
 const loading = ref(false)
 const searchKeyword = ref('')
 const isOpen = ref(false)
+const isFocusing = ref(false)
+
+const displayText = computed(() => {
+  if (isFocusing.value) return searchKeyword.value
+  if (props.modelValue) {
+    const found = options.value.find(o => o.id === props.modelValue)
+    if (found) return found.name
+  }
+  return ''
+})
 
 function formatMoney(v: number) {
   if (!v) return ''
@@ -34,7 +43,7 @@ function formatMoney(v: number) {
 async function load() {
   loading.value = true
   try {
-    const params: Record<string, any> = { pageSize: 200 }
+    const params: Record<string, any> = { pageSize: 100 }
     if (searchKeyword.value) params.keyword = searchKeyword.value
     const res = await $api('/api/products', { params }) as any
     if (res?.code === 0) {
@@ -45,7 +54,9 @@ async function load() {
         price: p.standardPrice || p.price || 0,
       }))
     }
-  } catch { /* ignore */ }
+  } catch {
+    $toast.error('产品列表加载失败，请重试')
+  }
   finally { loading.value = false }
 }
 
@@ -53,7 +64,8 @@ let timer: any = null
 onUnmounted(() => {
   if (timer) clearTimeout(timer)
 })
-function onSearch() {
+function onInput(e: Event) {
+  searchKeyword.value = (e.target as HTMLInputElement).value
   clearTimeout(timer)
   timer = setTimeout(load, 250)
 }
@@ -65,11 +77,14 @@ function select(opt: { id: string; name: string; code: string; price: number }) 
 }
 
 function onFocus() {
-  if (!loaded.value) { loaded.value = true; load() }
+  isFocusing.value = true
+  if (options.value.length === 0) load()
   isOpen.value = true
 }
 
 function onBlur() {
+  isFocusing.value = false
+  searchKeyword.value = ''
   setTimeout(() => { isOpen.value = false }, 150)
 }
 </script>
@@ -79,13 +94,13 @@ function onBlur() {
     <div class="relative">
       <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
       <input
-        v-model="searchKeyword"
+        :value="displayText"
         type="text"
         :placeholder="placeholder"
         class="w-full pl-8 input-base focus-ring"
         @focus="onFocus"
         @blur="onBlur"
-        @input="onSearch"
+        @input="onInput"
       />
     </div>
     <div

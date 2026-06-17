@@ -15,23 +15,35 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
-const { $api } = useNuxtApp()
+const { $api, $toast } = useNuxtApp()
 const options = ref<{ id: string; name: string; industry?: string }[]>([])
-const loaded = ref(false)
 const loading = ref(false)
 const searchKeyword = ref('')
 const isOpen = ref(false)
+const isFocusing = ref(false)
+
+// 输入框显示内容：聚焦时显示搜索关键词，否则显示已选客户名
+const displayText = computed(() => {
+  if (isFocusing.value) return searchKeyword.value
+  if (props.modelValue) {
+    const found = options.value.find(o => o.id === props.modelValue)
+    if (found) return found.name
+  }
+  return ''
+})
 
 async function load() {
   loading.value = true
   try {
-    const params: Record<string, any> = { pageSize: 200 }
+    const params: Record<string, any> = { pageSize: 100 }
     if (searchKeyword.value) params.keyword = searchKeyword.value
     const res = await $api('/api/customers', { params }) as any
     if (res?.code === 0) {
       options.value = res.data.items || []
     }
-  } catch { /* ignore */ }
+  } catch {
+    $toast.error('客户列表加载失败，请重试')
+  }
   finally { loading.value = false }
 }
 
@@ -39,29 +51,28 @@ let timer: any = null
 onUnmounted(() => {
   if (timer) clearTimeout(timer)
 })
-function onSearch() {
+function onInput(e: Event) {
+  searchKeyword.value = (e.target as HTMLInputElement).value
   clearTimeout(timer)
   timer = setTimeout(load, 250)
 }
 
-// 选中后关闭下拉
 function select(id: string) {
   emit('update:modelValue', id)
   isOpen.value = false
-  options.value = []
 }
 
 function onFocus() {
-  if (!loaded.value) { loaded.value = true; load() }
+  isFocusing.value = true
+  if (options.value.length === 0) load()
   isOpen.value = true
 }
 
 function onBlur() {
-  // 延迟关闭，让 click 事件先触发
+  isFocusing.value = false
+  searchKeyword.value = ''
   setTimeout(() => { isOpen.value = false }, 150)
 }
-
-onMounted(load)
 </script>
 
 <template>
@@ -69,26 +80,19 @@ onMounted(load)
     <div class="relative">
       <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
       <input
-        v-model="searchKeyword"
+        :value="displayText"
         type="text"
         :placeholder="placeholder"
         class="w-full pl-8 input-base focus-ring"
         @focus="onFocus"
         @blur="onBlur"
-        @input="onSearch"
+        @input="onInput"
       />
     </div>
     <div
       v-if="isOpen && options.length > 0"
       class="absolute z-20 w-full mt-1 max-h-48 overflow-y-auto bg-surface-card border border-line rounded-xl shadow-lg"
     >
-      <button
-        v-if="!props.modelValue"
-        class="w-full text-left px-3 py-2 text-xs text-content-muted hover:bg-surface-hover"
-        disabled
-      >
-        选择客户
-      </button>
       <button
         v-for="opt in options"
         :key="opt.id"

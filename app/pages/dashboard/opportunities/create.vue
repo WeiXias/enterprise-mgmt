@@ -5,16 +5,8 @@ const toast = useToast()
 const router = useRouter()
 const { $api } = useNuxtApp()
 const saving = ref(false)
-const customerOptions = ref<any[]>([])
 
 const form = ref({ name: '', customerId: '', estimatedAmount: 0, estimatedCloseDate: '', source: '', competitor: '' })
-
-async function fetchCustomers() {
-  try {
-    const res = await $api('/api/customers', { params: { pageSize: 200 } }) as any
-    if (res?.code === 0) customerOptions.value = res.data.items || []
-  } catch { /* ignore */ }
-}
 
 async function handleSubmit() {
   if (!form.value.name || !form.value.customerId) { toast.add({ title: '名称和客户都得选', color: 'warning' }); return }
@@ -25,8 +17,6 @@ async function handleSubmit() {
   } catch (err: any) { toast.add({ title: err?.data?.message || '创建失败', color: 'error' }) }
   finally { saving.value = false }
 }
-
-onMounted(fetchCustomers)
 </script>
 
 <template>
@@ -39,7 +29,7 @@ onMounted(fetchCustomers)
       </div>
     </div>
     <div class="em-card">
-      <OpportunityForm v-model="form" :customer-options="customerOptions" @submit="handleSubmit" />
+      <OpportunityForm v-model="form" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2">
         <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>
         <UButton color="primary" :loading="saving" @click="handleSubmit">添加商机</UButton>
