@@ -155,6 +155,9 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
           },
           { label: '提成', icon: 'i-lucide-wallet', to: '/dashboard/commissions', sort: configSort('commissions') !== 99 ? configSort('commissions') : 1 },
           { label: '账务', icon: 'i-lucide-book-open', to: '/dashboard/accounting/entries', sort: configSort('accounting') !== 99 ? configSort('accounting') : 2, hidden: !authStore.isAdmin },
+          { label: '应收总账', icon: 'i-lucide-scale', to: '/dashboard/finance/ar', sort: configSort('ar') !== 99 ? configSort('ar') : 3, hidden: !authStore.isFinance && !authStore.isAdmin },
+          { label: '客户对账', icon: 'i-lucide-file-check-2', to: '/dashboard/finance/reconciliations', sort: configSort('reconciliations') !== 99 ? configSort('reconciliations') : 4, hidden: !authStore.isFinance && !authStore.isAdmin },
+          { label: '订金管理', icon: 'i-lucide-hand-coins', to: '/dashboard/finance/deposits', sort: configSort('deposits') !== 99 ? configSort('deposits') : 5, hidden: !authStore.isFinance && !authStore.isAdmin },
         ]
         return items
       })(),

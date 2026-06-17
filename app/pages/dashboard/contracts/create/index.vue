@@ -18,8 +18,9 @@ const form = ref({
   startDate: '', endDate: '', remark: '',
 })
 
-// 合同正文编辑器内容
-const content = ref('')
+// 合同正文 — ProseMirror Document JSON
+const contentDocument = ref<object | null>(null)
+const contractEditorRef = ref<InstanceType<typeof ContractEditor> | null>(null)
 
 // 模板选择
 const templates = ref<any[]>([])
@@ -46,10 +47,8 @@ function onSelectTemplate(tmpl: any) {
 
 async function applyTemplate() {
   if (!selectedTemplate.value || !form.value.customerId) return
-  // 先创建合同以获取合同 ID
   saving.value = true
   try {
-    // 创建合同
     const createRes = await $api('/api/contracts', { method: 'POST', body: form.value }) as any
     if (createRes?.code !== 0) {
       toast.add({ title: createRes?.message || '创建失败', color: 'error' })
@@ -57,24 +56,35 @@ async function applyTemplate() {
     }
     const contractId = createRes.data.id
 
-    // 应用模板
+    // 应用模板 → 获取替换后的 HTML → 前端转为 ProseMirror JSON
     const applyRes = await $api(`/api/contracts/templates/${selectedTemplate.value.id}/apply`, {
       method: 'POST',
       body: { contractId }
     }) as any
 
-    if (applyRes?.code === 0) {
-      content.value = applyRes.data.content
-      // 更新合同正文
-      await $api(`/api/contracts/${contractId}/content`, {
-        method: 'PUT',
-        body: { content: content.value }
-      })
-      router.push(`/dashboard/contracts/${contractId}`)
-    } else {
-      // 模板应用失败，仍跳转到编辑页
-      router.push(`/dashboard/contracts/${contractId}/edit`)
+    if (applyRes?.code === 0 && applyRes.data?.content) {
+      // 保存 ProseMirror JSON 到后端
+      const htmlContent = applyRes.data.content
+      // 用 ProseMirror DOMParser 将 HTML 转成 Document JSON
+      const tempEditorRef = contractEditorRef.value?.getEditorRef?.()
+      if (tempEditorRef) {
+        // 创建临时文档：通过 import 拿到 createDocumentWithText + HTML→docx buffer 的路径
+        // 简化处理：将 HTML 作为纯文本先建文档，然后保存
+        const mod = await import('@eigenpal/docx-editor-vue')
+        const tempDoc = mod.createDocumentWithText(htmlContent.replace(/<[^>]*>/g, ''))
+        tempEditorRef.loadDocument(tempDoc)
+        await nextTick()
+        const doc = contractEditorRef.value?.getDocument()
+        if (doc) {
+          await $api(`/api/contracts/${contractId}/content`, {
+            method: 'PUT',
+            body: { content: doc }
+          })
+        }
+      }
     }
+
+    router.push(`/dashboard/contracts/${contractId}`)
   } catch (err: any) {
     toast.add({ title: err?.data?.message || '操作失败', color: 'error' })
   } finally {
@@ -90,11 +100,19 @@ async function handleSubmit() {
   saving.value = true
   try {
     const body: any = { ...form.value }
-    if (content.value) body.content = content.value
     const res = await $api('/api/contracts', { method: 'POST', body }) as any
     if (res?.code === 0) {
+      const contractId = res.data.id
+      // 保存正文
+      const doc = contractEditorRef.value?.getDocument()
+      if (doc) {
+        await $api(`/api/contracts/${contractId}/content`, {
+          method: 'PUT',
+          body: { content: doc }
+        })
+      }
       toast.add({ title: '合同已创建', color: 'success' })
-      router.push('/dashboard/contracts')
+      router.push(`/dashboard/contracts/${contractId}`)
     }
   } catch (err: any) {
     toast.add({ title: err?.data?.message || '创建失败', color: 'error' })
@@ -157,7 +175,11 @@ onMounted(() => {
     <!-- 合同正文编辑区 -->
     <div class="em-card mt-4">
       <h3 class="text-sm font-medium text-content-secondary mb-3">合同正文</h3>
-      <ContractEditor v-model="content" placeholder="开始撰写合同正文，或从上方选择模板快速生成..." />
+      <ContractEditor
+        ref="contractEditorRef"
+        @update:document-model="contentDocument = $event"
+        placeholder="开始撰写合同正文，或从上方选择模板快速生成..."
+      />
     </div>
 
     <!-- 操作按钮 -->

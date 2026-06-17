@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
-import { contracts, contractProducts } from '#schema'
+import { contracts, subcontracts, contractProducts } from '#schema'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { eq, and, isNull } from 'drizzle-orm'
@@ -15,20 +15,18 @@ export default defineEventHandler(async (event) => {
 
   if (!name || !totalAmount) throw createError({ statusCode: 422, statusMessage: '分包名称和金额还没填呢' })
 
-  const parent = await db.select({ id: contracts.id, code: contracts.code, taxRate: contracts.taxRate, customerId: contracts.customerId, partyA: contracts.partyA })
+  const parent = await db.select({ id: contracts.id, code: contracts.code, customerId: contracts.customerId, partyA: contracts.partyA })
     .from(contracts).where(and(eq(contracts.id, parentId), isNull(contracts.deletedAt))).limit(1)
   if (!parent.length) throw createError({ statusCode: 404, statusMessage: '主合同不存在' })
 
-  const rate = taxRate ?? parent[0].taxRate ?? 0.05
+  const rate = taxRate ?? 0.05
   const finalAmount = totalAmount * (1 + rate)
 
   const code = `HT-${Date.now()}`
   const subId = generateId()
-  await db.insert(contracts).values({
+  await db.insert(subcontracts).values({
     id: subId, code, name,
-    customerId: parent[0].customerId,
-    partyA: parent[0].partyA || '', partyB: body.partyB || '',
-    parentContractId: parentId, contractType: 'subcontract',
+    parentContractId: parentId,
     subcontractPartyId: subcontractPartyId || null,
     totalAmount: finalAmount, taxRate: rate,
     serviceFee: serviceFee || 0,

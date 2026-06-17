@@ -16,9 +16,12 @@ const saving = ref(false)
 const customerOptions = ref<any[]>([])
 
 const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', remark: '' })
-const content = ref('')
-const documentModel = ref<any>(null)  // content.get.ts 返回的 Document 模型
 const contractStatus = ref('')
+
+// 合同正文 — ProseMirror Document JSON
+const contentDocument = ref<object | null>(null)
+const documentModel = ref<object | null>(null)
+const contractEditorRef = ref<InstanceType<typeof ContractEditor> | null>(null)
 
 // 模板选择
 const templates = ref<any[]>([])
@@ -44,9 +47,9 @@ async function fetchData() {
       }
       contractStatus.value = c.status
     }
-    // content.get.ts 返回 { code: 0, data: DocumentModel }
-    if (contentRes?.code === 0 && contentRes.data?.package) {
-      documentModel.value = contentRes.data
+    // content.get.ts 返回 { code: 0, data: { content: ProseMirror JSON | null } }
+    if (contentRes?.code === 0 && contentRes.data?.content) {
+      documentModel.value = contentRes.data.content
     }
     if (custRes?.code === 0) customerOptions.value = custRes.data.items || []
   } catch { router.push('/dashboard/contracts') }
@@ -72,17 +75,25 @@ async function applyTemplateToEdit() {
       method: 'POST',
       body: { contractId }
     }) as any
-    if (applyRes?.code === 0) {
-      // 模板生成的 HTML 存入后端，同时把 HTML 纯文本提取后加载到 DocxEditor
+    if (applyRes?.code === 0 && applyRes.data?.content) {
       const htmlContent = applyRes.data.content
-      await $api(`/api/contracts/${contractId}/content`, {
-        method: 'PUT',
-        body: { content: htmlContent }
-      })
-      // content.get.ts 返回 Document 模型，重新获取以刷新编辑器
-      const contentRes = await $api(`/api/contracts/${contractId}/content`) as any
-      if (contentRes?.code === 0 && contentRes.data?.package) {
-        documentModel.value = contentRes.data
+      // 用编辑器加载 HTML（作为纯文本 fallback），ProseMirror JSON 通过 onChange 自动同步
+      const mod = await import('@eigenpal/docx-editor-vue')
+      const tempDoc = mod.createDocumentWithText(htmlContent.replace(/<[^>]*>/g, ''))
+      tempDoc && documentModel.value ? documentModel.value = tempDoc : null
+      // 通过 ref 加载临时文档
+      const editorRef = contractEditorRef.value?.getEditorRef?.()
+      if (editorRef) {
+        editorRef.loadDocument(tempDoc as any)
+        await nextTick()
+        // 保存 ProseMirror JSON
+        const doc = contractEditorRef.value?.getDocument()
+        if (doc) {
+          await $api(`/api/contracts/${contractId}/content`, {
+            method: 'PUT',
+            body: { content: doc }
+          })
+        }
       }
       selectedTemplate.value = null
       showTemplateModal.value = false
@@ -99,28 +110,22 @@ async function handleSubmit() {
   if (!form.value.name) { toast.add({ title: '合同名称不能为空', color: 'warning' }); return }
   saving.value = true
   try {
-    // 并行保存元数据和正文
-    const [metaRes] = await Promise.all([
+    const doc = contractEditorRef.value?.getDocument()
+    const promises: Promise<any>[] = [
       $api(`/api/contracts/${contractId}`, { method: 'PUT', body: form.value }) as any,
-      $api(`/api/contracts/${contractId}/content`, { method: 'PUT', body: { content: content.value } }).catch(() => null),
-    ])
+    ]
+    if (doc) {
+      promises.push(
+        $api(`/api/contracts/${contractId}/content`, { method: 'PUT', body: { content: doc } }).catch(() => {})
+      )
+    }
+    const [metaRes] = await Promise.all(promises)
     if (metaRes?.code === 0) {
       toast.add({ title: '已保存', color: 'success' })
       router.push(`/dashboard/contracts/${contractId}`)
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
   finally { saving.value = false }
-}
-
-async function handleExportPdf() {
-  try {
-    const res = await $api(`/api/contracts/${contractId}/export-pdf`, { method: 'POST' }) as any
-    if (res?.code === 0 && res.data?.pdfUrl) {
-      window.open(res.data.pdfUrl, '_blank')
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '导出失败', color: 'error' })
-  }
 }
 
 onMounted(() => { fetchData(); fetchTemplates() })
@@ -133,7 +138,6 @@ onMounted(() => { fetchData(); fetchTemplates() })
       <div class="flex-1">
         <h1 class="text-lg font-medium text-content-primary">编辑合同</h1>
       </div>
-      <UButton icon="i-lucide-file-down" variant="ghost" color="neutral" size="sm" @click="handleExportPdf">导出 PDF</UButton>
     </div>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
@@ -173,11 +177,11 @@ onMounted(() => { fetchData(); fetchTemplates() })
         </div>
 
         <ContractEditor
-          v-model="content"
+          ref="contractEditorRef"
           :document-model="documentModel"
-          placeholder="开始撰写合同正文..."
           :disabled="contractStatus !== 'draft'"
           :key="contractId"
+          @update:document-model="contentDocument = $event"
         />
       </div>
 

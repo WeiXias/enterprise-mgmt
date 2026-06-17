@@ -1,12 +1,13 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
-import { contracts } from '#schema'
+import { contracts, contractContentVersions } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { generateId } from '#server-utils/id'
 import { requirePermission, checkPermission } from '#server-utils/permission'
 
-const schema = z.object({ content: z.string() })
+const schema = z.object({ content: z.any() })
 
 export default defineEventHandler(async (event) => {
   const user = await requirePermission(event, 'contract:edit')
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: '内容格式不对' })
 
-  const existing = await db.select({ id: contracts.id, status: contracts.status, createdBy: contracts.createdBy })
+  const existing = await db.select({ id: contracts.id, status: contracts.status, createdBy: contracts.createdBy, version: contracts.version })
     .from(contracts)
     .where(and(eq(contracts.id, id), isNull(contracts.deletedAt)))
     .limit(1)
@@ -28,7 +29,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '只有草稿状态的合同才能修改正文' })
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
-  await db.update(contracts).set({ content: parsed.data.content, updatedAt: now })
+  await db.insert(contractContentVersions).values({
+    id: generateId(),
+    contractId: id,
+    content: JSON.stringify(parsed.data.content),
+    version: (c!.version || 0) + 1,
+    createdBy: user.userId,
+    createdAt: now,
+  })
+
+  const newVersion = (c!.version || 0) + 1
+  await db.update(contracts).set({ content: JSON.stringify(parsed.data.content), version: newVersion, updatedAt: now })
     .where(eq(contracts.id, id))
 
   await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: id, detail: '更新了合同正文' })

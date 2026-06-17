@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
-import { contracts, subcontractParties, users } from '#schema'
+import { contracts, subcontracts, subcontractParties, users } from '#schema'
 import { eq, and, count, desc, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -11,33 +11,33 @@ export default defineEventHandler(async (event) => {
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
 
-  const where: any[] = [eq(contracts.contractType, 'subcontract')]
-  if (query.status) where.push(eq(contracts.status, query.status as string))
-  if (query.subcontractPartyId) where.push(eq(contracts.subcontractPartyId, query.subcontractPartyId as string))
-  if (query.parentContractId) where.push(eq(contracts.parentContractId, query.parentContractId as string))
+  const where: any[] = []
+  if (query.status) where.push(eq(subcontracts.status, query.status as string))
+  if (query.subcontractPartyId) where.push(eq(subcontracts.subcontractPartyId, query.subcontractPartyId as string))
+  if (query.parentContractId) where.push(eq(subcontracts.parentContractId, query.parentContractId as string))
 
   const [list, totalResult] = await Promise.all([
     db.select({
-      id: contracts.id,
-      code: contracts.code,
-      name: contracts.name,
-      totalAmount: contracts.totalAmount,
-      taxRate: contracts.taxRate,
-      serviceFee: contracts.serviceFee,
-      status: contracts.status,
-      startDate: contracts.startDate,
-      endDate: contracts.endDate,
-      subcontractPartyId: contracts.subcontractPartyId,
+      id: subcontracts.id,
+      code: subcontracts.code,
+      name: subcontracts.name,
+      totalAmount: subcontracts.totalAmount,
+      taxRate: subcontracts.taxRate,
+      serviceFee: subcontracts.serviceFee,
+      status: subcontracts.status,
+      startDate: subcontracts.startDate,
+      endDate: subcontracts.endDate,
+      subcontractPartyId: subcontracts.subcontractPartyId,
       subcontractPartyName: subcontractParties.name,
-      parentContractId: contracts.parentContractId,
-      parentContractName: sql<string>`(select name from ${contracts} pc where pc.id = ${contracts.parentContractId})`,
-      createdAt: contracts.createdAt,
-    }).from(contracts)
-      .leftJoin(subcontractParties, eq(contracts.subcontractPartyId, subcontractParties.id))
+      parentContractId: subcontracts.parentContractId,
+      parentContractName: sql<string>`(select name from ${contracts} where ${contracts}.id = ${subcontracts.parentContractId})`,
+      createdAt: subcontracts.createdAt,
+    }).from(subcontracts)
+      .leftJoin(subcontractParties, eq(subcontracts.subcontractPartyId, subcontractParties.id))
       .where(and(...where))
-      .orderBy(desc(contracts.createdAt))
+      .orderBy(desc(subcontracts.createdAt))
       .limit(pageSize).offset((page - 1) * pageSize),
-    db.select({ count: count() }).from(contracts).where(and(...where)),
+    db.select({ count: count() }).from(subcontracts).where(and(...where)),
   ])
 
   return {

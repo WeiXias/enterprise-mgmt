@@ -58,6 +58,7 @@ export default defineEventHandler(async (event) => {
       approvedAt: c!.approvedAt,
       createdBy: creatorResult[0] || null,
       owner: ownerResult[0] || null,
+      version: c!.version,
       products: productList,
       paymentPlans: planList,
       payments: paymentList,

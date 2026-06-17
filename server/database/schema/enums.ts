@@ -207,6 +207,8 @@ export const TransactionSourceType = {
   COMMISSION_PAYOUT: 'commission_payout',
   REIMBURSEMENT: 'reimbursement',
   MANUAL: 'manual',
+  DEPOSIT_WRITEOFF: 'deposit_writeoff',
+  DEPOSIT_REFUND: 'deposit_refund',
 } as const
 export type TransactionSourceType = (typeof TransactionSourceType)[keyof typeof TransactionSourceType]
 export const TransactionSourceTypeLabels: Record<TransactionSourceType, string> = {
@@ -214,6 +216,8 @@ export const TransactionSourceTypeLabels: Record<TransactionSourceType, string> 
   [TransactionSourceType.COMMISSION_PAYOUT]: '提成发放',
   [TransactionSourceType.REIMBURSEMENT]: '报销',
   [TransactionSourceType.MANUAL]: '手动登记',
+  [TransactionSourceType.DEPOSIT_WRITEOFF]: '订金核销',
+  [TransactionSourceType.DEPOSIT_REFUND]: '订金退款',
 }
 
 // ---- ReimbursementStatus ----
@@ -532,4 +536,27 @@ export type CodeRuleDatePart = (typeof CodeRuleDatePart)[keyof typeof CodeRuleDa
 export const CodeRuleDatePartLabels: Record<CodeRuleDatePart, string> = {
   [CodeRuleDatePart.NONE]: '不使用日期', [CodeRuleDatePart.YEAR]: '年份',
   [CodeRuleDatePart.YEAR_MONTH]: '年-月', [CodeRuleDatePart.YEAR_MONTH_DAY]: '年-月-日',
+}
+
+// ---- ReconciliationStatus ----
+export const ReconciliationStatus = {
+  PENDING: 'pending', CONFIRMED: 'confirmed', DISPUTED: 'disputed',
+} as const
+export type ReconciliationStatus = (typeof ReconciliationStatus)[keyof typeof ReconciliationStatus]
+export const ReconciliationStatusLabels: Record<ReconciliationStatus, string> = {
+  [ReconciliationStatus.PENDING]: '待确认', [ReconciliationStatus.CONFIRMED]: '已确认', [ReconciliationStatus.DISPUTED]: '有争议',
+}
+
+// ---- PaymentType ----
+export const PaymentType = { NORMAL: 'normal', DEPOSIT: 'deposit' } as const
+export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
+export const PaymentTypeLabels: Record<PaymentType, string> = {
+  [PaymentType.NORMAL]: '常规收款', [PaymentType.DEPOSIT]: '订金',
+}
+
+// ---- DepositWriteOffStatus ----
+export const DepositWriteOffStatus = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' } as const
+export type DepositWriteOffStatus = (typeof DepositWriteOffStatus)[keyof typeof DepositWriteOffStatus]
+export const DepositWriteOffStatusLabels: Record<DepositWriteOffStatus, string> = {
+  [DepositWriteOffStatus.PENDING]: '待审批', [DepositWriteOffStatus.APPROVED]: '已核销', [DepositWriteOffStatus.REJECTED]: '已驳回',
 }

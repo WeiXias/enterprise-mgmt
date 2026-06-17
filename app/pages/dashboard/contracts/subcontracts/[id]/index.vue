@@ -15,7 +15,7 @@ function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '
 async function fetchDetail() {
   loading.value = true
   try {
-    const res = await $api(`/api/contracts/${route.params.id}`) as any
+    const res = await $api(`/api/subcontracts/${route.params.id}`) as any
     if (res?.code === 0) item.value = res.data
   } catch { /* ignore */ }
   finally { loading.value = false }

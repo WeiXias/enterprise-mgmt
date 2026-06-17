@@ -1,4 +1,4 @@
-import { defineEventHandler, getRouterParams, createError } from 'h3'
+import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
 import { contracts, customers } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
@@ -24,6 +24,10 @@ export default defineEventHandler(async (event) => {
   const customerResult = await db.select({ name: customers.name }).from(customers)
     .where(eq(customers.id, c!.customerId)).limit(1)
   if (customerResult.length > 0) customerName = customerResult[0].name
+
+  // 优先用前端传来的 HTML，否则用数据库内容（兼容旧数据）
+  const body = await readBody(event)
+  const contentHTML: string = body?.contentHTML || c!.content || ''
 
   const uploadDir = await getUploadDir()
   const pdfDir = path.join(uploadDir, 'contracts')
@@ -73,7 +77,7 @@ export default defineEventHandler(async (event) => {
 </div>
 
 <div class="content-area">
-${c!.content || '<p style="color:#999;text-align:center;">（合同正文待起草）</p>'}
+${contentHTML || '<p style="color:#999;text-align:center;">（合同正文待起草）</p>'}
 </div>
 
 <div class="sign-area">

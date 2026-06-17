@@ -29,12 +29,8 @@ export const contracts = sqliteTable('contracts', {
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),
-  parentContractId: text('parent_contract_id'),
-  contractType: text('contract_type', { enum: ['main', 'subcontract'] }).notNull().default('main'),
-  subcontractPartyId: text('subcontract_party_id'),
-  taxRate: real('tax_rate').default(0.05),
-  serviceFee: integer('service_fee').default(0),
-  content: text('content'), // 合同正文（HTML 富文本）
+  version: integer('version').notNull().default(1),
+  content: text('content'), // 合同正文（ProseMirror JSON 或 HTML）
 })
 
 export const subcontractParties = sqliteTable('subcontract_parties', {
@@ -46,6 +42,25 @@ export const subcontractParties = sqliteTable('subcontract_parties', {
   address: text('address'),
   remark: text('remark'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+})
+
+export const subcontracts = sqliteTable('subcontracts', {
+  id: text('id').primaryKey(),
+  code: text('code'),
+  name: text('name').notNull(),
+  parentContractId: text('parent_contract_id').notNull().references(() => contracts.id),
+  subcontractPartyId: text('subcontract_party_id').references(() => subcontractParties.id),
+  totalAmount: integer('total_amount').notNull().default(0),
+  taxRate: real('tax_rate').default(0.05),
+  serviceFee: integer('service_fee').default(0),
+  status: text('status', { enum: ['draft', 'in_progress', 'completed', 'terminated'] }).notNull().default('draft'),
+  startDate: text('start_date'),
+  endDate: text('end_date'),
+  remark: text('remark'),
+  createdBy: text('created_by').notNull().references(() => users.id),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
 })
 
 export const contractProducts = sqliteTable('contract_products', {
@@ -70,7 +85,7 @@ export const paymentPlans = sqliteTable('payment_plans', {
 
 export const payments = sqliteTable('payments', {
   id: text('id').primaryKey(),
-  contractId: text('contract_id').notNull().references(() => contracts.id),
+  contractId: text('contract_id').references(() => contracts.id),
   paymentPlanId: text('payment_plan_id').references(() => paymentPlans.id),
   amount: integer('amount').notNull().default(0),
   paymentDate: text('payment_date').notNull(),
@@ -79,6 +94,13 @@ export const payments = sqliteTable('payments', {
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),
+  type: text('type', { enum: ['normal', 'deposit'] }).notNull().default('normal'),
+  customerId: text('customer_id').references(() => customers.id),
+  reconciledAt: text('reconciled_at'),
+  reconciledById: text('reconciled_by_id').references(() => users.id),
+  remainingAmount: integer('remaining_amount'),
+  refundedAt: text('refunded_at'),
+  refundTransactionId: text('refund_transaction_id'),
 })
 
 export const contractAttachments = sqliteTable('contract_attachments', {
@@ -104,5 +126,28 @@ export const contractTemplates = sqliteTable('contract_templates', {
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
+})
+
+export const contractContentVersions = sqliteTable('contract_content_versions', {
+  id: text('id').primaryKey(),
+  contractId: text('contract_id').notNull().references(() => contracts.id),
+  content: text('content'),
+  version: integer('version').notNull(),
+  createdBy: text('created_by').notNull().references(() => users.id),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+})
+
+export const depositWriteOffs = sqliteTable('deposit_write_offs', {
+  id: text('id').primaryKey(),
+  depositPaymentId: text('deposit_payment_id').notNull().references(() => payments.id),
+  contractId: text('contract_id').notNull().references(() => contracts.id),
+  amount: integer('amount').notNull().default(0),
+  remark: text('remark'),
+  status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().default('pending'),
+  appliedBy: text('applied_by').notNull().references(() => users.id),
+  approvedBy: text('approved_by').references(() => users.id),
+  approvedAt: text('approved_at'),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),
 })

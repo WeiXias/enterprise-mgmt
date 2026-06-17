@@ -25,7 +25,6 @@ const deleteLoading = ref(false)
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   draft: { label: '草稿', color: 'bg-surface-hover text-content-secondary' },
-  approved: { label: '已审批', color: 'bg-brand-50 text-brand-600' },
   in_progress: { label: '进行中', color: 'bg-teal-50 text-teal-700' },
   completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
   terminated: { label: '已终止', color: 'bg-red-50 text-red-600' },

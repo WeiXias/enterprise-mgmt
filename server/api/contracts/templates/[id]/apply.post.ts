@@ -3,6 +3,7 @@ import { db } from '#database'
 import { contractTemplates, contracts, customers } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -10,8 +11,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+  const user = await requirePermission(event, 'contract:manage')
 
   const { id } = getRouterParams(event)
   const body = await readBody(event)
@@ -56,10 +56,6 @@ export default defineEventHandler(async (event) => {
   for (const [key, value] of Object.entries(replacements)) {
     content = content.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value || `{{${key}}}`)
   }
-
-  const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
-  await db.update(contracts).set({ content, updatedAt: now })
-    .where(eq(contracts.id, parsed.data.contractId))
 
   await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: parsed.data.contractId, detail: `应用了模板「${tmpl!.name}」生成合同正文` })
 
