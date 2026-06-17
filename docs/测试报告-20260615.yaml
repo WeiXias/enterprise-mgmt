@@ -1,0 +1,26 @@
+# 开发环境 API 全流程验收报告 — 2026-06-15 V2
+
+## 环境状态
+
+本地开发环境 localhost:3000 运行正常，数据库已恢复，admin 账号可用
+
+## 全模块 API 验证结果（19/19 通过）
+
+customers ✓ | opportunities ✓ | contracts ✓ | products ✓ | projects ✓ | departments ✓ | roles ✓ | permissions ✓ | system/config ✓ | system/smtp ✓ | system/security ✓ | system/code-rules ✓ | system/backups ✓ | ai/settings ✓ | system/operation-logs ✓ | users ✓ | notifications ✓ | inventory/transactions ✓ | subcontracts ✓
+
+## 业务流程端到端测试
+
+客户创建 → 商机创建+关联产品 → 合同创建 → 项目创建 — 全部通过
+部门创建+子部门 → 成员绑定+移出 — 全部通过
+角色删除（内置角色拦截正常）→ 权限清除+重置 — 全部通过
+数据备份创建 — 通过
+
+## 已知问题
+
+contracts API 使用 totalAmount 不是 amount（需修改前端）
+仓库 API 不存在（/api/warehouses 404），需要新建
+purchases/suppliers 页面调用不存在的 API（/api/purchase-orders, /api/suppliers）
+
+## 部署到生产
+
+打包 → 上传 → apply-patch → 健康检查通过 → 全模块 API 验证通过
