@@ -365,8 +365,8 @@ const dictSaveLoading = ref(false)
 const originalDictItems = ref<typeof currentDictItems.value>([])
 const dictTypesList = ref<any[]>([])
 const editingDictItemIdx = ref<number | null>(null)
-const editingDictItemValue = ref('')
 const editingDictItemLabel = ref('')
+const newLabelInput = ref<HTMLInputElement | null>(null)
 const translating = ref(false)
 
 const dictCategories = computed(() => {
@@ -414,50 +414,27 @@ async function selectDictType(key: string) {
 }
 function addDictItem() {
   editingDictItemIdx.value = -1
-  editingDictItemValue.value = ''
   editingDictItemLabel.value = ''
-  nextTick(() => { const input = document.querySelector('[data-dict-new-value]') as HTMLInputElement; input?.focus() })
+  nextTick(() => { newLabelInput.value?.focus() })
 }
 function removeDictItem(idx: number) {
   currentDictItems.value.splice(idx, 1)
   hasDictChanges.value = true
 }
-async function translateLabel() {
-  const label = editingDictItemLabel.value.trim()
-  if (!label) return
-  translating.value = true
-  try {
-    const res = await $api('/api/dict/translate', { method: 'POST', body: { text: label } }) as any
-    if (res?.code === 0 && res.data?.translated) {
-      editingDictItemValue.value = res.data.translated
-    } else {
-      toast.add({ title: res?.message || '翻译没成功，稍后再试', color: 'warning' })
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || err?.statusMessage || '翻译失败了，检查一下 AI 配置吧', color: 'warning' })
-  } finally {
-    translating.value = false
-  }
-}
 async function saveDictItem() {
   const lbl = editingDictItemLabel.value.trim()
   if (!lbl) { cancelDictItemEdit(); return }
-  let val = editingDictItemValue.value.trim()
-  if (!val) {
-    translating.value = true
-    try {
-      const res = await $api('/api/dict/translate', { method: 'POST', body: { text: lbl } }) as any
-      if (res?.code === 0 && res.data?.translated) {
-        val = res.data.translated
-        editingDictItemValue.value = val
-      }
-    } catch (err: any) {
-      toast.add({ title: err?.data?.message || err?.statusMessage || '翻译失败了，检查一下 AI 配置吧', color: 'warning' })
-    } finally {
-      translating.value = false
+  // 自动通过 AI 翻译生成英文标识
+  translating.value = true
+  let val = ''
+  try {
+    const res = await $api('/api/dict/translate', { method: 'POST', body: { text: lbl } }) as any
+    if (res?.code === 0 && res.data?.translated) {
+      val = res.data.translated
     }
-    if (!val) return
-  }
+  } catch { /* 翻译失败也继续，用拼音或时间戳兜底 */ }
+  finally { translating.value = false }
+  if (!val) val = 'item_' + Date.now()
   if (editingDictItemIdx.value === -1) {
     currentDictItems.value.push({ value: val, label: lbl, sort: currentDictItems.value.length, isActive: true })
   } else {
@@ -472,7 +449,6 @@ async function saveDictItem() {
 }
 function cancelDictItemEdit() {
   editingDictItemIdx.value = null
-  editingDictItemValue.value = ''
   editingDictItemLabel.value = ''
 }
 async function saveCurrentDict() {
@@ -853,15 +829,10 @@ onUnmounted(() => {
                 </div>
 
                 <div v-if="editingDictItemIdx !== null" class="flex items-center gap-2 mb-4">
-                  <input v-model="editingDictItemValue" type="text" placeholder="英文标识" data-dict-new-value class="w-32 px-2.5 h-8 text-xs rounded border border-line focus:outline-none focus:border-brand-400 font-mono" />
-                  <button type="button"
-                    class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-line text-content-muted hover:text-brand-600 hover:border-brand-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    :disabled="!editingDictItemLabel.trim() || translating"
-                    :title="translating ? '翻译中...' : '自动生成英文标识'"
-                    @click="translateLabel()"
-                  ><UIcon name="i-lucide-sparkles" class="w-3.5 h-3.5" :class="{ 'animate-pulse': translating }" /></button>
-                  <input v-model="editingDictItemLabel" type="text" placeholder="中文标签" class="flex-1 px-2.5 h-8 text-xs rounded border border-line focus:outline-none focus:border-brand-400" @keydown.enter="saveDictItem()" @keydown.escape="cancelDictItemEdit()" />
-                  <UButton size="xs" color="primary" @click="saveDictItem()">确定</UButton>
+                  <input v-model="editingDictItemLabel" type="text" placeholder="中文标签" ref="newLabelInput" class="flex-1 px-2.5 h-8 text-xs rounded border border-line focus:outline-none focus:border-brand-400" @keydown.enter="saveDictItem()" @keydown.escape="cancelDictItemEdit()" />
+                  <UButton size="xs" color="primary" :loading="translating" @click="saveDictItem()">
+                    {{ translating ? '翻译中...' : '确定' }}
+                  </UButton>
                   <UButton size="xs" variant="ghost" color="neutral" @click="cancelDictItemEdit()">算了</UButton>
                 </div>
 

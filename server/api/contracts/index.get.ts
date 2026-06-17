@@ -2,6 +2,7 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { contracts, customers, users } from '#schema'
 import { eq, like, and, isNull, count, desc } from 'drizzle-orm'
+import Database from 'better-sqlite3'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -14,6 +15,7 @@ export default defineEventHandler(async (event) => {
   const status = query.status as string | undefined
   const customerId = query.customerId as string | undefined
   const ownerId = query.ownerId as string | undefined
+  const supplierId = query.supplierId as string | undefined
 
   const where: any[] = [isNull(contracts.deletedAt)]
   if (keyword) {
@@ -24,6 +26,7 @@ export default defineEventHandler(async (event) => {
   if (status) where.push(eq(contracts.status, status))
   if (customerId) where.push(eq(contracts.customerId, customerId))
   if (ownerId) where.push(eq(contracts.ownerUserId, ownerId))
+  if (supplierId) where.push(eq(contracts.supplierId, supplierId))
 
   // 销售成员只能看归属为自己的合同
   if (user.role === 'sales_member') {
@@ -37,6 +40,7 @@ export default defineEventHandler(async (event) => {
       status: contracts.status, startDate: contracts.startDate, endDate: contracts.endDate,
       customerId: contracts.customerId, customerName: customers.name,
       ownerUserId: contracts.ownerUserId, ownerName: users.name,
+      supplierId: contracts.supplierId,
       createdAt: contracts.createdAt,
     }).from(contracts)
       .leftJoin(customers, eq(contracts.customerId, customers.id))

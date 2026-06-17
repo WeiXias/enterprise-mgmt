@@ -4,6 +4,7 @@ import { customers } from './customers'
 import { users } from './users'
 import { products } from './products'
 import { opportunities } from './opportunities'
+import { suppliers } from './suppliers'
 
 export const contracts = sqliteTable('contracts', {
   id: text('id').primaryKey(),
@@ -11,6 +12,7 @@ export const contracts = sqliteTable('contracts', {
   name: text('name').notNull(),
   customerId: text('customer_id').notNull().references(() => customers.id),
   opportunityId: text('opportunity_id').references(() => opportunities.id),
+  supplierId: text('supplier_id').references(() => suppliers.id),
   partyA: text('party_a').notNull(),
   partyB: text('party_b').notNull(),
   totalAmount: integer('total_amount').notNull().default(0),
