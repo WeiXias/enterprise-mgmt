@@ -1,8 +1,11 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
-import { imMessages } from '#schema'
+import { imMessages, imAttachments } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
+import { getUploadDir } from '#server-utils/upload'
 import { logOperation } from '#server-utils/log'
+import path from 'path'
+import fs from 'fs'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -13,7 +16,8 @@ export default defineEventHandler(async (event) => {
   const msg = await db.select({
     id: imMessages.id,
     senderId: imMessages.senderId,
-    conversationId: imMessages.conversationId,
+    type: imMessages.type,
+    content: imMessages.content,
     deletedAt: imMessages.deletedAt,
   })
     .from(imMessages)
@@ -31,6 +35,28 @@ export default defineEventHandler(async (event) => {
   }
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+
+  // 如果是文件消息，清理附件和物理文件
+  if (msg[0].type === 'file' && msg[0].content) {
+    try {
+      const parsed = JSON.parse(msg[0].content)
+      const attId = parsed.attachmentId
+      if (attId) {
+        const attRows = await db.select({ id: imAttachments.id, filePath: imAttachments.filePath })
+          .from(imAttachments).where(eq(imAttachments.id, attId)).limit(1)
+        if (attRows.length > 0 && attRows[0].filePath) {
+          try {
+            const uploadDir = await getUploadDir()
+            const relativePath = attRows[0].filePath.replace(/^\/uploads\//, '')
+            const filePath = path.join(uploadDir, relativePath)
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+          } catch { /* 文件不存在无所谓 */ }
+        }
+        await db.delete(imAttachments).where(eq(imAttachments.id, attId))
+      }
+    } catch { /* content 解析失败就跳过 */ }
+  }
+
   await db.update(imMessages).set({ deletedAt: now, updatedAt: now }).where(eq(imMessages.id, msgId))
 
   await logOperation(event, {
