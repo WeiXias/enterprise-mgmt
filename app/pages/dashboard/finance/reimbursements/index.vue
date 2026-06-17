@@ -28,7 +28,7 @@ const expenseTypes = ref<any[]>([])
 const statusConfig: Record<string, { label: string; color: string }> = {
   pending: { label: '待审批', color: 'bg-brand-50 text-brand-700' },
   approved: { label: '已通过', color: 'bg-brand-50 text-brand-600' },
-  rejected: { label: '已驳回', color: 'bg-red-50 text-red-600' },
+  rejected: { label: '已驳回', color: 'bg-danger-50 text-danger-600' },
   paid: { label: '已付款', color: 'bg-teal-50 text-teal-700' },
 }
 
@@ -125,7 +125,7 @@ onMounted(() => fetchItems())
       <div v-for="r in items" :key="r.id" class="em-card flex items-center gap-3">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', {
           'bg-brand-400': r.status === 'pending' || r.status === 'approved',
-          'bg-red-400': r.status === 'rejected', 'bg-teal-400': r.status === 'paid'
+          'bg-danger-400': r.status === 'rejected', 'bg-teal-400': r.status === 'paid'
         }]" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
@@ -137,7 +137,7 @@ onMounted(() => fetchItems())
             <span>{{ r.type }}</span>
             <span v-if="r.user?.name"><UIcon name="i-lucide-user" class="w-3 h-3 inline mr-0.5" />{{ r.user.name }}</span>
             <span>{{ r.createdAt?.slice(0, 10) }}</span>
-            <span v-if="r.rejectedReason" class="text-red-500">驳回原因：{{ r.rejectedReason }}</span>
+            <span v-if="r.rejectedReason" class="text-danger-500">驳回原因：{{ r.rejectedReason }}</span>
           </div>
         </div>
         <!-- 操作 -->
@@ -166,8 +166,8 @@ onMounted(() => fetchItems())
     >
       <form class="space-y-3" @submit.prevent="handleSave">
         <div><label class="block text-sm text-content-secondary mb-1">报销类型</label><EnumSelect v-model="form.type" :options="expenseTypes.map((t: any) => t.name || t)" placeholder="选择类型" /></div>
-        <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
-        <div><label class="block text-sm text-content-secondary mb-1">事由 <span class="text-red-400">*</span></label><textarea v-model="form.reason" rows="2" placeholder="写清楚报销什么..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-danger-500">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">事由 <span class="text-danger-500">*</span></label><textarea v-model="form.reason" rows="2" placeholder="写清楚报销什么..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
         <div>
           <label class="block text-sm text-content-secondary mb-1">凭证附件</label>
           <input type="file" multiple accept="image/*,.pdf" class="w-full text-sm text-content-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" @change="(e: Event) => { const files = (e.target as HTMLInputElement).files; if (!files) return; const urls: string[] = []; Array.from(files).forEach(f => urls.push(f.name)); form.receiptUrls = urls.join(',') }" />

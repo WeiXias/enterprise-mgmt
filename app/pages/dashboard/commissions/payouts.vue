@@ -118,7 +118,7 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
     <div v-else-if="payouts.length === 0" class="text-center py-12 text-content-muted">还没有发放单，先创建一张？</div>
     <div v-else class="space-y-2">
       <div v-for="p in payouts" :key="p.id" class="em-card flex items-center gap-4">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', p.status === 'confirmed' ? 'bg-teal-400' : 'bg-gray-300']" />
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', p.status === 'confirmed' ? 'bg-teal-400' : 'bg-surface-hover']" />
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-secondary">{{ p.periodMonth }} 发放单</span>
@@ -161,7 +161,7 @@ onMounted(() => { fetchPayouts(); fetchApproved() })
     >
       <div class="space-y-3">
         <div>
-          <label class="block text-sm text-content-secondary mb-1">发放月份 <span class="text-red-400">*</span></label>
+          <label class="block text-sm text-content-secondary mb-1">发放月份 <span class="text-danger-500">*</span></label>
           <input v-model="periodMonth" type="month" class="w-full input-base focus-ring" />
         </div>
 

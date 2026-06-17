@@ -15,12 +15,12 @@ const stageLoading = ref(false)
 const { getLabel } = useEnum()
 
 const stageColors: Record<string, string> = {
-  initial_contact: 'bg-gray-400',
+  initial_contact: 'bg-surface-muted',
   requirement_confirmed: 'bg-brand-400',
   proposal_submitted: 'bg-brand-400',
-  business_negotiation: 'bg-orange-400',
+  business_negotiation: 'bg-brand-400',
   closed_won: 'bg-teal-400',
-  closed_lost: 'bg-red-400',
+  closed_lost: 'bg-danger-400',
 }
 
 function formatMoney(v: any) {
@@ -128,7 +128,7 @@ onMounted(() => fetchFunnel())
         >
           <!-- 阶段色条 -->
           <div
-            :class="[stageColors[stage.status] || 'bg-gray-300', 'w-2 h-10 rounded-full flex-shrink-0']"
+            :class="[stageColors[stage.status] || 'bg-surface-hover', 'w-2 h-10 rounded-full flex-shrink-0']"
           />
 
           <!-- 阶段信息 -->
@@ -140,7 +140,7 @@ onMounted(() => fetchFunnel())
           <!-- 进度条 -->
           <div class="flex-1 h-6 bg-surface-hover rounded-full overflow-hidden">
             <div
-              :class="[stageColors[stage.status] || 'bg-gray-300', 'h-full rounded-full transition-all flex items-center justify-end pr-2']"
+              :class="[stageColors[stage.status] || 'bg-surface-hover', 'h-full rounded-full transition-all flex items-center justify-end pr-2']"
               :style="{ width: funnelData.total > 0 ? Math.max((stage.count / funnelData.total) * 100, 5) + '%' : '0%' }"
             >
               <span v-if="stage.count > 0" class="text-xs text-white font-medium">{{ stage.count }}</span>

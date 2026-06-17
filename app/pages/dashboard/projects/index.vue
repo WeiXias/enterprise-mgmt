@@ -37,15 +37,15 @@ const duplicateLoading = ref(false)
 
 // 状态颜色条映射（用于列表左侧色条，与 StatusBadge 无关）
 const statusDotColor: Record<string, string> = {
-  not_started: 'bg-gray-300',
+  not_started: 'bg-surface-hover',
   in_progress: 'bg-brand-400',
   completed: 'bg-teal-400',
-  delayed: 'bg-red-400',
+  delayed: 'bg-danger-400',
 }
 
 const statCards = [
   { key: 'in_progress', label: '进行中', color: 'border-brand-400', bg: 'bg-brand-50', icon: 'i-lucide-play', val: () => stats.value.inProgress, filterVal: 'in_progress' },
-  { key: 'delayed', label: '已延期', color: 'border-red-400', bg: 'bg-red-50', icon: 'i-lucide-alert-triangle', val: () => stats.value.delayed, filterVal: 'delayed' },
+  { key: 'delayed', label: '已延期', color: 'border-red-400', bg: 'bg-danger-50', icon: 'i-lucide-alert-triangle', val: () => stats.value.delayed, filterVal: 'delayed' },
   { key: 'completed', label: '已完成', color: 'border-teal-400', bg: 'bg-teal-50', icon: 'i-lucide-check-circle', val: () => stats.value.completed, filterVal: 'completed' },
   { key: 'budget', label: '总预算', color: 'border-brand-400', bg: 'bg-brand-50', icon: 'i-lucide-coins', val: () => formatMoney(stats.value.totalBudget), filterVal: '' },
 ]

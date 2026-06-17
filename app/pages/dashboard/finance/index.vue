@@ -91,12 +91,12 @@ onMounted(() => fetchData())
         <div><p class="text-xl font-medium text-teal-600">{{ formatMoney(stats.totalIncome) }}</p><p class="text-xs text-content-secondary">总收入</p></div>
       </div>
       <div class="em-card flex items-center gap-4">
-        <div class="w-10 h-10 rounded-md bg-red-50 flex items-center justify-center"><UIcon name="i-lucide-trending-down" class="w-5 h-5 text-red-400" /></div>
-        <div><p class="text-xl font-medium text-red-500">{{ formatMoney(stats.totalExpense) }}</p><p class="text-xs text-content-secondary">总支出</p></div>
+        <div class="w-10 h-10 rounded-md bg-danger-50 flex items-center justify-center"><UIcon name="i-lucide-trending-down" class="w-5 h-5 text-danger-500" /></div>
+        <div><p class="text-xl font-medium text-danger-500">{{ formatMoney(stats.totalExpense) }}</p><p class="text-xs text-content-secondary">总支出</p></div>
       </div>
       <div class="em-card flex items-center gap-4">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-xl font-medium" :class="stats.netBalance >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(stats.netBalance) }}</p><p class="text-xs text-content-secondary">净利润</p></div>
+        <div><p class="text-xl font-medium" :class="stats.netBalance >= 0 ? 'text-teal-600' : 'text-danger-500'">{{ formatMoney(stats.netBalance) }}</p><p class="text-xs text-content-secondary">净利润</p></div>
       </div>
       <div class="em-card flex items-center gap-4">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-bell" class="w-5 h-5 text-brand-400" /></div>
@@ -113,14 +113,14 @@ onMounted(() => fetchData())
         <h3 class="text-sm font-medium text-content-primary mb-3">逾期未回款</h3>
         <div v-if="overduePayments.length === 0" class="text-xs text-content-secondary py-4 text-center">没有逾期回款，继续保持！</div>
         <div v-else class="space-y-2">
-          <div v-for="p in overduePayments" :key="p.id" class="flex items-center justify-between p-2 rounded-md bg-red-50">
+          <div v-for="p in overduePayments" :key="p.id" class="flex items-center justify-between p-2 rounded-md bg-danger-50">
             <div>
               <span class="text-sm text-content-primary">{{ p.contractName }} ({{ p.contractCode }})</span>
               <span class="text-xs text-content-secondary ml-2">{{ p.planDate }}</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-red-500">{{ formatMoney(p.amount) }}</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">逾期 {{ p.overdueDays }} 天</span>
+              <span class="text-sm font-medium text-danger-500">{{ formatMoney(p.amount) }}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-danger-100 text-danger-600">逾期 {{ p.overdueDays }} 天</span>
             </div>
           </div>
         </div>
@@ -136,11 +136,11 @@ onMounted(() => fetchData())
         <div v-else class="space-y-1.5">
           <div v-for="t in recentTransactions" :key="t.id" class="flex items-center justify-between p-2 rounded-md hover:bg-line-light/40 text-xs">
             <div class="flex items-center gap-2">
-              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'income' ? 'bg-teal-50 text-teal-600' : 'bg-red-50 text-red-600']">{{ t.type === 'income' ? '收' : '支' }}</span>
+              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'income' ? 'bg-teal-50 text-teal-600' : 'bg-danger-50 text-danger-600']">{{ t.type === 'income' ? '收' : '支' }}</span>
               <span class="text-content-primary">{{ t.description || t.category }}</span>
               <span class="text-content-secondary">{{ t.transactionDate }}</span>
             </div>
-            <span :class="t.type === 'income' ? 'text-teal-600' : 'text-red-500'" class="font-medium">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
+            <span :class="t.type === 'income' ? 'text-teal-600' : 'text-danger-500'" class="font-medium">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@ onMounted(() => fetchData())
         <div><p class="text-sm text-content-primary">月度报表</p><p class="text-xs text-content-secondary">看看赚了多少</p></div>
       </NuxtLink>
       <div class="em-card flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer p-4" @click="showQuickModal = true">
-        <div class="w-8 h-8 rounded-md bg-red-50 flex items-center justify-center"><UIcon name="i-lucide-minus-circle" class="w-4 h-4 text-red-400" /></div>
+        <div class="w-8 h-8 rounded-md bg-danger-50 flex items-center justify-center"><UIcon name="i-lucide-minus-circle" class="w-4 h-4 text-danger-500" /></div>
         <div><p class="text-sm text-content-primary">登记支出</p><p class="text-xs text-content-secondary">记录日常开销</p></div>
       </div>
     </div>

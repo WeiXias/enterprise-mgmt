@@ -67,7 +67,7 @@ const weekDays = computed(() => {
 function dateKey(d: Dayjs) { return d.format('YYYY-MM-DD') }
 function taskCount(date: string) { return (calendarTasks.value[date] || []).length }
 function priorityColor(p: string) {
-  return { high: 'bg-red-400', medium: 'bg-brand-400', low: 'bg-gray-300' }[p] || 'bg-gray-300'
+  return { high: 'bg-danger-400', medium: 'bg-brand-400', low: 'bg-surface-hover' }[p] || 'bg-surface-hover'
 }
 function statusColor(s: string) {
   return { todo: 'ring-gray-300', in_progress: 'ring-brand-400', completed: 'ring-teal-400' }[s] || 'ring-gray-300'

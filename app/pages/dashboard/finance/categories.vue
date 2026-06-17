@@ -95,7 +95,7 @@ onMounted(() => fetchCategories())
       <!-- 支出分类 -->
       <div class="em-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-medium text-red-500">支出分类</h3>
+          <h3 class="text-sm font-medium text-danger-500">支出分类</h3>
           <UButton icon="i-lucide-plus" color="primary" size="xs" @click="openCreate('expense')">添加</UButton>
         </div>
         <div class="space-y-1">
@@ -128,7 +128,7 @@ onMounted(() => fetchCategories())
             <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'">支出</UButton>
           </div>
         </div>
-        <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="分类名称" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" placeholder="分类名称" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">排序</label><input v-model.number="form.sort" type="number" class="w-full input-base focus-ring" /></div>
       </form>
     </FormModal>

@@ -26,7 +26,7 @@ const deleteLoading = ref(false)
 const statusConfig: Record<string, { label: string; color: string }> = {
   pending: { label: '待审批', color: 'bg-surface-hover text-content-secondary' },
   approved: { label: '已通过', color: 'bg-brand-50 text-brand-600' },
-  rejected: { label: '已驳回', color: 'bg-red-50 text-red-600' },
+  rejected: { label: '已驳回', color: 'bg-danger-50 text-danger-600' },
   paid: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
 }
 
@@ -268,7 +268,7 @@ onMounted(() => fetchDetail())
     >
       <form class="space-y-3" @submit.prevent="handleAdjust">
         <div>
-          <label class="block text-sm text-content-secondary mb-1">调整后金额 <span class="text-red-400">*</span></label>
+          <label class="block text-sm text-content-secondary mb-1">调整后金额 <span class="text-danger-500">*</span></label>
           <input v-model.number="adjustForm.adjustAmount" type="number" step="0.01" class="w-full input-base focus-ring" />
         </div>
         <div>

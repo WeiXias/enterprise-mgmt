@@ -44,7 +44,7 @@ onMounted(() => { fetchData() })
           <p class="text-xs text-content-muted mt-1">应收笔数</p>
         </div>
         <div class="em-card p-4 text-center">
-          <p class="text-2xl font-medium text-red-500">{{ formatAmount(data.buckets.filter((b: any) => b.bucket !== 'current').reduce((s: number, b: any) => s + b.amount, 0)) }}</p>
+          <p class="text-2xl font-medium text-danger-500">{{ formatAmount(data.buckets.filter((b: any) => b.bucket !== 'current').reduce((s: number, b: any) => s + b.amount, 0)) }}</p>
           <p class="text-xs text-content-muted mt-1">逾期金额</p>
         </div>
       </div>
@@ -65,7 +65,7 @@ onMounted(() => { fetchData() })
               <td class="py-3 text-content-secondary">{{ b.label }}</td>
               <td class="text-right py-3 text-content-secondary">{{ b.customerCount }}</td>
               <td class="text-right py-3 text-content-secondary">{{ b.count }}</td>
-              <td class="text-right py-3" :class="b.bucket !== 'current' ? 'text-red-500 font-medium' : 'text-content-secondary'">{{ formatAmount(b.amount) }}</td>
+              <td class="text-right py-3" :class="b.bucket !== 'current' ? 'text-danger-500 font-medium' : 'text-content-secondary'">{{ formatAmount(b.amount) }}</td>
             </tr>
           </tbody>
         </table>

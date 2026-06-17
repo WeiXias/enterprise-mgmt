@@ -124,11 +124,11 @@ onMounted(() => { fetchList() })
     <!-- 新建对账单 -->
     <FormModal v-if="showCreate" v-model:open="showCreate" title="新建对账单" size="standard" :loading="actionLoading" @confirm="handleCreate" @cancel="showCreate = false">
       <form class="space-y-3" @submit.prevent="handleCreate">
-        <div><label class="block text-sm text-content-secondary mb-1">客户 <span class="text-red-400">*</span></label><CustomerSelect v-model="newForm.customerId" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">客户 <span class="text-danger-500">*</span></label><CustomerSelect v-model="newForm.customerId" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">合同（可选，不选则按客户维度对账）</label><input v-model="newForm.contractId" type="text" placeholder="合同 ID，留空则汇总所有合同" class="w-full input-base focus-ring" /></div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-sm text-content-secondary mb-1">期间开始 <span class="text-red-400">*</span></label><input v-model="newForm.periodStart" type="date" class="w-full input-base focus-ring" /></div>
-          <div><label class="block text-sm text-content-secondary mb-1">期间结束 <span class="text-red-400">*</span></label><input v-model="newForm.periodEnd" type="date" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">期间开始 <span class="text-danger-500">*</span></label><input v-model="newForm.periodStart" type="date" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">期间结束 <span class="text-danger-500">*</span></label><input v-model="newForm.periodEnd" type="date" class="w-full input-base focus-ring" /></div>
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="newForm.remark" type="text" class="w-full input-base focus-ring" /></div>
       </form>

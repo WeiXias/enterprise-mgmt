@@ -42,7 +42,7 @@ onMounted(() => { fetchData() })
       <div class="space-y-2 text-sm">
         <div class="flex justify-between py-1"><span class="text-content-muted">营业收入</span><span class="text-content-secondary">{{ formatAmount(incomeData.totalIncome) }}</span></div>
         <div class="flex justify-between py-1"><span class="text-content-muted">营业支出</span><span class="text-content-secondary">{{ formatAmount(incomeData.totalExpense) }}</span></div>
-        <div class="border-t border-line-light pt-2 flex justify-between font-medium"><span class="text-content-primary">净利润</span><span :class="incomeData.netIncome >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatAmount(incomeData.netIncome) }}</span></div>
+        <div class="border-t border-line-light pt-2 flex justify-between font-medium"><span class="text-content-primary">净利润</span><span :class="incomeData.netIncome >= 0 ? 'text-teal-600' : 'text-danger-500'">{{ formatAmount(incomeData.netIncome) }}</span></div>
       </div>
     </div>
 
@@ -54,7 +54,7 @@ onMounted(() => { fetchData() })
         <div class="flex justify-between py-1"><span class="text-content-muted">所有者权益</span><span class="text-teal-600">{{ formatAmount(balanceData.equity) }}</span></div>
         <div class="border-t border-line-light pt-2 flex justify-between text-xs">
           <span class="text-content-muted">平衡校验</span>
-          <span :class="balanceData.check ? 'text-teal-500' : 'text-red-500'">{{ balanceData.check ? '资产 = 负债 + 权益 ✓' : '不平！' }}</span>
+          <span :class="balanceData.check ? 'text-teal-500' : 'text-danger-500'">{{ balanceData.check ? '资产 = 负债 + 权益 ✓' : '不平！' }}</span>
         </div>
       </div>
     </div>

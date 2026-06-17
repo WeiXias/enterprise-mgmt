@@ -151,7 +151,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">还没有收支记录，记一笔？</div>
     <div v-else class="space-y-2">
       <div v-for="t in items" :key="t.id" class="em-card flex items-center gap-3 group">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', t.type === 'income' ? 'bg-teal-400' : 'bg-red-400']" />
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', t.type === 'income' ? 'bg-teal-400' : 'bg-danger-400']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm text-content-secondary">{{ t.description || t.category }}</span>
@@ -164,7 +164,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
             <NuxtLink v-if="t.contractId" :to="`/dashboard/contracts/${t.contractId}`" class="text-brand-600 hover:underline">← {{ t.contractName || t.contractCode }}</NuxtLink>
           </div>
         </div>
-        <span :class="['text-sm font-medium', t.type === 'income' ? 'text-teal-600' : 'text-red-500']">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
+        <span :class="['text-sm font-medium', t.type === 'income' ? 'text-teal-600' : 'text-danger-500']">{{ t.type === 'income' ? '+' : '-' }}{{ formatMoney(t.amount) }}</span>
         <div v-if="t.sourceType === 'manual'" class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(t)" />
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = t; showDeleteModal = true" />
@@ -194,7 +194,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
           <UButton :color="form.type === 'expense' ? 'error' : 'neutral'" :variant="form.type === 'expense' ? 'solid' : 'outline'" size="sm" @click="form.type = 'expense'; form.category = ''">支出</UButton>
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.category" :options="getCategories()" placeholder="选择" /></div>
-        <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-danger-500">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">日期</label><input v-model="form.transactionDate" type="date" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">说明</label><input v-model="form.description" type="text" placeholder="简单描述..." class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">支付方式</label><EnumSelect v-model="form.paymentMethod" dict="paymentMethod" placeholder="选择" /></div>

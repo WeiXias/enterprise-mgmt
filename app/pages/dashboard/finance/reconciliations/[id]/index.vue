@@ -78,7 +78,7 @@ onMounted(() => { fetchDetail() })
           <div class="text-center"><p class="text-xs text-content-muted">期初应收</p><p class="text-lg font-medium text-content-primary">{{ formatMoney(item.openingAmount) }}</p></div>
           <div class="text-center"><p class="text-xs text-content-muted">本期新增合同</p><p class="text-lg font-medium text-brand-600">{{ formatMoney(item.contractAmount) }}</p></div>
           <div class="text-center"><p class="text-xs text-content-muted">本期回款</p><p class="text-lg font-medium text-teal-600">{{ formatMoney(item.receivedAmount) }}</p></div>
-          <div class="text-center"><p class="text-xs text-content-muted">期末应收</p><p class="text-lg font-medium" :class="item.closingAmount > 0 ? 'text-red-500' : 'text-teal-600'">{{ formatMoney(item.closingAmount) }}</p></div>
+          <div class="text-center"><p class="text-xs text-content-muted">期末应收</p><p class="text-lg font-medium" :class="item.closingAmount > 0 ? 'text-danger-500' : 'text-teal-600'">{{ formatMoney(item.closingAmount) }}</p></div>
         </div>
       </div>
 

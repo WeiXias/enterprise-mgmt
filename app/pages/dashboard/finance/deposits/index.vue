@@ -99,7 +99,7 @@ onMounted(() => { fetchList() })
           <div class="flex items-center gap-2 mb-1">
             <span class="text-sm font-medium text-content-primary">{{ item.customerName || '-' }}</span>
             <span class="text-xs px-1.5 py-0.5 rounded bg-brand-50 text-brand-600">订金</span>
-            <span v-if="item.refundedAt" class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-500">已退款</span>
+            <span v-if="item.refundedAt" class="text-xs px-1.5 py-0.5 rounded bg-danger-50 text-danger-500">已退款</span>
           </div>
           <div class="flex items-center gap-4 text-xs text-content-muted">
             <span class="text-teal-600 font-medium">{{ formatMoney(item.amount) }}</span>
@@ -120,11 +120,11 @@ onMounted(() => { fetchList() })
     <!-- 登记订金 -->
     <FormModal v-if="showCreate" v-model:open="showCreate" title="登记订金" size="standard" :loading="saving" @confirm="handleCreate" @cancel="showCreate = false">
       <form class="space-y-3" @submit.prevent="handleCreate">
-        <div><label class="block text-sm text-content-secondary mb-1">客户 <span class="text-red-400">*</span></label><CustomerSelect v-model="newForm.customerId" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">客户 <span class="text-danger-500">*</span></label><CustomerSelect v-model="newForm.customerId" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">关联合同（可选）</label><input v-model="newForm.contractId" type="text" placeholder="合同 ID，签合同前可不填" class="w-full input-base focus-ring" /></div>
-        <div><label class="block text-sm text-content-secondary mb-1">订金金额 <span class="text-red-400">*</span></label><input v-model.number="newForm.amount" type="number" min="0" step="0.01" placeholder="0.00" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">订金金额 <span class="text-danger-500">*</span></label><input v-model.number="newForm.amount" type="number" min="0" step="0.01" placeholder="0.00" class="w-full input-base focus-ring" /></div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-sm text-content-secondary mb-1">收款日期 <span class="text-red-400">*</span></label><input v-model="newForm.paymentDate" type="date" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">收款日期 <span class="text-danger-500">*</span></label><input v-model="newForm.paymentDate" type="date" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">收款方式</label><select v-model="newForm.paymentMethod" class="w-full input-base focus-ring"><option value="bank_transfer">银行转账</option><option value="alipay">支付宝</option><option value="wechat_pay">微信支付</option><option value="cash">现金</option><option value="check">支票</option><option value="other">其他</option></select></div>
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="newForm.remark" type="text" class="w-full input-base focus-ring" /></div>
@@ -134,7 +134,7 @@ onMounted(() => { fetchList() })
     <!-- 退款 -->
     <FormModal v-if="showRefund" v-model:open="showRefund" title="订金退款" size="standard" :loading="saving" @confirm="handleRefund" @cancel="showRefund = false">
       <form class="space-y-3" @submit.prevent="handleRefund">
-        <div><label class="block text-sm text-content-secondary mb-1">退款金额 <span class="text-red-400">*</span></label><input v-model.number="refundForm.amount" type="number" min="0" step="0.01" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">退款金额 <span class="text-danger-500">*</span></label><input v-model.number="refundForm.amount" type="number" min="0" step="0.01" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">退款原因</label><input v-model="refundForm.reason" type="text" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">退款日期</label><input v-model="refundForm.refundDate" type="date" class="w-full input-base focus-ring" /></div>
       </form>
@@ -143,8 +143,8 @@ onMounted(() => { fetchList() })
     <!-- 转回款 -->
     <FormModal v-if="showWriteOff" v-model:open="showWriteOff" title="订金转回款" size="standard" :loading="saving" @confirm="handleWriteOff" @cancel="showWriteOff = false">
       <form class="space-y-3" @submit.prevent="handleWriteOff">
-        <div><label class="block text-sm text-content-secondary mb-1">目标合同 <span class="text-red-400">*</span></label><input v-model="writeOffForm.contractId" type="text" placeholder="合同 ID" class="w-full input-base focus-ring" /></div>
-        <div><label class="block text-sm text-content-secondary mb-1">核销金额 <span class="text-red-400">*</span></label><input v-model.number="writeOffForm.amount" type="number" min="0" step="0.01" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">目标合同 <span class="text-danger-500">*</span></label><input v-model="writeOffForm.contractId" type="text" placeholder="合同 ID" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">核销金额 <span class="text-danger-500">*</span></label><input v-model.number="writeOffForm.amount" type="number" min="0" step="0.01" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="writeOffForm.remark" type="text" class="w-full input-base focus-ring" /></div>
       </form>
     </FormModal>

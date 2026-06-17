@@ -228,7 +228,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
         <div class="space-y-3">
           <p class="text-sm text-content-secondary">选择合同，根据已配置的提成规则自动计算。</p>
           <div>
-            <label class="block text-sm text-content-secondary mb-1">合同 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">合同 <span class="text-danger-500">*</span></label>
             <select v-model="calcForm.contractId" class="w-full input-base focus-ring">
               <option value="">选择合同</option>
               <option v-for="c in contractOptions" :key="c.id" :value="c.id">{{ c.name }} ({{ c.code }}) - {{ formatMoney(c.totalAmount) }}</option>
@@ -246,7 +246,7 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
     <FormModal v-if="showAdjustModal" v-model:open="showAdjustModal" title="调整提成" size="compact" :loading="adjustLoading" @confirm="handleAdjust" @cancel="showAdjustModal = false">
         <form class="space-y-3" @submit.prevent="handleAdjust">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">调整后金额 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">调整后金额 <span class="text-danger-500">*</span></label>
             <input v-model.number="adjustForm.adjustAmount" type="number" step="0.01" class="w-full input-base focus-ring" />
           </div>
           <div>

@@ -63,8 +63,8 @@ onMounted(() => { fetchMonthly(); fetchProject() })
         <!-- 汇总 -->
         <div class="grid grid-cols-3 gap-4 mb-6">
           <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总收入</p><p class="text-lg font-medium text-teal-600">{{ formatMoney(monthlyTotals.income) }}</p></div>
-          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总支出</p><p class="text-lg font-medium text-red-500">{{ formatMoney(monthlyTotals.expense) }}</p></div>
-          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">净利润</p><p class="text-lg font-medium" :class="monthlyTotals.profit >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(monthlyTotals.profit) }}</p></div>
+          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">总支出</p><p class="text-lg font-medium text-danger-500">{{ formatMoney(monthlyTotals.expense) }}</p></div>
+          <div class="em-card text-center"><p class="text-xs text-content-muted mb-1">净利润</p><p class="text-lg font-medium" :class="monthlyTotals.profit >= 0 ? 'text-teal-600' : 'text-danger-500'">{{ formatMoney(monthlyTotals.profit) }}</p></div>
         </div>
 
         <!-- 月度趋势柱状图 -->
@@ -87,7 +87,7 @@ onMounted(() => { fetchMonthly(); fetchProject() })
           </div>
           <div class="flex items-center gap-4 mt-3 justify-center text-xs text-content-muted">
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-teal-500" /> 收入</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-500" /> 支出</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-danger-500" /> 支出</span>
           </div>
         </div>
 
@@ -100,8 +100,8 @@ onMounted(() => { fetchMonthly(); fetchProject() })
               <tr v-for="row in monthlyData" :key="row.month" class="border-b border-line-light">
                 <td class="py-2 px-4 text-content-secondary">{{ row.month }}</td>
                 <td class="py-2 px-4 text-right text-teal-600">{{ formatMoney(row.income) }}</td>
-                <td class="py-2 px-4 text-right text-red-500">{{ formatMoney(row.expense) }}</td>
-                <td class="py-2 px-4 text-right font-medium" :class="row.profit >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(row.profit) }}</td>
+                <td class="py-2 px-4 text-right text-danger-500">{{ formatMoney(row.expense) }}</td>
+                <td class="py-2 px-4 text-right font-medium" :class="row.profit >= 0 ? 'text-teal-600' : 'text-danger-500'">{{ formatMoney(row.profit) }}</td>
               </tr>
             </tbody>
           </table>
@@ -120,8 +120,8 @@ onMounted(() => { fetchMonthly(); fetchProject() })
             <tr v-for="row in projectData" :key="row.projectId" class="border-b border-line-light">
               <td class="py-2 px-4 text-content-secondary">{{ row.projectName }}</td>
               <td class="py-2 px-4 text-right text-teal-600">{{ formatMoney(row.income) }}</td>
-              <td class="py-2 px-4 text-right text-red-500">{{ formatMoney(row.expense) }}</td>
-              <td class="py-2 px-4 text-right font-medium" :class="row.profit >= 0 ? 'text-teal-600' : 'text-red-500'">{{ formatMoney(row.profit) }}</td>
+              <td class="py-2 px-4 text-right text-danger-500">{{ formatMoney(row.expense) }}</td>
+              <td class="py-2 px-4 text-right font-medium" :class="row.profit >= 0 ? 'text-teal-600' : 'text-danger-500'">{{ formatMoney(row.profit) }}</td>
             </tr>
           </tbody>
         </table>

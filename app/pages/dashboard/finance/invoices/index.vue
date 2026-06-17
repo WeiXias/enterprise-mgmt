@@ -158,7 +158,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary">{{ inv.invoiceNo }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'issued' ? 'bg-teal-50 text-teal-700' : inv.status === 'voided' ? 'bg-red-50 text-red-600' : 'bg-brand-50 text-brand-700']">
+            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'issued' ? 'bg-teal-50 text-teal-700' : inv.status === 'voided' ? 'bg-danger-50 text-danger-600' : 'bg-brand-50 text-brand-700']">
               {{ getLabel('InvoiceStatus', inv.status) || inv.status }}
             </span>
           </div>
@@ -190,7 +190,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
       <form class="space-y-3" @submit.prevent="handleSave">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">发票号 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">发票号 <span class="text-danger-500">*</span></label>
             <input v-model="form.invoiceNo" type="text" class="w-full input-base focus-ring" />
           </div>
           <div>
@@ -213,7 +213,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">金额 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">金额 <span class="text-danger-500">*</span></label>
             <input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" />
           </div>
           <div>

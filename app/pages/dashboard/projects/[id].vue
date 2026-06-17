@@ -104,7 +104,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   not_started: { label: '未开始', color: 'bg-surface-hover text-content-secondary' },
   in_progress: { label: '进行中', color: 'bg-brand-50 text-brand-600' },
   completed: { label: '已完成', color: 'bg-teal-50 text-teal-700' },
-  delayed: { label: '已延期', color: 'bg-red-50 text-red-600' },
+  delayed: { label: '已延期', color: 'bg-danger-50 text-danger-600' },
 }
 
 const taskStatusConfig: Record<string, { label: string; color: string }> = {
@@ -116,7 +116,7 @@ const taskStatusConfig: Record<string, { label: string; color: string }> = {
 const priorityConfig: Record<string, { label: string; color: string }> = {
   low: { label: '低', color: 'bg-surface-hover text-content-muted' },
   medium: { label: '中', color: 'bg-brand-50 text-brand-700' },
-  high: { label: '高', color: 'bg-red-50 text-red-600' },
+  high: { label: '高', color: 'bg-danger-50 text-danger-600' },
 }
 
 function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '¥' + n.toLocaleString('zh-CN') }
@@ -208,14 +208,14 @@ async function handleToggleMilestone(mId: string, complete: boolean) {
     const body: any = {}
     if (complete) body.completedAt = new Date().toISOString().slice(0, 10)
     else body.completedAt = null
-    await $api(`/api/milestones/${mId}`, { method: 'PUT', body })
+    await $api(`/api/projects/${projectId}/milestones/${mId}`, { method: 'PUT', body })
     fetchMilestones()
   } catch { /* ignore */ }
 }
 
 async function handleDeleteMilestone(mId: string) {
   try {
-    await $api(`/api/milestones/${mId}`, { method: 'PUT', body: { deletedAt: new Date().toISOString() } })
+    await $api(`/api/projects/${projectId}/milestones/${mId}`, { method: 'PUT', body: { deletedAt: new Date().toISOString() } })
     fetchMilestones()
   } catch { /* ignore */ }
 }
@@ -258,7 +258,7 @@ async function handleSaveTask() {
     const body: any = { ...taskForm.value }
     if (!body.parentId) delete body.parentId
     if (editingTaskId.value) {
-      const res = await $api(`/api/tasks/${editingTaskId.value}`, { method: 'PUT', body }) as any
+      const res = await $api(`/api/projects/${projectId}/tasks/${editingTaskId.value}`, { method: 'PUT', body }) as any
       if (res?.code === 0) { toast.add({ title: '已保存', color: 'success' }) }
     } else {
       const res = await $api(`/api/projects/${projectId}/tasks`, { method: 'POST', body }) as any
@@ -271,7 +271,7 @@ async function handleSaveTask() {
 
 async function handleDeleteTask(taskId: string) {
   try {
-    const res = await $api(`/api/tasks/${taskId}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/projects/${projectId}/tasks/${taskId}`, { method: 'DELETE' }) as any
     if (res?.code === 0) { toast.add({ title: '任务已删除', color: 'success' }); fetchProject() }
   } catch (err: any) { toast.add({ title: '删除失败', color: 'error' }) }
 }
@@ -289,7 +289,7 @@ async function handleTaskStatus(taskId: string, newStatus: string) {
   try {
     const body: any = { status: newStatus }
     if (newStatus === 'completed') body.completedAt = new Date().toISOString().slice(0, 10)
-    await $api(`/api/tasks/${taskId}/status`, { method: 'PUT', body })
+    await $api(`/api/projects/${projectId}/tasks/${taskId}/status`, { method: 'PUT', body })
     fetchProject()
   } catch { /* ignore */ }
 }
@@ -434,7 +434,7 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones(); fetchComments
             <div v-for="d in project.deliverables" :key="d.id" class="p-2 rounded-md hover:bg-surface-hover transition-colors">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-content-secondary">{{ d.name }}</span>
-                <span :class="['text-[10px] px-1 py-0.5 rounded-full', { 'bg-surface-hover text-content-muted': d.status === 'pending', 'bg-brand-50 text-brand-600': d.status === 'submitted', 'bg-teal-50 text-teal-600': d.status === 'accepted', 'bg-red-50 text-red-500': d.status === 'rejected' }]">
+                <span :class="['text-[10px] px-1 py-0.5 rounded-full', { 'bg-surface-hover text-content-muted': d.status === 'pending', 'bg-brand-50 text-brand-600': d.status === 'submitted', 'bg-teal-50 text-teal-600': d.status === 'accepted', 'bg-danger-50 text-danger-500': d.status === 'rejected' }]">
                   {{ ({ pending: '待提交', submitted: '已提交', accepted: '已验收', rejected: '已驳回' } as Record<string, string>)[d.status] || d.status }}
                 </span>
               </div>

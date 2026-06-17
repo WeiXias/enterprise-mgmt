@@ -129,7 +129,7 @@ onMounted(() => { fetchItems(); fetchCategories() })
       </div>
       <div class="em-card flex items-center gap-3 !py-3" :class="totalStats.percent > 100 ? 'border-red-300' : totalStats.percent > 80 ? 'border-brand-300' : ''">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-percent" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-lg font-medium" :class="totalStats.percent > 100 ? 'text-red-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">执行率</p></div>
+        <div><p class="text-lg font-medium" :class="totalStats.percent > 100 ? 'text-danger-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">执行率</p></div>
       </div>
     </div>
 
@@ -148,12 +148,12 @@ onMounted(() => { fetchItems(); fetchCategories() })
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
             <span class="text-sm font-medium text-content-secondary">{{ item.name }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', item.type === 'income' ? 'bg-teal-50 text-teal-700' : 'bg-red-50 text-red-600']">{{ item.type === 'income' ? '收入' : '支出' }}</span>
+            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', item.type === 'income' ? 'bg-teal-50 text-teal-700' : 'bg-danger-50 text-danger-600']">{{ item.type === 'income' ? '收入' : '支出' }}</span>
             <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted">{{ item.category }}</span>
           </div>
           <div class="flex items-center gap-4 text-xs text-content-muted">
             <span class="font-medium text-content-secondary">预算 {{ formatMoney(item.amount) }}</span>
-            <span :class="Number(item.actualAmount) > Number(item.amount) ? 'text-red-500' : 'text-teal-600'">实际 {{ formatMoney(item.actualAmount) }}</span>
+            <span :class="Number(item.actualAmount) > Number(item.amount) ? 'text-danger-500' : 'text-teal-600'">实际 {{ formatMoney(item.actualAmount) }}</span>
             <span v-if="item.projectName">项目：{{ item.projectName }}</span>
             <span v-if="item.month">{{ item.month }} 月</span>
           </div>
@@ -161,13 +161,13 @@ onMounted(() => { fetchItems(); fetchCategories() })
           <div class="mt-1.5 h-1.5 bg-surface-hover rounded-full overflow-hidden w-full max-w-xs">
             <div
               class="h-full rounded-full transition-all"
-              :class="item.usagePercent > 100 ? 'bg-red-400' : item.usagePercent > 80 ? 'bg-brand-400' : 'bg-teal-400'"
+              :class="item.usagePercent > 100 ? 'bg-danger-400' : item.usagePercent > 80 ? 'bg-brand-400' : 'bg-teal-400'"
               :style="{ width: Math.min(item.usagePercent, 100) + '%' }"
             />
           </div>
           <div class="flex justify-between mt-0.5 w-full max-w-xs">
             <span class="text-[10px] text-content-muted">{{ item.usagePercent }}%</span>
-            <span v-if="item.usagePercent > 100" class="text-[10px] text-red-500">超支！</span>
+            <span v-if="item.usagePercent > 100" class="text-[10px] text-danger-500">超支！</span>
             <span v-else-if="item.usagePercent > 80" class="text-[10px] text-brand-600">接近上限</span>
           </div>
         </div>
@@ -195,12 +195,12 @@ onMounted(() => { fetchItems(); fetchCategories() })
     >
       <form class="space-y-3" @submit.prevent="handleSave">
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" placeholder="市场推广预算" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" placeholder="市场推广预算" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">类型</label><EnumSelect v-model="form.type" :options="[{ value: 'income', label: '收入预算' }, { value: 'expense', label: '支出预算' }]" /></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-sm text-content-secondary mb-1">分类 <span class="text-red-400">*</span></label><EnumSelect v-model="form.category" :options="categories.map((c: any) => c.name)" placeholder="选择分类" /></div>
-          <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-red-400">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">分类 <span class="text-danger-500">*</span></label><EnumSelect v-model="form.category" :options="categories.map((c: any) => c.name)" placeholder="选择分类" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-danger-500">*</span></label><input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-sm text-content-secondary mb-1">年度</label><input v-model.number="form.year" type="number" class="w-full input-base focus-ring" /></div>

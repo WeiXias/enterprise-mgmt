@@ -42,12 +42,12 @@ const followUpForm = ref({
 
 // 商机状态配置
 const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
-  initial_contact: { label: '初步接触', color: 'bg-surface-hover text-content-secondary', dotColor: 'bg-gray-400' },
+  initial_contact: { label: '初步接触', color: 'bg-surface-hover text-content-secondary', dotColor: 'bg-surface-muted' },
   requirement_confirmed: { label: '需求确认', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
   proposal_submitted: { label: '方案提交', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
-  business_negotiation: { label: '商务谈判', color: 'bg-orange-50 text-orange-600', dotColor: 'bg-orange-400' },
+  business_negotiation: { label: '商务谈判', color: 'bg-brand-50 text-brand-600', dotColor: 'bg-brand-400' },
   closed_won: { label: '已成交', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
-  closed_lost: { label: '已输单', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
+  closed_lost: { label: '已输单', color: 'bg-danger-50 text-danger-600', dotColor: 'bg-danger-400' },
 }
 
 const stageFlow = ['initial_contact', 'requirement_confirmed', 'proposal_submitted', 'business_negotiation']
@@ -506,7 +506,7 @@ onMounted(() => {
                         'bg-line-light text-content-muted': q.status === 'draft',
                         'bg-brand-50 text-brand-700': q.status === 'sent',
                         'bg-teal-50 text-teal-600': q.status === 'accepted',
-                        'bg-red-50 text-danger-600': q.status === 'rejected',
+                        'bg-danger-50 text-danger-600': q.status === 'rejected',
                       }]">{{ { draft: '草稿', sent: '已发送', accepted: '已接受', rejected: '已拒绝' }[q.status as string] || q.status }}</span>
                     </div>
                     <div class="flex items-center gap-3 text-xs text-content-muted mt-1">

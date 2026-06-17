@@ -35,7 +35,7 @@ function isOverdue(m: Milestone) {
         <div
           :class="[
             'absolute left-[5px] top-1 w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 transition-colors',
-            isCompleted(m) ? 'bg-teal-400 border-teal-400' : isOverdue(m) ? 'bg-red-50 border-red-400' : 'bg-surface-card border-line'
+            isCompleted(m) ? 'bg-teal-400 border-teal-400' : isOverdue(m) ? 'bg-danger-50 border-red-400' : 'bg-surface-card border-line'
           ]"
         >
           <UIcon v-if="isCompleted(m)" name="i-lucide-check" class="w-2.5 h-2.5 text-white absolute -top-px -left-px" />
@@ -50,7 +50,7 @@ function isOverdue(m: Milestone) {
         >
           <div class="min-w-0">
             <p :class="['text-sm', isCompleted(m) ? 'text-content-muted line-through' : 'text-content-secondary']">{{ m.name }}</p>
-            <p class="text-xs mt-0.5" :class="isOverdue(m) && !isCompleted(m) ? 'text-red-400 font-medium' : 'text-content-muted'">
+            <p class="text-xs mt-0.5" :class="isOverdue(m) && !isCompleted(m) ? 'text-danger-500 font-medium' : 'text-content-muted'">
               <UIcon name="i-lucide-calendar" class="w-3 h-3 inline mr-0.5" />
               {{ formatDate(m.targetDate) }}
               <span v-if="isOverdue(m) && !isCompleted(m)" class="ml-1">已逾期</span>

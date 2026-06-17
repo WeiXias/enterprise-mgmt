@@ -68,14 +68,14 @@ onMounted(() => { fetchEntry() })
             <tr v-for="line in entry.lines" :key="line.id" class="border-b border-line-light">
               <td class="py-2 text-content-secondary">{{ line.accountCode }} {{ line.accountName }}</td>
               <td class="text-right py-2" :class="line.debit > 0 ? 'text-brand-600' : 'text-content-muted'">{{ formatAmount(line.debit) }}</td>
-              <td class="text-right py-2" :class="line.credit > 0 ? 'text-red-500' : 'text-content-muted'">{{ formatAmount(line.credit) }}</td>
+              <td class="text-right py-2" :class="line.credit > 0 ? 'text-danger-500' : 'text-content-muted'">{{ formatAmount(line.credit) }}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr class="font-medium">
               <td class="py-2 text-content-secondary">合计</td>
               <td class="text-right py-2 text-brand-600">{{ formatAmount(totalDebit) }}</td>
-              <td class="text-right py-2 text-red-500">{{ formatAmount(totalCredit) }}</td>
+              <td class="text-right py-2 text-danger-500">{{ formatAmount(totalCredit) }}</td>
             </tr>
           </tfoot>
         </table>

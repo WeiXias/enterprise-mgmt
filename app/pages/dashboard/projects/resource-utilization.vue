@@ -19,7 +19,7 @@ async function fetchData() {
 }
 
 function loadClass(rate: number): string {
-  if (rate > 100) return 'bg-red-100 text-red-700'
+  if (rate > 100) return 'bg-danger-100 text-danger-700'
   if (rate > 80) return 'bg-brand-100 text-brand-700'
   return 'bg-teal-100 text-teal-700'
 }

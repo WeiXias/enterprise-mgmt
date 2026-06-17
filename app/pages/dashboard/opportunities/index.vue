@@ -47,12 +47,12 @@ const deleteLoading = ref(false)
 
 // 商机状态配置
 const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
-  initial_contact: { label: '初步接触', color: 'bg-surface-hover text-content-secondary', dotColor: 'bg-gray-400' },
+  initial_contact: { label: '初步接触', color: 'bg-surface-hover text-content-secondary', dotColor: 'bg-surface-muted' },
   requirement_confirmed: { label: '需求确认', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
   proposal_submitted: { label: '方案提交', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
-  business_negotiation: { label: '商务谈判', color: 'bg-orange-50 text-orange-600', dotColor: 'bg-orange-400' },
+  business_negotiation: { label: '商务谈判', color: 'bg-brand-50 text-brand-600', dotColor: 'bg-brand-400' },
   closed_won: { label: '已成交', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
-  closed_lost: { label: '已输单', color: 'bg-red-50 text-red-600', dotColor: 'bg-red-400' },
+  closed_lost: { label: '已输单', color: 'bg-danger-50 text-danger-600', dotColor: 'bg-danger-400' },
 }
 
 // 商机来源选项
@@ -310,7 +310,7 @@ onMounted(() => {
       >
         <!-- 阶段色条 -->
         <div
-          :class="['w-1 h-10 rounded-full flex-shrink-0', statusConfig[opp.status]?.dotColor || 'bg-gray-300']"
+          :class="['w-1 h-10 rounded-full flex-shrink-0', statusConfig[opp.status]?.dotColor || 'bg-surface-hover']"
         />
 
         <!-- 主体信息 -->

@@ -77,7 +77,7 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else class="space-y-2">
       <div v-for="entry in items" :key="entry.id" class="em-card flex items-center gap-4 cursor-pointer" @click="router.push(`/dashboard/accounting/entries/${entry.id}`)">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', entry.status === 'posted' ? 'bg-teal-400' : 'bg-gray-300']" />
+        <div :class="['w-1 h-10 rounded-full flex-shrink-0', entry.status === 'posted' ? 'bg-teal-400' : 'bg-surface-hover']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary">{{ entry.voucherNo }}</span>
@@ -105,7 +105,7 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
       <form class="space-y-4" @submit.prevent="handleCreate">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">凭证号 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">凭证号 <span class="text-danger-500">*</span></label>
             <input v-model="form.voucherNo" type="text" placeholder="如 JZ-202606-001" class="w-full input-base focus-ring" />
           </div>
           <div>
@@ -114,7 +114,7 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
           </div>
         </div>
         <div>
-          <label class="block text-sm text-content-secondary mb-1">摘要 <span class="text-red-400">*</span></label>
+          <label class="block text-sm text-content-secondary mb-1">摘要 <span class="text-danger-500">*</span></label>
           <input v-model="form.description" type="text" class="w-full input-base focus-ring" />
         </div>
         <div>
@@ -148,8 +148,8 @@ onMounted(() => { fetchEntries(); fetchAccounts() })
           </div>
           <div class="flex gap-4 mt-2 text-xs">
             <span class="text-brand-600">借方合计：{{ totalDebit().toFixed(2) }}</span>
-            <span class="text-red-500">贷方合计：{{ totalCredit().toFixed(2) }}</span>
-            <span :class="Math.abs(totalDebit() - totalCredit()) < 0.01 ? 'text-teal-500' : 'text-red-500'">
+            <span class="text-danger-500">贷方合计：{{ totalCredit().toFixed(2) }}</span>
+            <span :class="Math.abs(totalDebit() - totalCredit()) < 0.01 ? 'text-teal-500' : 'text-danger-500'">
               {{ Math.abs(totalDebit() - totalCredit()) < 0.01 ? '借贷平衡' : '借贷不平衡！' }}
             </span>
           </div>

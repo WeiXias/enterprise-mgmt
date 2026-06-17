@@ -27,12 +27,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const STATUS_COLORS: Record<string, string> = {
-  todo: 'bg-gray-300',
+  todo: 'bg-surface-hover',
   in_progress: 'bg-brand-400',
   completed: 'bg-teal-400',
 }
 
-function getColor(status: string) { return STATUS_COLORS[status] || 'bg-gray-300' }
+function getColor(status: string) { return STATUS_COLORS[status] || 'bg-surface-hover' }
 function formatDate(v: string | null | undefined) {
   if (!v) return '-'
   return v.slice(5, 10)
