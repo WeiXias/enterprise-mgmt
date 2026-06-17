@@ -239,6 +239,7 @@ select {
   border-radius: 0.375rem;
   border: 1px solid var(--color-line);
   background-color: var(--color-surface-card);
+  appearance: none;
 }
 
 /* ── 语义卡片 ── */
