@@ -175,8 +175,8 @@ onMounted(() => fetchItems())
         </div>
       </form>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showModal = false">算了</UButton>
         <UButton color="primary" :loading="saving" @click="handleSave">{{ editTarget ? '保存' : '提交' }}</UButton>
+        <UButton variant="ghost" color="neutral" @click="showModal = false">算了</UButton>
       </template>
     </FormModal>
 
@@ -192,8 +192,8 @@ onMounted(() => fetchItems())
     >
       <div><label class="block text-sm text-content-secondary mb-1">驳回原因</label><textarea v-model="rejectReason" rows="2" placeholder="写明原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton>
         <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
+        <UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton>
       </template>
     </FormModal>
   </div>

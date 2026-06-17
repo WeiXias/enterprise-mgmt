@@ -476,8 +476,8 @@ onMounted(() => {
         </form>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
         <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
+        <UButton variant="ghost" color="neutral" @click="showEditModal = false">算了</UButton>
       </template>
     </FormModal>
 

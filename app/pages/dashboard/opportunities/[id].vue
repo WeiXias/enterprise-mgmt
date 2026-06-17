@@ -677,8 +677,8 @@ onMounted(() => {
         </label>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showWinModal = false">算了</UButton>
         <UButton color="primary" :loading="winLoading" @click="handleWin">确认赢单</UButton>
+        <UButton variant="ghost" color="neutral" @click="showWinModal = false">算了</UButton>
       </template>
     </FormModal>
 
@@ -700,8 +700,8 @@ onMounted(() => {
         </div>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showLoseModal = false; loseReason = ''">算了</UButton>
         <UButton color="error" :loading="loseLoading" @click="handleLose">确认输单</UButton>
+        <UButton variant="ghost" color="neutral" @click="showLoseModal = false; loseReason = ''">算了</UButton>
       </template>
     </FormModal>
 
@@ -718,8 +718,8 @@ onMounted(() => {
         <FollowUpForm v-model="followUpForm" :loading="followUpLoading" @submit="handleFollowUp" />
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showFollowUpModal = false">算了</UButton>
         <UButton color="primary" :loading="followUpLoading" @click="handleFollowUp">添加</UButton>
+        <UButton variant="ghost" color="neutral" @click="showFollowUpModal = false">算了</UButton>
       </template>
     </FormModal>
 
@@ -792,8 +792,8 @@ onMounted(() => {
         </form>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showQuoteModal = false">算了</UButton>
         <UButton color="primary" :loading="quoteLoading" @click="handleCreateQuote">创建报价</UButton>
+        <UButton variant="ghost" color="neutral" @click="showQuoteModal = false">算了</UButton>
       </template>
     </FormModal>
 
@@ -820,8 +820,8 @@ onMounted(() => {
         </div>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showProductModal = false">算了</UButton>
         <UButton color="primary" :loading="productLoading" @click="handleSaveProducts">保存</UButton>
+        <UButton variant="ghost" color="neutral" @click="showProductModal = false">算了</UButton>
       </template>
     </FormModal>
 
@@ -890,8 +890,8 @@ onMounted(() => {
         </form>
       </template>
       <template #footer>
-        <UButton variant="ghost" color="neutral" @click="showSendModal = false">算了</UButton>
         <UButton color="primary" :loading="sendLoading" @click="handleSendQuote(null as any)">发送</UButton>
+        <UButton variant="ghost" color="neutral" @click="showSendModal = false">算了</UButton>
       </template>
     </FormModal>
 
