@@ -1,36 +1,31 @@
-import { defineEventHandler, getRouterParams, createError, readMultipartFormData } from 'h3'
+import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { contractAttachments } from '#schema'
 import { generateId } from '#server-utils/id'
-import { getUploadDir, safeFileName } from '#server-utils/upload'
-import path from 'path'
-import fs from 'fs'
+import { saveUploadedFile } from '#server-utils/upload'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
-  const { id: contractId } = getRouterParams(event)
-  const files = await readMultipartFormData(event)
-  if (!files || files.length === 0) throw createError({ statusCode: 422, statusMessage: '还没选文件呢' })
-  const file = files[0]!
-  if (!file.data) throw createError({ statusCode: 422, statusMessage: '文件内容为空' })
-  const fileSize = file.data.length
-  if (fileSize > 20 * 1024 * 1024) throw createError({ statusCode: 422, statusMessage: '文件不能超过20MB' })
 
-  const uploadDir = await getUploadDir()
-  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
-  const safeName = safeFileName(file.filename)
-  const fileName = `${Date.now()}-${safeName}`
-  const filePath = path.join(uploadDir, fileName)
-  fs.writeFileSync(filePath, file.data)
+  const { id: contractId } = getRouterParams(event)
+
+  const saved = await saveUploadedFile({
+    event,
+    subDir: 'contracts',
+    entityId: contractId,
+    maxSize: 20 * 1024 * 1024,
+  })
 
   const result = await db.insert(contractAttachments).values({
-    id: generateId(), contractId,
-    fileName: safeName,
-    filePath: `/uploads/${fileName}`,
-    fileSize,
+    id: generateId(),
+    contractId,
+    fileName: saved.safeName,
+    filePath: saved.dbPath,
+    fileSize: saved.fileSize,
     uploadedBy: user.userId,
     createdAt: new Date().toISOString(),
   }).returning()
+
   return { code: 0, data: result[0], message: '附件已上传' }
 })
