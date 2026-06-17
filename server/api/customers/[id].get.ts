@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     isPrimary: contacts.isPrimary,
     remark: contacts.remark,
     createdAt: contacts.createdAt,
-  }).from(contacts).where(eq(contacts.customerId, id)).orderBy(desc(contacts.isPrimary))
+  }).from(contacts).where(and(eq(contacts.customerId, id), isNull(contacts.deletedAt))).orderBy(desc(contacts.isPrimary))
 
   const tagList = await db.select({ id: tags.id, name: tags.name, color: tags.color }).from(customerTags)
     .leftJoin(tags, eq(customerTags.tagId, tags.id))

@@ -163,6 +163,18 @@ async function handleAddContact() {
   }
 }
 
+async function handleDeleteContact(contactId: string) {
+  try {
+    const res = await $api(`/api/contacts/${contactId}`, { method: 'DELETE' }) as any
+    if (res?.code === 0) {
+      toast.add({ title: '联系人已删除', color: 'success' })
+      fetchCustomer()
+    }
+  } catch (err: any) {
+    toast.add({ title: err?.data?.message || '删除失败', color: 'error' })
+  }
+}
+
 async function handleAddFollowUp() {
   if (!followUpForm.value.content) {
     toast.add({ title: '跟进内容不能为空', color: 'warning' })
@@ -319,7 +331,7 @@ onMounted(() => {
             <div
               v-for="contact in customer.contacts"
               :key="contact.id"
-              class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-hover transition-colors"
+              class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-hover transition-colors group"
             >
               <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center flex-shrink-0">
                 <span class="text-brand-700 text-xs">{{ contact.name?.charAt(0) }}</span>
@@ -335,6 +347,11 @@ onMounted(() => {
                   <span v-if="contact.email">{{ contact.email }}</span>
                 </div>
               </div>
+              <button
+                class="w-6 h-6 flex items-center justify-center rounded text-content-muted opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
+                title="删除联系人"
+                @click="handleDeleteContact(contact.id)"
+              ><UIcon name="i-lucide-x" class="w-3.5 h-3.5" /></button>
             </div>
           </div>
         </div>

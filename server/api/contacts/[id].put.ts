@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   const existing = await db.select({ id: contacts.id, customerId: contacts.customerId }).from(contacts).where(and(eq(contacts.id, id), isNull(contacts.deletedAt))).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '联系人不存在' })
 
-  const now = new Date()
+  const now = new Date().toISOString()
   if (parsed.data.isPrimary) {
     await db.update(contacts).set({ isPrimary: false, updatedAt: now }).where(eq(contacts.customerId, existing[0].customerId))
   }

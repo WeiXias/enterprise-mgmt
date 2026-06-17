@@ -44,7 +44,7 @@ if ! command -v pnpm &>/dev/null; then
   npm install -g pnpm
   echo "  ✓ 已安装 pnpm"
 fi
-# 编译 + 复制 better-sqlite3 到 .output 的两个查找路径
+# 编译 + 复制 better-sqlite3 到 .output 的所有查找路径
 (cd node_modules/better-sqlite3 && npx --yes node-gyp rebuild 2>/dev/null) || true
 SRC=$(find node_modules/.pnpm -name "better_sqlite3.node" -type f 2>/dev/null | head -1)
 if [ -n "$SRC" ]; then
@@ -53,6 +53,13 @@ if [ -n "$SRC" ]; then
   DEST=.output/server/node_modules/better-sqlite3/compiled/$(node -v | sed "s/v//")/linux/x64
   mkdir -p "$DEST"
   cp "$SRC" "$DEST/better_sqlite3.node" 2>/dev/null || true
+  # 兜底：覆盖 better-sqlite3 可能读取的所有路径
+  mkdir -p .output/server/node_modules/better-sqlite3/build/default
+  cp "$SRC" .output/server/node_modules/better-sqlite3/build/default/better_sqlite3.node 2>/dev/null || true
+  mkdir -p .output/server/node_modules/better-sqlite3/lib/binding/node-v127-linux-x64
+  cp "$SRC" .output/server/node_modules/better-sqlite3/lib/binding/node-v127-linux-x64/better_sqlite3.node 2>/dev/null || true
+  mkdir -p .output/server/node_modules/better-sqlite3/addon-build/release/install-root
+  cp "$SRC" .output/server/node_modules/better-sqlite3/addon-build/release/install-root/better_sqlite3.node 2>/dev/null || true
 fi
 echo "  ✓ 依赖就绪，原生模块已重建"
 
