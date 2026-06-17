@@ -1,9 +1,11 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
 import { tags } from '#schema/customers'
+import { dictEntries } from '#schema'
 import { eq, isNull, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import dayjs from 'dayjs'
 
 const schema = z.object({ name: z.string().min(1).max(50).optional(), color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional() })
 
@@ -16,7 +18,15 @@ export default defineEventHandler(async (event) => {
   const existing = await db.select({ id: tags.id }).from(tags).where(and(eq(tags.id, id), isNull(tags.deletedAt))).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '标签不存在' })
 
-  const result = await db.update(tags).set({ ...parsed.data, updatedAt: new Date() }).where(eq(tags.id, id)).returning()
+  const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
+  const result = await db.update(tags).set({ ...parsed.data, updatedAt: now }).where(eq(tags.id, id)).returning()
+
+  // 同步更新 dict_entries
+  if (parsed.data.name) {
+    await db.update(dictEntries).set({ label: parsed.data.name, value: parsed.data.name, updatedAt: now })
+      .where(and(eq(dictEntries.dict_type, 'customer_tag'), eq(dictEntries.label, existing[0].name)))
+  }
+
   await logOperation(event, { action: 'UPDATE', module: 'tag', targetId: id, detail: '更新了标签' })
   return { code: 0, data: result[0], message: '标签已更新' }
 })

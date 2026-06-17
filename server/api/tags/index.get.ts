@@ -1,12 +1,17 @@
 import { defineEventHandler } from 'h3'
 import { db } from '#database'
-import { dictEntries } from '#schema'
-import { eq, asc } from 'drizzle-orm'
+import { tags } from '#schema/customers'
+import { isNull, asc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
-  const list = await db.select().from(dictEntries)
-    .where(eq(dictEntries.dict_type, 'customer_tag'))
-    .orderBy(asc(dictEntries.sort), asc(dictEntries.label))
+  const list = await db.select({
+    id: tags.id,
+    name: tags.name,
+    color: tags.color,
+    createdAt: tags.createdAt,
+  }).from(tags)
+    .where(isNull(tags.deletedAt))
+    .orderBy(asc(tags.createdAt))
 
-  return { code: 0, data: list.map(r => ({ id: r.id, name: r.label, color: '', createdAt: r.createdAt })) }
+  return { code: 0, data: list }
 })
