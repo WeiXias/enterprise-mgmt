@@ -123,6 +123,6 @@ watch([watermarkText, () => props.opacity, () => props.fontSize, () => props.rot
   <div
     ref="containerRef"
     class="fixed inset-0 pointer-events-none select-none"
-    style="z-index: 99999; background-size: 100% 100%;"
+    style="z-index: var(--z-watermark); background-size: 100% 100%;"
   />
 </template>

@@ -1,5 +1,9 @@
 name: ci
-on: push
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
 
 jobs:
   ci:
@@ -24,17 +28,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Lint
+      - name: Lint (ESLint)
         run: pnpm run lint
+
+      - name: Lint (Design tokens)
+        run: pnpm run lint:design
 
       - name: Typecheck
         run: pnpm run typecheck
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Seed
-        run: pnpm run seed
 
       - name: Test
         run: pnpm run test

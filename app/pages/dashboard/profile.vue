@@ -207,7 +207,7 @@ onMounted(() => {
       <div class="rounded-xl bg-gradient-to-r from-brand-50 to-brand-100/60 border border-line p-5 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
         <!-- 头像 -->
         <div class="relative shrink-0">
-          <div class="w-[72px] h-[72px] rounded-full bg-white shadow-card flex items-center justify-center overflow-hidden">
+          <div class="w-[72px] h-[72px] rounded-full bg-surface-card shadow-card flex items-center justify-center overflow-hidden">
             <img
               v-if="(authStore.user as any)?.avatar"
               :src="(authStore.user as any).avatar"

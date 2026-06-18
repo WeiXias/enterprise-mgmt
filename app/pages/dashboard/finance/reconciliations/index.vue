@@ -31,7 +31,7 @@ const statusLabels: Record<string, string> = { pending: '待确认', confirmed: 
 const statusColors: Record<string, string> = {
   pending: 'bg-brand-50 text-brand-600',
   confirmed: 'bg-teal-50 text-teal-700',
-  disputed: 'bg-amber-50 text-amber-700',
+  disputed: 'bg-warning-50 text-warning-700',
 }
 
 async function handleCreate() {

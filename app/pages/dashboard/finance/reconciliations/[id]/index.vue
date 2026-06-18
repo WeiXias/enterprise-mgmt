@@ -70,7 +70,7 @@ onMounted(() => { fetchDetail() })
           <div><span class="text-xs text-content-muted">对账单号</span><p class="text-sm font-medium text-content-primary">{{ item.code }}</p></div>
           <div><span class="text-xs text-content-muted">客户</span><p class="text-sm font-medium text-content-primary">{{ item.customerName }}</p></div>
           <div><span class="text-xs text-content-muted">期间</span><p class="text-sm text-content-primary">{{ item.periodStart?.slice(0, 10) }} ~ {{ item.periodEnd?.slice(0, 10) }}</p></div>
-          <div><span class="text-xs text-content-muted">状态</span><p class="text-sm font-medium" :class="item.status === 'confirmed' ? 'text-teal-600' : item.status === 'disputed' ? 'text-amber-600' : 'text-brand-600'">{{ statusLabels[item.status] }}</p></div>
+          <div><span class="text-xs text-content-muted">状态</span><p class="text-sm font-medium" :class="item.status === 'confirmed' ? 'text-teal-600' : item.status === 'disputed' ? 'text-warning-600' : 'text-brand-600'">{{ statusLabels[item.status] }}</p></div>
         </div>
 
         <!-- 金额汇总 -->
