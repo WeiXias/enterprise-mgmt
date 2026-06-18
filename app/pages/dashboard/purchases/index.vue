@@ -16,8 +16,6 @@ const showDeleteModal = ref(false)
 const deleteTarget = ref<any>(null)
 const deleteLoading = ref(false)
 
-const { getLabel } = useEnum()
-
 async function handleDelete() {
   if (!deleteTarget.value) return
   deleteLoading.value = true
@@ -74,9 +72,9 @@ onMounted(() => { fetchOrders() })
     <div v-else class="space-y-2">
       <div v-for="order in orderList" :key="order.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0',
-          order.status === 'draft' ? 'bg-gray-300' :
+          order.status === 'draft' ? 'bg-neutral-300' :
           order.status === 'submitted' ? 'bg-brand-400' :
-          order.status === 'received' ? 'bg-teal-400' : 'bg-red-300']" />
+          order.status === 'received' ? 'bg-teal-400' : 'bg-danger-300']" />
         <div class="flex-1 min-w-0 cursor-pointer" @click="$router.push(`/dashboard/purchases/${order.id}`)">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary">{{ order.code }}</span>

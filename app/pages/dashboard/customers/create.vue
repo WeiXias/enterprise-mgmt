@@ -44,8 +44,8 @@ async function handleSubmit() {
     <div class="em-card">
       <CustomerForm v-model="form" mode="create" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>
         <UButton color="primary" :loading="saving" @click="handleSubmit">添加客户</UButton>
+        <UButton variant="ghost" color="neutral" @click="router.back()">算了</UButton>
       </div>
     </div>
   </div>

@@ -47,6 +47,9 @@ import {
   NotificationType, NotificationTypeLabels,
   UserStatus, UserStatusLabels,
   CodeRuleDatePart, CodeRuleDatePartLabels,
+  PaymentType, PaymentTypeLabels,
+  CountStatus, CountStatusLabels,
+  CountItemStatus, CountItemStatusLabels,
   enumToOptions
 } from '#enums'
 
@@ -115,6 +118,9 @@ export default defineEventHandler(async () => {
       notificationType: applyOverride(enumToOptions(NotificationType, NotificationTypeLabels), overrides.NotificationType),
       userStatus: applyOverride(enumToOptions(UserStatus, UserStatusLabels), overrides.UserStatus),
       codeRuleDatePart: applyOverride(enumToOptions(CodeRuleDatePart, CodeRuleDatePartLabels), overrides.CodeRuleDatePart),
+      paymentType: applyOverride(enumToOptions(PaymentType, PaymentTypeLabels), overrides.PaymentType),
+      countStatus: applyOverride(enumToOptions(CountStatus, CountStatusLabels), overrides.CountStatus),
+      countItemStatus: applyOverride(enumToOptions(CountItemStatus, CountItemStatusLabels), overrides.CountItemStatus),
     }
   }
 })

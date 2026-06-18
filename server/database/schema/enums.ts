@@ -560,3 +560,17 @@ export type DepositWriteOffStatus = (typeof DepositWriteOffStatus)[keyof typeof 
 export const DepositWriteOffStatusLabels: Record<DepositWriteOffStatus, string> = {
   [DepositWriteOffStatus.PENDING]: '待审批', [DepositWriteOffStatus.APPROVED]: '已核销', [DepositWriteOffStatus.REJECTED]: '已驳回',
 }
+
+// ---- CountStatus ----
+export const CountStatus = { DRAFT: 'draft', COUNTING: 'counting', COMPLETED: 'completed' } as const
+export type CountStatus = (typeof CountStatus)[keyof typeof CountStatus]
+export const CountStatusLabels: Record<CountStatus, string> = {
+  [CountStatus.DRAFT]: '草稿', [CountStatus.COUNTING]: '盘点中', [CountStatus.COMPLETED]: '已完成',
+}
+
+// ---- CountItemStatus ----
+export const CountItemStatus = { PENDING: 'pending', COUNTED: 'counted', REVIEWED: 'reviewed' } as const
+export type CountItemStatus = (typeof CountItemStatus)[keyof typeof CountItemStatus]
+export const CountItemStatusLabels: Record<CountItemStatus, string> = {
+  [CountItemStatus.PENDING]: '待盘点', [CountItemStatus.COUNTED]: '已录入', [CountItemStatus.REVIEWED]: '已审核',
+}

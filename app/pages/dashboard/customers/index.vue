@@ -1,9 +1,10 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard', title: '客户', middleware: ['auth'] })
 
-const authStore = useAuthStore()
 const toast = useToast()
 const { $api } = useNuxtApp()
+const { isAdminOrManager } = useCustomer()
+const { industryOptions } = useDictIndustry()
 
 // 列表状态（useTable）
 const { loading, list: customers, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchCustomers } = useTable<any>({ apiUrl: '/api/customers' })
@@ -17,11 +18,6 @@ watch(industryFilter, (v) => { setFilter('industry', v); onFilterChange() })
 
 // 导出（useExportCsv）
 const { exporting, exportCsv } = useExportCsv()
-
-function isAdminOrManager() {
-  const role = authStore.user?.role
-  return role === 'admin' || role === 'sales_manager'
-}
 
 // 批量选择
 const selectedIds = ref<Set<string>>(new Set())
@@ -64,15 +60,6 @@ function handleExport() {
     { key: 'createdAt', label: '创建时间', format: (v: unknown) => String(v)?.slice(0, 10) || '' },
   ], `客户列表_${new Date().toISOString().slice(0,10)}.csv`)
 }
-
-// 行业选项
-const industryOptions = ref<string[]>([])
-onMounted(async () => {
-  try {
-    const res = await $fetch("/api/dict/industry", { headers: useAuthHeaders() }) as any
-    if (res?.code === 0) industryOptions.value = (res.data || []).map((o: any) => o.label)
-  } catch {}
-})
 
 // 状态选项
 const statusOptions = [
@@ -252,10 +239,10 @@ onMounted(() => {
         <!-- 状态色条 -->
         <div
           :class="['w-1 h-10 rounded-full flex-shrink-0', {
-            'bg-gray-300': customer.status === 'potential',
+            'bg-neutral-300': customer.status === 'potential',
             'bg-brand-400': customer.status === 'intentional',
             'bg-teal-400': customer.status === 'closed',
-            'bg-red-400': customer.status === 'lost',
+            'bg-danger-400': customer.status === 'lost',
           }]"
         />
 

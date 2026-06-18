@@ -1,11 +1,14 @@
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions, products } from '#schema'
-import { eq, and, desc, sql } from 'drizzle-orm'
+import { eq, and, asc, desc, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const q = getQuery(event) as Record<string, string>
   const user = event.context.user
+  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+  const sortBy = (q.sortBy as string) || 'createdAt'
+  const sortOrder = (q.sortOrder as string) || 'desc'
   const page = Math.max(1, parseInt(q.page || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '20')))
 
@@ -16,10 +19,16 @@ export default defineEventHandler(async (event) => {
   if (q.startDate) conditions.push(sql`${inventoryTransactions.createdAt} >= ${q.startDate}`)
   if (q.endDate) conditions.push(sql`${inventoryTransactions.createdAt} <= ${q.endDate}`)
 
-  // 普通成员只能看自己的操作记录
-  if (user && (user.role === 'sales_member' || user.role === 'finance')) {
+  if (user.role === 'sales_member' || user.role === 'finance') {
     conditions.push(eq(inventoryTransactions.operatorId, user.userId))
   }
+
+  const orderFn = sortOrder === 'asc' ? asc : desc
+  const sortColumns: Record<string, any> = {
+    createdAt: inventoryTransactions.createdAt, type: inventoryTransactions.type,
+    quantity: inventoryTransactions.quantity, unitPrice: inventoryTransactions.unitPrice,
+  }
+  const orderColumn = sortColumns[sortBy] || inventoryTransactions.createdAt
 
   const where = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -40,7 +49,7 @@ export default defineEventHandler(async (event) => {
     }).from(inventoryTransactions)
       .leftJoin(products, eq(inventoryTransactions.productId, products.id))
       .where(where)
-      .orderBy(desc(inventoryTransactions.createdAt))
+      .orderBy(orderFn(orderColumn))
       .limit(pageSize)
       .offset((page - 1) * pageSize),
     db.select({ count: sql<number>`count(*)` }).from(inventoryTransactions).where(where),

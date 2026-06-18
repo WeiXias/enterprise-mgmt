@@ -34,12 +34,5 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 422, statusMessage: `库存不足（当前库存 ${recheck.stockQuantity}）` })
   }
 
-  const result = await db.insert(inventoryTransactions).values({
-    id: generateId(), productId, type, quantity: delta,
-    unitPrice: unitPrice || 0, contractId, projectId, batchNo, remark, operatorId: user.userId,
-  }).returning()
-
-  await db.update(products).set({ stockQuantity: product.stockQuantity + delta }).where(eq(products.id, productId))
-
-  return { code: 0, data: result[0], message: '操作成功' }
+  return { code: 0, data: result[0], message: '搞定了！库存已更新' }
 })

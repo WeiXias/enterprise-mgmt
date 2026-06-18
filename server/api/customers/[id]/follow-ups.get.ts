@@ -1,16 +1,30 @@
 import { defineEventHandler, getRouterParams, getQuery, createError } from 'h3'
 import { db } from '#database'
-import { followUps } from '#schema/customers'
+import { followUps, customers } from '#schema/customers'
 import { users } from '#schema/users'
-import { eq, and, desc, count } from 'drizzle-orm'
+import { eq, and, asc, desc, count, isNull } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: customerId } = getRouterParams(event)
+
+  // 校验客户存在
+  const [customerExists] = await db.select({ id: customers.id }).from(customers).where(and(eq(customers.id, customerId), isNull(customers.deletedAt)))
+  if (!customerExists) throw createError({ statusCode: 404, statusMessage: '客户不存在' })
+
   const query = getQuery(event)
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
+  const sortBy = (query.sortBy as string) || 'createdAt'
+  const sortOrder = (query.sortOrder as string) || 'desc'
+
+  const orderFn = sortOrder === 'asc' ? asc : desc
+  const sortColumns: Record<string, any> = {
+    createdAt: followUps.createdAt,
+    type: followUps.type,
+  }
+  const orderColumn = sortColumns[sortBy] || followUps.createdAt
 
   const where = eq(followUps.customerId, customerId)
 
@@ -22,7 +36,7 @@ export default defineEventHandler(async (event) => {
       createdAt: followUps.createdAt,
     }).from(followUps)
       .leftJoin(users, eq(followUps.userId, users.id))
-      .where(where).limit(pageSize).offset((page - 1) * pageSize).orderBy(desc(followUps.createdAt)),
+      .where(where).limit(pageSize).offset((page - 1) * pageSize).orderBy(orderFn(orderColumn)),
     db.select({ total: count() }).from(followUps).where(where),
   ])
 

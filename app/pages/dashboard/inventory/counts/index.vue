@@ -95,7 +95,7 @@ onMounted(() => { fetchList(); fetchWarehouses() })
     <div v-else class="space-y-2">
       <div v-for="c in counts" :key="c.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer" @click="$router.push(`/dashboard/inventory/counts/${c.id}`)">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0',
-          c.status === 'draft' ? 'bg-gray-300' :
+          c.status === 'draft' ? 'bg-neutral-300' :
           c.status === 'counting' ? 'bg-brand-400' : 'bg-teal-400']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
@@ -125,8 +125,8 @@ onMounted(() => { fetchList(); fetchWarehouses() })
     >
       <form class="space-y-4" @submit.prevent="handleCreate">
         <div>
-          <label class="block text-sm text-content-secondary mb-1">盘点单号 <span class="text-content-muted text-xs">(空则自动生成)</span></label>
-          <input v-model="createForm.code" type="text" placeholder="自动生成" class="w-full input-base focus-ring" />
+          <label class="block text-sm text-content-secondary mb-1">盘点单号 <span class="text-content-muted text-xs">(留空时帮你填好)</span></label>
+          <input v-model="createForm.code" type="text" placeholder="留空时帮你填好" class="w-full input-base focus-ring" />
         </div>
         <div>
           <label class="block text-sm text-content-secondary mb-1">盘点仓库（可选）</label>

@@ -5,13 +5,9 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { $api } = useNuxtApp()
-const authStore = useAuthStore()
+const { isAdminOrManager } = useCustomer()
+const { industryOptions } = useDictIndustry()
 const customerId = route.params.id as string
-
-function isAdminOrManager() {
-  const role = authStore.user?.role
-  return role === 'admin' || role === 'sales_manager'
-}
 
 // 客户数据
 const customer = ref<any>(null)
@@ -73,20 +69,11 @@ const showFollowUpModal = ref(false)
 const followUpLoading = ref(false)
 const followUpForm = ref({ type: 'phone', content: '', nextFollowUpAt: '' })
 
-// 行业选项
-const industryOptions = ref<string[]>([])
-async function fetchDictIndustry() {
-  try {
-    const res = await $fetch('/api/dict/industry', { headers: useAuthHeaders() }) as any
-    if (res?.code === 0) industryOptions.value = (res.data || []).map((o: any) => o.label)
-  } catch {}
-}
-
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
-  potential: { label: '潜在客户', color: 'bg-surface-hover text-content-secondary', dot: 'bg-gray-400' },
+  potential: { label: '潜在客户', color: 'bg-surface-hover text-content-secondary', dot: 'bg-neutral-400' },
   intentional: { label: '意向客户', color: 'bg-brand-50 text-brand-700', dot: 'bg-brand-400' },
   closed: { label: '已成交', color: 'bg-teal-50 text-teal-700', dot: 'bg-teal-400' },
-  lost: { label: '已流失', color: 'bg-red-50 text-red-600', dot: 'bg-red-400' },
+  lost: { label: '已流失', color: 'bg-danger-50 text-danger-600', dot: 'bg-danger-400' },
 }
 
 async function fetchCustomer() {
@@ -233,7 +220,6 @@ async function handleSaveTags() {
 
 onMounted(() => {
   fetchCustomer()
-  fetchDictIndustry()
 })
 </script>
 
@@ -348,7 +334,7 @@ onMounted(() => {
                 </div>
               </div>
               <button
-                class="w-6 h-6 flex items-center justify-center rounded text-content-muted opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
+                class="w-6 h-6 flex items-center justify-center rounded text-content-muted opacity-0 group-hover:opacity-100 hover:text-danger-500 hover:bg-danger-50 transition-all shrink-0"
                 title="删除联系人"
                 @click="handleDeleteContact(contact.id)"
               ><UIcon name="i-lucide-x" class="w-3.5 h-3.5" /></button>

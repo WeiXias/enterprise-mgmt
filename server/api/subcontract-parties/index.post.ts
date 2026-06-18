@@ -3,10 +3,11 @@ import { db } from '#database'
 import { subcontractParties } from '#schema'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 import { z } from 'zod'
 
 const createSchema = z.object({
-  name: z.string().min(1, '分包对象名称还没填呢'),
+  name: z.string().min(1, '名称还没填呢'),
   contactPerson: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().optional(),
@@ -15,8 +16,7 @@ const createSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+  await requirePermission(event, 'admin')
   const body = await readBody(event)
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
@@ -26,15 +26,15 @@ export default defineEventHandler(async (event) => {
   const partyId = generateId()
   await db.insert(subcontractParties).values({
     id: partyId,
-    name: body.name,
-    contactPerson: body.contactPerson || null,
-    phone: body.phone || null,
-    email: body.email || null,
-    address: body.address || null,
-    remark: body.remark || null,
+    name,
+    contactPerson: contactPerson || null,
+    phone: phone || null,
+    email: email || null,
+    address: address || null,
+    remark: remark || null,
   })
 
-  await logOperation(event, { action: 'CREATE', module: 'subcontract', targetId: partyId, detail: `添加了分包方「${body.name}」` })
+  await logOperation(event, { action: 'CREATE', targetId: partyId, detail: `添加了分包方「${name}」` })
 
-  return { code: 0, data: null, message: '分包对象已创建' }
+  return { code: 0, data: null, message: '搞定了！分包方已添加' }
 })

@@ -32,18 +32,7 @@ const emit = defineEmits<{
   submit: []
 }>()
 
-const { fetchDictOptions } = useEnum()
-const industryOptions = ref<string[]>([])
-onMounted(async () => {
-  try {
-    const res = await $fetch('/api/dict/industry', {
-      headers: useAuthHeaders(),
-    }) as any
-    if (res?.code === 0) {
-      industryOptions.value = (res.data || []).map((o: any) => o.label)
-    }
-  } catch {}
-})
+const { industryOptions } = useDictIndustry()
 
 const statusOptions = [
   { value: 'potential', label: '潜在客户' },
@@ -56,7 +45,7 @@ const statusOptions = [
 <template>
   <form class="space-y-4" @submit.prevent="$emit('submit')">
     <div>
-      <label class="block text-sm text-content-secondary mb-1">客户名称 <span class="text-red-400">*</span></label>
+      <label class="block text-sm text-content-secondary mb-1">客户名称 <span class="text-danger-500">*</span></label>
       <input
         :value="modelValue.name"
         type="text"

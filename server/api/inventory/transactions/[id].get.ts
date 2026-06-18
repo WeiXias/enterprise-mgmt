@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id } = getRouterParams(event)
 
   const [record] = await db.select({

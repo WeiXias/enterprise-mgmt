@@ -24,8 +24,6 @@ const form = ref({ productId: '', type: 'inbound', quantity: 1, unitPrice: 0, ba
 
 import { jsonToCsv, downloadCsv } from '~/utils/export-csv'
 
-function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '¥' + n.toLocaleString('zh-CN') }
-
 async function fetchItems() {
   loading.value = true
   try {
@@ -78,11 +76,11 @@ async function handleSave() {
   saving.value = true
   try {
     await $api('/api/inventory/transactions', { method: 'POST', body: form.value })
-    toast.add({ title: '操作成功', color: 'success' })
+    toast.add({ title: '搞定了！', color: 'success' })
     showModal.value = false
     form.value = { productId: '', type: 'inbound', quantity: 1, unitPrice: 0, batchNo: '', remark: '' }
     fetchItems()
-  } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '操作出了点问题', color: 'error' }) }
   finally { saving.value = false }
 }
 
@@ -181,11 +179,11 @@ onMounted(() => { fetchItems(); fetchProducts() })
           <tr v-for="t in items" :key="t.id" class="border-b border-line-light">
             <td class="py-2 px-3 font-medium text-content-primary">{{ t.productName || t.productId }}</td>
             <td class="py-2 px-3">
-              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-red-50 text-red-600' : 'bg-line-light text-content-secondary']">
+              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-danger-50 text-danger-600' : 'bg-surface-hover text-content-secondary']">
                 {{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}
               </span>
             </td>
-            <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-red-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
+            <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-danger-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
             <td class="py-2 px-3 text-right text-content-secondary">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
             <td class="py-2 px-3 text-xs text-content-secondary">{{ t.batchNo || '-' }}</td>
             <td class="py-2 px-3 text-xs text-content-secondary max-w-[150px] truncate">{{ t.remark || '-' }}</td>

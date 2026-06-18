@@ -71,7 +71,7 @@ onMounted(() => { fetchSuppliers() })
       <form class="space-y-6" @submit.prevent="handleSubmit">
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">供应商 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">供应商 <span class="text-danger-500">*</span></label>
             <select v-model="form.supplierId" class="w-full input-base focus-ring">
               <option value="">选择供应商</option>
               <option v-for="s in supplierOptions" :key="s.id" :value="s.id">{{ s.name }}</option>

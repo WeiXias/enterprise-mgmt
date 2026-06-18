@@ -20,7 +20,7 @@ async function fetchData() {
     ])
     if (countRes?.code === 0) count.value = countRes.data
     if (itemsRes?.code === 0) items.value = itemsRes.data || []
-  } catch { toast.add({ title: '加载失败', color: 'error' }) }
+  } catch { toast.add({ title: '加载出了点问题', color: 'error' }) }
   finally { loading.value = false }
 }
 
@@ -32,7 +32,7 @@ async function doAction(action: string) {
       toast.add({ title: res.message || '搞定！', color: 'success' })
       fetchData()
     }
-  } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '操作出了点问题', color: 'error' }) }
   finally { actionLoading.value = false }
 }
 
@@ -84,7 +84,7 @@ onMounted(() => { fetchData() })
           <thead>
             <tr class="border-b border-line-light text-content-muted">
               <th class="text-left py-2 font-normal">产品</th>
-              <th class="text-right py-2 font-normal">系统库存</th>
+              <th class="text-right py-2 font-normal">账面库存</th>
               <th class="text-right py-2 font-normal">实盘数量</th>
               <th class="text-right py-2 font-normal">差异</th>
               <th class="text-right py-2 font-normal">状态</th>
@@ -114,7 +114,7 @@ onMounted(() => { fetchData() })
                 </template>
                 <span v-else class="text-content-secondary">{{ item.actualQuantity ?? '-' }}</span>
               </td>
-              <td class="text-right py-2" :class="item.difference && item.difference !== 0 ? 'text-red-500 font-medium' : 'text-content-muted'">
+              <td class="text-right py-2" :class="item.difference && item.difference !== 0 ? 'text-danger-500 font-medium' : 'text-content-muted'">
                 {{ item.difference !== null && item.difference !== undefined ? (item.difference > 0 ? `+${item.difference}` : item.difference) : '-' }}
               </td>
               <td class="text-right py-2">

@@ -2,7 +2,7 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { customers, contacts, tags, customerTags } from '#schema/customers'
 import { users } from '#schema/users'
-import { eq, like, and, isNull, count, desc, inArray } from 'drizzle-orm'
+import { eq, like, and, isNull, count, desc, asc, inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -14,12 +14,24 @@ export default defineEventHandler(async (event) => {
   const keyword = query.keyword as string | undefined
   const status = query.status as string | undefined
   const industry = query.industry as string | undefined
+  const sortBy = (query.sortBy as string) || 'updatedAt'
+  const sortOrder = (query.sortOrder as string) || 'desc'
 
   const where: any[] = [isNull(customers.deletedAt)]
   if (keyword) where.push(like(customers.name, `%${keyword}%`))
   if (status) where.push(eq(customers.status, status))
   if (industry) where.push(eq(customers.industry, industry))
   if (user.role === 'sales_member') where.push(eq(customers.ownerUserId, user.userId))
+
+  const orderFn = sortOrder === 'asc' ? asc : desc
+  const sortColumns: Record<string, any> = {
+    name: customers.name,
+    status: customers.status,
+    industry: customers.industry,
+    createdAt: customers.createdAt,
+    updatedAt: customers.updatedAt,
+  }
+  const orderColumn = sortColumns[sortBy] || customers.updatedAt
 
   const [list, totalResult] = await Promise.all([
     db.select({
@@ -39,7 +51,7 @@ export default defineEventHandler(async (event) => {
       .where(and(...where))
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .orderBy(desc(customers.updatedAt)),
+      .orderBy(orderFn(orderColumn)),
     db.select({ count: count() }).from(customers).where(and(...where)),
   ])
 

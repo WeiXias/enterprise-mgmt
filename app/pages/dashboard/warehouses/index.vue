@@ -36,7 +36,7 @@ async function fetchWarehouses() {
   try {
     const res = await $api('/api/warehouses') as any
     if (res?.code === 0) warehouseList.value = res.data?.items || res.data || []
-  } catch { /* 静默处理 */ }
+  } catch { /* 忽略错误 */ }
   finally { loading.value = false }
 }
 
@@ -150,7 +150,7 @@ async function handleSaveLocation() {
       showLocationModal.value = false
       if (locationWarehouseId.value) await fetchLocations(locationWarehouseId.value)
     }
-  } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '操作出了点问题', color: 'error' }) }
   finally { locationLoading.value = false }
 }
 
@@ -232,12 +232,12 @@ onMounted(() => { fetchWarehouses() })
         <form class="space-y-4" @submit.prevent="handleCreate">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-content-secondary mb-1">仓库名称 <span class="text-red-400">*</span></label>
+              <label class="block text-sm text-content-secondary mb-1">仓库名称 <span class="text-danger-500">*</span></label>
               <input v-model="createForm.name" type="text" placeholder="仓库名称" class="w-full input-base focus-ring" />
             </div>
             <div>
-              <label class="block text-sm text-content-secondary mb-1">编码 <span class="text-content-muted text-xs">(自动生成)</span></label>
-              <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full input-base focus-ring" />
+              <label class="block text-sm text-content-secondary mb-1">编码 <span class="text-content-muted text-xs">(留空时帮你填好)</span></label>
+              <input v-model="createForm.code" type="text" placeholder="留空时帮你填好" class="w-full input-base focus-ring" />
             </div>
           </div>
           <div>
@@ -260,7 +260,7 @@ onMounted(() => { fetchWarehouses() })
         <form class="space-y-4" @submit.prevent="handleEdit">
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm text-content-secondary mb-1">仓库名称 <span class="text-red-400">*</span></label>
+              <label class="block text-sm text-content-secondary mb-1">仓库名称 <span class="text-danger-500">*</span></label>
               <input v-model="editForm.name" type="text" class="w-full input-base focus-ring" />
             </div>
             <div>
@@ -287,11 +287,11 @@ onMounted(() => { fetchWarehouses() })
     <FormModal v-if="showLocationModal" v-model:open="showLocationModal" :title="editingLocationId ? '编辑库位' : '添加库位'" size="compact" :loading="locationLoading" @confirm="handleSaveLocation" @cancel="showLocationModal = false">
         <form class="space-y-4" @submit.prevent="handleSaveLocation">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">库位名称 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">库位名称 <span class="text-danger-500">*</span></label>
             <input v-model="locationForm.name" type="text" placeholder="如 A区-01" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-content-secondary mb-1">库位编码 <span class="text-red-400">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">库位编码 <span class="text-danger-500">*</span></label>
             <input v-model="locationForm.code" type="text" placeholder="如 A-01" class="w-full input-base focus-ring" />
           </div>
           <div>

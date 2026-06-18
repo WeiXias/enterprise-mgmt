@@ -24,7 +24,7 @@ async function fetchOrder() {
     const res = await $api(`/api/purchase-orders/${route.params.id}`) as any
     if (res?.code === 0) order.value = res.data
     else { toast.add({ title: '找不到这个采购订单', color: 'error' }); router.push('/dashboard/purchases') }
-  } catch { toast.add({ title: '加载失败', color: 'error' }) }
+  } catch { toast.add({ title: '加载出了点问题', color: 'error' }) }
   finally { loading.value = false }
 }
 

@@ -71,7 +71,7 @@ async function fetchCategories() {
       categories.value = res.data
     }
   } catch (e) {
-    // 静默处理
+    // 忽略错误
   }
 }
 
@@ -361,8 +361,8 @@ onMounted(() => {
             <input v-model="createForm.name" type="text" placeholder="产品名称" class="w-full input-base focus-ring" />
           </div>
           <div>
-            <label class="block text-sm text-content-secondary mb-1">产品编码 <span class="text-xs text-content-secondary">(自动生成)</span></label>
-            <input v-model="createForm.code" type="text" placeholder="留空自动生成" class="w-full input-base focus-ring" />
+            <label class="block text-sm text-content-secondary mb-1">产品编码 <span class="text-xs text-content-secondary">(留空时帮你填好)</span></label>
+            <input v-model="createForm.code" type="text" placeholder="留空时帮你填好" class="w-full input-base focus-ring" />
           </div>
         </div>
       </div>

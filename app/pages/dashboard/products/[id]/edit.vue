@@ -40,13 +40,13 @@ onMounted(fetchData)
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else class="em-card">
       <form class="space-y-4" @submit.prevent="handleSubmit">
-        <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-red-400">*</span></label><input v-model="form.name" type="text" class="w-full input-base focus-ring" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">编码</label><input v-model="form.code" type="text" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="无分类" /></div>
         <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-secondary mb-1">标准售价</label><input v-model.number="form.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-secondary mb-1">成本价</label><input v-model.number="form.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div></div>
         <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="form.description" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       </form>
-      <div class="mt-6 flex justify-end gap-2"><UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton><UButton color="primary" :loading="saving" @click="handleSubmit">保存</UButton></div>
+      <div class="mt-6 flex justify-end gap-2"><UButton color="primary" :loading="saving" @click="handleSubmit">保存</UButton><UButton variant="ghost" color="neutral" @click="router.back()">算了</UButton></div>
     </div>
   </div>
 </template>

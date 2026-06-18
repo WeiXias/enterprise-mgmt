@@ -54,12 +54,6 @@ async function fetchStats() {
   } catch { /* ignore */ }
 }
 
-function formatMoney(v: any) {
-  const n = Number(v)
-  if (!n) return '-'
-  return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2 })
-}
-
 async function fetchOptions() {
   try {
     const [cRes, rRes] = await Promise.all([
@@ -87,6 +81,11 @@ async function handleCalc() {
   finally { calcLoading.value = false }
 }
 
+const showRejectModal = ref(false)
+const rejectTargetId = ref('')
+const rejectReason = ref('')
+const rejectLoading = ref(false)
+
 // === Approve ===
 async function handleApprove(id: string) {
   approveLoading.value = id
@@ -98,12 +97,19 @@ async function handleApprove(id: string) {
 }
 
 async function handleReject(id: string) {
-  const reason = prompt('驳回原因：')
-  if (!reason) return
+  rejectTargetId.value = id
+  rejectReason.value = ''
+  showRejectModal.value = true
+}
+
+async function handleRejectConfirm() {
+  if (!rejectReason.value) { toast.add({ title: '驳回原因得填一下', color: 'warning' }); return }
+  rejectLoading.value = true
   try {
-    const res = await $api(`/api/commissions/${id}/reject`, { method: 'POST', body: { reason } }) as any
-    if (res?.code === 0) { toast.add({ title: '已驳回', color: 'success' }); fetchItems() }
+    const res = await $api(`/api/commissions/${rejectTargetId.value}/reject`, { method: 'POST', body: { reason: rejectReason.value } }) as any
+    if (res?.code === 0) { toast.add({ title: '已驳回', color: 'success' }); showRejectModal.value = false; fetchItems() }
   } catch (err: any) { toast.add({ title: err?.data?.message || '驳回失败', color: 'error' }) }
+  finally { rejectLoading.value = false }
 }
 
 // === Adjust ===
@@ -263,11 +269,16 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
       title="确认删除"
       :message="`确定要删除「${deleteTarget?.user?.name} - ${deleteTarget?.contract?.name}」的提成记录吗？删了就找不回来了。`"
       confirm-text="确认删除"
-      cancel-text="取消"
+      cancel-text="再想想"
       :loading="deleteLoading"
       danger
       @confirm="handleDelete"
       @cancel="deleteTarget = null"
     />
+
+    <!-- 驳回原因弹窗 -->
+    <FormModal v-if="showRejectModal" v-model:open="showRejectModal" title="驳回原因" size="compact" :loading="rejectLoading" @confirm="handleRejectConfirm" @cancel="showRejectModal = false">
+      <textarea v-model="rejectReason" rows="3" placeholder="写一下驳回原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
+    </FormModal>
   </div>
 </template>

@@ -39,7 +39,11 @@ const colorMap: Record<string, { bg: string; text: string }> = {
   // 提成
   pending: { bg: 'bg-brand-50', text: 'text-brand-600' },
   rejected: { bg: 'bg-red-50', text: 'text-red-500' },
-  paid: { bg: 'bg-brand-50', text: 'text-brand-500' }
+  paid: { bg: 'bg-brand-50', text: 'text-brand-500' },
+  // 盘点
+  counting: { bg: 'bg-brand-50', text: 'text-brand-600' },
+  counted: { bg: 'bg-brand-50', text: 'text-brand-500' },
+  reviewed: { bg: 'bg-teal-50', text: 'text-teal-600' },
 }
 
 const colors = computed(() => colorMap[props.value] || { bg: 'bg-surface-hover', text: 'text-content-muted' })

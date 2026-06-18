@@ -45,8 +45,8 @@ onMounted(fetchCustomer)
     <div v-else class="em-card">
       <CustomerForm v-model="form" mode="edit" @submit="handleSubmit" />
       <div class="mt-6 flex justify-end gap-2">
-        <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>
         <UButton color="primary" :loading="saving" @click="handleSubmit">保存</UButton>
+        <UButton variant="ghost" color="neutral" @click="router.back()">算了</UButton>
       </div>
     </div>
   </div>

@@ -1,7 +1,7 @@
-import { defineEventHandler, getQuery, createError } from 'h3'
+import { defineEventHandler, createError } from 'h3'
 import { db } from '#database'
 import { commissions, users } from '#schema'
-import { sql } from 'drizzle-orm'
+import { sql, isNull } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     totalAmount: sql<number>`coalesce(sum(${commissions.amount}), 0)`,
     paidAmount: sql<number>`coalesce(sum(case when ${commissions.status} = 'paid' then ${commissions.amount} else 0 end), 0)`,
     pendingAmount: sql<number>`coalesce(sum(case when ${commissions.status} = 'pending' then ${commissions.amount} else 0 end), 0)`,
-  }).from(commissions)
+  }).from(commissions).where(isNull(commissions.deletedAt))
 
   const s = stats[0]
 
@@ -21,14 +21,14 @@ export default defineEventHandler(async (event) => {
     userName: sql<string>`(select name from users where users.id = ${commissions.userId})`,
     totalAmount: sql<number>`sum(${commissions.amount})`,
     count: sql<number>`count(*)`,
-  }).from(commissions).groupBy(commissions.userId)
+  }).from(commissions).where(isNull(commissions.deletedAt)).groupBy(commissions.userId)
 
   // 按月份汇总
   const byMonth = await db.select({
     periodMonth: commissions.periodMonth,
     totalAmount: sql<number>`sum(${commissions.amount})`,
     count: sql<number>`count(*)`,
-  }).from(commissions).groupBy(commissions.periodMonth).orderBy(sql`${commissions.periodMonth} desc`)
+  }).from(commissions).where(isNull(commissions.deletedAt)).groupBy(commissions.periodMonth).orderBy(sql`${commissions.periodMonth} desc`)
 
   return {
     code: 0,

@@ -13,22 +13,6 @@ const form = ref({ name: '', code: '', categoryId: '', standardPrice: 0, costPri
 const images = ref<{ id?: string; fileName: string; filePath: string; fileSize: number; _file?: File }[]>([])
 const imageUploading = ref(false)
 
-async function uploadImage(file: File) {
-  imageUploading.value = true
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await $fetch('/api/products/_temp/images', { method: 'POST', body: formData }) as any
-    if (res?.code === 0 && res.data) {
-      images.value.push({ id: res.data.id, fileName: res.data.fileName, filePath: res.data.filePath, fileSize: res.data.fileSize })
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '上传失败', color: 'error' })
-  } finally {
-    imageUploading.value = false
-  }
-}
-
 function removeImage(idx: number) {
   images.value.splice(idx, 1)
 }
@@ -122,7 +106,7 @@ onMounted(fetchCategories)
         <h3 class="text-sm font-medium text-content-primary mb-3">基本信息</h3>
         <div class="space-y-3">
           <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" placeholder="产品名称" class="w-full input-base focus-ring" /></div>
-          <div><label class="block text-sm text-content-secondary mb-1">编码 <span class="text-xs text-content-muted">(留空自动生成)</span></label><input v-model="form.code" type="text" placeholder="留空自动生成" class="w-full input-base focus-ring" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">编码 <span class="text-xs text-content-muted">(留空时帮你填好)</span></label><input v-model="form.code" type="text" placeholder="留空时帮你填好" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="无分类" /></div>
         </div>
       </div>
@@ -149,7 +133,7 @@ onMounted(fetchCategories)
           <div v-for="(img, idx) in images" :key="idx" class="relative w-20 h-20 rounded-lg border border-line overflow-hidden group">
             <img v-if="img._file" :src="URL.createObjectURL(img._file)" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full bg-surface-hover flex items-center justify-center text-content-muted text-xs">无</div>
-            <button class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" @click="removeImage(idx)"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+            <button class="absolute top-1 right-1 w-5 h-5 rounded-full bg-danger-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" @click="removeImage(idx)"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
           </div>
           <label class="w-20 h-20 rounded-lg border-2 border-dashed border-line flex items-center justify-center cursor-pointer hover:border-brand-400 transition-colors">
             <UIcon name="i-lucide-plus" class="w-5 h-5 text-content-muted" />
@@ -172,8 +156,8 @@ onMounted(fetchCategories)
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
-        <UButton variant="ghost" color="neutral" @click="router.back()">算了</UButton>
         <UButton color="primary" :loading="saving" @click="handleSubmit">添加产品</UButton>
+        <UButton variant="ghost" color="neutral" @click="router.back()">算了</UButton>
       </div>
     </div>
   </div>

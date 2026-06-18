@@ -30,12 +30,6 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   paid: { label: '已发放', color: 'bg-teal-50 text-teal-700' },
 }
 
-function formatMoney(v: any) {
-  const n = Number(v)
-  if (!n) return '-'
-  return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2 })
-}
-
 async function fetchDetail() {
   loading.value = true
   try {

@@ -77,7 +77,7 @@ async function fetchDetail() {
     const res = await $api(`/api/products/${productId}`) as any
     if (res?.code === 0) product.value = res.data
     else { toast.add({ title: '产品不存在', color: 'error' }); router.push('/dashboard/products') }
-  } catch { toast.add({ title: '加载失败', color: 'error' }) }
+  } catch { toast.add({ title: '加载出了点问题', color: 'error' }) }
   finally { loading.value = false }
 }
 
@@ -107,7 +107,7 @@ async function handleEdit() {
   try {
     const res = await $api(`/api/products/${productId}`, { method: 'PUT', body: editForm.value }) as any
     if (res?.code === 0) { toast.add({ title: '已保存', color: 'success' }); showEditModal.value = false; fetchDetail() }
-  } catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '保存出了点问题', color: 'error' }) }
   finally { editLoading.value = false }
 }
 
@@ -123,9 +123,9 @@ async function handleDelete() {
 async function toggleStatus() {
   try {
     await $api(`/api/products/${productId}/toggle-status`, { method: 'POST' })
-    toast.add({ title: '状态已切换', color: 'success' })
+    toast.add({ title: '切换好了', color: 'success' })
     fetchDetail()
-  } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '操作出了点问题', color: 'error' }) }
 }
 
 async function handleSaveInventory() {
@@ -133,7 +133,7 @@ async function handleSaveInventory() {
   inventorySaving.value = true
   try {
     await $api('/api/inventory/transactions', { method: 'POST', body: { ...inventoryForm.value, productId } })
-    toast.add({ title: '已登记', color: 'success' })
+    toast.add({ title: '登记好了！', color: 'success' })
     showInventoryModal.value = false
     inventoryForm.value = { type: 'inbound', quantity: 1, unitPrice: 0, batchNo: '', remark: '' }
     fetchTransactions()
@@ -290,7 +290,7 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
               <div><span class="text-xs text-content-muted">标准价格</span><p class="text-base font-medium text-content-primary">{{ formatPrice(product.standardPrice) }}</p></div>
               <div><span class="text-xs text-content-muted">成本价格</span><p class="text-base text-content-secondary">{{ formatPrice(product.costPrice) }}</p></div>
               <div><span class="text-xs text-content-muted">利润率</span><p class="text-base" :class="profitMargin && Number(profitMargin) > 0 ? 'text-teal-600' : 'text-content-muted'">{{ profitMargin !== null ? profitMargin + '%' : '-' }}</p></div>
-              <div><span class="text-xs text-content-muted">当前库存</span><p class="text-base font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-red-400'">{{ product.stockQuantity ?? 0 }}</p></div>
+              <div><span class="text-xs text-content-muted">当前库存</span><p class="text-base font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-danger-500'">{{ product.stockQuantity ?? 0 }}</p></div>
             </div>
 
             <!-- 操作按钮 -->
@@ -448,7 +448,7 @@ onMounted(() => { fetchDetail(); fetchTransactions(); fetchImages(); fetchSpecs(
         :danger="true"
         title="删除库存记录"
         message="删除后库存将回退，确定要删吗？"
-        @confirm="handleDeletedConfirmed"
+        @confirm="handleDeleteConfirmed"
       />
     </template>
   </div>

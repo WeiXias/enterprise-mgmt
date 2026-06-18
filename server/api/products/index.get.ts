@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
 import { products, productCategories } from '#schema/products'
-import { eq, and, isNull, like, or, sql, desc } from 'drizzle-orm'
+import { eq, and, isNull, like, or, sql, asc, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -10,6 +10,8 @@ export default defineEventHandler(async (event) => {
   const keyword = query.keyword as string | undefined
   const categoryId = query.categoryId as string | undefined
   const status = query.status as string | undefined
+  const sortBy = (query.sortBy as string) || 'updatedAt'
+  const sortOrder = (query.sortOrder as string) || 'desc'
 
   const conditions = [isNull(products.deletedAt)]
   if (keyword) {
@@ -20,6 +22,14 @@ export default defineEventHandler(async (event) => {
   }
   if (categoryId) conditions.push(eq(products.categoryId, categoryId))
   if (status) conditions.push(eq(products.status, status))
+
+  const orderFn = sortOrder === 'asc' ? asc : desc
+  const sortColumns: Record<string, any> = {
+    name: products.name, code: products.code, status: products.status,
+    standardPrice: products.standardPrice, stockQuantity: products.stockQuantity,
+    createdAt: products.createdAt, updatedAt: products.updatedAt,
+  }
+  const orderColumn = sortColumns[sortBy] || products.updatedAt
 
   const [list, totalResult] = await Promise.all([
     db.select({
@@ -37,7 +47,7 @@ export default defineEventHandler(async (event) => {
     }).from(products)
       .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
       .where(and(...conditions))
-      .orderBy(desc(products.updatedAt))
+      .orderBy(orderFn(orderColumn))
       .limit(pageSize).offset((page - 1) * pageSize),
     db.select({ count: sql<number>`count(*)` }).from(products).where(and(...conditions)),
   ])
