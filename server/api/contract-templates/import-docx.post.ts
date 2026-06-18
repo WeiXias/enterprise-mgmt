@@ -20,22 +20,19 @@ export default defineEventHandler(async (event) => {
   if (fileSize > 20 * 1024 * 1024) throw createError({ statusCode: 422, statusMessage: '文件不能超过 20MB' })
 
   const buffer = Buffer.from(uploadFile.data)
+
+  // 用 mammoth 提取文本用于占位符检测，同时保留原始 docx buffer 供编辑器使用
   const mammoth = await import('mammoth')
   const convertResult = await mammoth.convertToHtml({ buffer })
-
-  if (!convertResult.value) {
-    throw createError({ statusCode: 400, statusMessage: 'Word 文件解析失败，检查一下文件是不是损坏了' })
-  }
-
-  // 如果有 mammoth 警告，可以通过 convertResult.messages 获取，但不影响主流程
-  const content = convertResult.value
-  const placeholders = extractPlaceholders(content)
+  const htmlContent = convertResult.value || ''
+  const placeholders = extractPlaceholders(htmlContent)
   const suggestedName = fileName.replace(/\.docx$/i, '')
 
   return {
     code: 0,
     data: {
-      content,
+      content: htmlContent, // 旧版字段（详情页渲染用）
+      docxBuffer: buffer.toString('base64'), // ← 新增：原始 docx 文件（base64），供编辑器加载
       placeholders,
       suggestedName,
     },

@@ -36,7 +36,7 @@ async function fetchCustomers() {
 
 async function fetchTemplates() {
   try {
-    const res = await $api('/api/contracts/templates') as any
+    const res = await $api('/api/contract-templates') as any
     if (res?.code === 0) templates.value = res.data || []
   } catch {}
 }
@@ -57,30 +57,21 @@ async function applyTemplate() {
     const contractId = createRes.data.id
 
     // 应用模板 → 获取替换后的 HTML → 前端转为 ProseMirror JSON
-    const applyRes = await $api(`/api/contracts/templates/${selectedTemplate.value.id}/apply`, {
+    const applyRes = await $api(`/api/contract-templates/${selectedTemplate.value.id}/apply`, {
       method: 'POST',
       body: { contractId }
     }) as any
 
     if (applyRes?.code === 0 && applyRes.data?.content) {
-      // 保存 ProseMirror JSON 到后端
-      const htmlContent = applyRes.data.content
-      // 用 ProseMirror DOMParser 将 HTML 转成 Document JSON
-      const tempEditorRef = contractEditorRef.value?.getEditorRef?.()
-      if (tempEditorRef) {
-        // 创建临时文档：通过 import 拿到 createDocumentWithText + HTML→docx buffer 的路径
-        // 简化处理：将 HTML 作为纯文本先建文档，然后保存
-        const mod = await import('@eigenpal/docx-editor-vue')
-        const tempDoc = mod.createDocumentWithText(htmlContent.replace(/<[^>]*>/g, ''))
-        tempEditorRef.loadDocument(tempDoc)
-        await nextTick()
-        const doc = contractEditorRef.value?.getDocument()
-        if (doc) {
-          await $api(`/api/contracts/${contractId}/content`, {
-            method: 'PUT',
-            body: { content: doc }
-          })
-        }
+      // 模板后端返回 HTML（详情页用）+ DOCX buffer（编辑器用）
+      // 由于新建合同创建后直接跳转详情页，只需保存 HTML
+      await $api(`/api/contracts/${contractId}`, {
+        method: 'PUT',
+        body: { content: applyRes.data.content }
+      })
+      // 如果有 DOCX，也保存到 content 字段供后续编辑页使用
+      if (applyRes.data?.docxBuffer) {
+        // 新建时暂时只存 HTML；用户在编辑页重新套模板即可加载 DOCX
       }
     }
 

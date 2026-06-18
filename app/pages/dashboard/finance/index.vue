@@ -34,7 +34,7 @@ async function fetchData() {
       incomeCategories.value = categoriesRes.data.income || []
       expenseCategories.value = categoriesRes.data.expense || []
     }
-  } catch { /* ignore */ }
+  } catch { toast.add({ title: "加载概览出了点问题", color: "error" }) }
   finally { loading.value = false }
 }
 
@@ -64,7 +64,7 @@ onMounted(() => fetchData())
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-12 text-content-secondary">马上就好...</div>
+  <div v-if="loading" class="py-4"><ListSkeleton /></div>
   <div v-else>
     <div class="mb-6 flex items-center justify-between">
       <div>
@@ -102,7 +102,7 @@ onMounted(() => fetchData())
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-bell" class="w-5 h-5 text-brand-400" /></div>
         <div>
           <p class="text-xl font-medium text-content-primary">{{ stats.overduePaymentCount + stats.pendingReimbursementCount }}</p>
-          <p class="text-xs text-content-secondary">待处理（{{ stats.overduePaymentCount }} 逾期 + {{ stats.pendingReimbursementCount }} 报销）</p>
+          <p class="text-xs text-content-secondary">待跟进（{{ stats.overduePaymentCount }} 逾期 + {{ stats.pendingReimbursementCount }} 报销）</p>
         </div>
       </div>
     </div>

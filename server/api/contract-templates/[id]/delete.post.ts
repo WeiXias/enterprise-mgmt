@@ -1,4 +1,4 @@
-import { defineEventHandler, getRouterParams } from 'h3'
+import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { contractTemplates } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'

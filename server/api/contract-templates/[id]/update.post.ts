@@ -13,6 +13,7 @@ const schema = z.object({
   content: z.string().optional(),
   placeholders: z.string().optional(),
   sortOrder: z.number().int().optional(),
+  docxContent: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {

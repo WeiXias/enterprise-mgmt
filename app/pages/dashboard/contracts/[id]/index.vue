@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { sanitizeHtml } from '~/utils/sanitize'
+import { renderContractContent } from '~/utils/sanitize'
 
 definePageMeta({ layout: 'dashboard', title: '合同详情', middleware: ['auth'], watermark: true })
 
@@ -256,7 +257,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+  <div v-if="loading" class="py-4"><DetailSkeleton /></div>
   <div v-else-if="!contract" class="text-center py-12 text-content-muted">合同不存在</div>
   <div v-else>
     <!-- 顶部面包屑 + 操作 -->
@@ -360,7 +361,7 @@ onMounted(() => {
             <p>还没起草正文</p>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="primary" size="sm" class="mt-2" :to="`/dashboard/contracts/${contract.id}/edit`">点击编辑开始撰写</UButton>
           </div>
-          <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="sanitizeHtml(contract.content)" />
+          <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="renderContractContent(contract.content)" />
         </div>
       </template>
 

@@ -298,7 +298,7 @@ onMounted(() => {
     </div>
 
     <!-- 合同列表 -->
-    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-if="loading" class="py-4"><ListSkeleton /></div>
     <div v-else-if="contractsList.length === 0" class="text-center py-12 text-content-muted">还没有合同，加一个？</div>
     <div v-else class="space-y-2">
       <div

@@ -173,7 +173,7 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
       <span class="text-xs text-content-secondary">共 {{ total }} 个项目</span>
     </div>
 
-    <div v-if="loading" class="text-center py-12 text-content-secondary">马上就好...</div>
+    <div v-if="loading" class="py-4"><ListSkeleton /></div>
     <div v-else-if="projectsList.length === 0" class="text-center py-12 text-content-secondary">还没有项目，创建第一个？</div>
     <div v-else class="space-y-2">
       <div v-for="p in projectsList" :key="p.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/projects/${p.id}`)">

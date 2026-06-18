@@ -35,7 +35,7 @@ function isOverdue(m: Milestone) {
         <div
           :class="[
             'absolute left-[5px] top-1 w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 transition-colors',
-            isCompleted(m) ? 'bg-teal-400 border-teal-400' : isOverdue(m) ? 'bg-danger-50 border-red-400' : 'bg-surface-card border-line'
+            isCompleted(m) ? 'bg-teal-400 border-teal-400' : isOverdue(m) ? 'bg-danger-50 border-danger-400' : 'bg-surface-card border-line'
           ]"
         >
           <UIcon v-if="isCompleted(m)" name="i-lucide-check" class="w-2.5 h-2.5 text-white absolute -top-px -left-px" />

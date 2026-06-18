@@ -5,6 +5,8 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
 import { requirePermission } from '#server-utils/permission'
 import { z } from 'zod'
+import PizZip from 'pizzip'
+import Docxtemplater from 'docxtemplater'
 
 const schema = z.object({
   contractId: z.string().min(1),
@@ -18,7 +20,6 @@ export default defineEventHandler(async (event) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
-  // 获取模板
   const tmplResult = await db.select().from(contractTemplates)
     .where(and(eq(contractTemplates.id, id), isNull(contractTemplates.deletedAt)))
     .limit(1)
@@ -26,7 +27,6 @@ export default defineEventHandler(async (event) => {
 
   const tmpl = tmplResult[0]
 
-  // 获取合同及客户信息用于占位符替换
   const contractResult = await db.select().from(contracts)
     .where(and(eq(contracts.id, parsed.data.contractId), isNull(contracts.deletedAt)))
     .limit(1)
@@ -34,13 +34,11 @@ export default defineEventHandler(async (event) => {
 
   const c = contractResult[0]
 
-  // 获取客户名
   let customerName = ''
   const customerResult = await db.select({ name: customers.name }).from(customers)
     .where(eq(customers.id, c!.customerId)).limit(1)
   if (customerResult.length > 0) customerName = customerResult[0].name
 
-  // 构建替换映射
   const replacements: Record<string, string> = {
     partyA: c!.partyA || '',
     partyB: c!.partyB || '',
@@ -51,13 +49,39 @@ export default defineEventHandler(async (event) => {
     paymentMethod: c!.paymentMethod || '',
   }
 
-  // 占位符替换
-  let content = tmpl!.content || ''
+  // 1. 渲染 HTML（详情页用）
+  let htmlContent = tmpl!.content || ''
   for (const [key, value] of Object.entries(replacements)) {
-    content = content.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value || `{{${key}}}`)
+    htmlContent = htmlContent.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value || `{{${key}}}`)
   }
 
-  await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: parsed.data.contractId, detail: `应用了模板「${tmpl!.name}」生成合同正文` })
+  // 2. 如果有 docx 原始文件，用 docxtemplater 渲染 DOCX buffer（编辑器用）
+  let docxBuffer: string | null = null
+  if (tmpl!.docxContent) {
+    try {
+      const zip = new PizZip(Buffer.from(tmpl!.docxContent, 'base64'))
+      const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+        delimiters: { start: '{{', end: '}}' },
+      })
+      doc.render(replacements)
+      const rendered = doc.getZip().generate({ type: 'nodebuffer' })
+      docxBuffer = Buffer.from(rendered).toString('base64')
+    } catch {
+      // docxtemplater 渲染失败时回退到只有 HTML
+      docxBuffer = null
+    }
+  }
 
-  return { code: 0, data: { content }, message: '模板已应用' }
+  await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: parsed.data.contractId, detail: `应用了模板「${tmpl!.name}」` })
+
+  return {
+    code: 0,
+    data: {
+      content: htmlContent,      // HTML — 详情页渲染
+      docxBuffer,                 // base64 DOCX — 编辑器 loadDocumentBuffer
+    },
+    message: '模板已应用',
+  }
 })

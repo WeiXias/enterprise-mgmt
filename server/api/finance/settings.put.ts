@@ -3,6 +3,7 @@ import { db } from '#database'
 import { financeSettings } from '#schema'
 import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
+import { logOperation } from '#server-utils/log'
 import { requirePermission } from '#server-utils/permission'
 import { z } from 'zod'
 
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
   const parsed = bodySchema.safeParse(body)
-  if (!parsed.success) throw createError({ statusCode: 422, statusMessage: '请求格式不对' })
+  if (!parsed.success) throw createError({ statusCode: 422, statusMessage: '数据格式不对' })
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
   for (const [key, val] of Object.entries(parsed.data)) {
@@ -26,5 +27,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  await logOperation(event, { action: 'UPDATE', module: 'finance', targetId: 'settings', detail: '保存了财务设置' })
   return { code: 0, data: null, message: '设置已保存' }
 })

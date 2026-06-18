@@ -15,6 +15,7 @@ const schema = z.object({
   startDate: z.string().optional().or(z.literal('')),
   endDate: z.string().optional().or(z.literal('')),
   remark: z.string().optional(),
+  content: z.any().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const updateData: Record<string, unknown> = { updatedAt: now }
 
-  for (const key of ['name', 'ownerUserId', 'totalAmount', 'partyA', 'partyB', 'paymentMethod', 'remark']) {
+  for (const key of ['name', 'ownerUserId', 'totalAmount', 'partyA', 'partyB', 'paymentMethod', 'remark', 'content']) {
     const val = parsed.data[key as keyof typeof parsed.data]
     if (val !== undefined) updateData[key] = val
   }

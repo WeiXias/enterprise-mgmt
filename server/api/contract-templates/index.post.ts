@@ -13,6 +13,7 @@ const schema = z.object({
   content: z.string().optional(),
   placeholders: z.string().optional(),
   sortOrder: z.number().int().optional().default(0),
+  docxContent: z.string().optional(), // 原始 DOCX base64
 })
 
 export default defineEventHandler(async (event) => {
@@ -33,6 +34,7 @@ export default defineEventHandler(async (event) => {
     content: parsed.data.content || '',
     placeholders: parsed.data.placeholders || '[]',
     sortOrder: parsed.data.sortOrder,
+    docxContent: parsed.data.docxContent || null,
     createdBy: user.userId,
     createdAt: now,
     updatedAt: now,

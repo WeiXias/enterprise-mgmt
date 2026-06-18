@@ -17,14 +17,16 @@ export default defineEventHandler(async (event) => {
   const raw = result[0].content
   if (!raw) return { code: 0, data: { content: null } }
 
-  // 尝试反序列化 ProseMirror JSON；旧数据（纯 HTML 文本）返回 null 让前端走 fallback
+  // 尝试反序列化 ProseMirror JSON；旧数据（纯 HTML 文本）返回原始 HTML 让前端自行渲染
   try {
     const parsed = JSON.parse(raw)
     if (parsed && typeof parsed === 'object' && parsed.type === 'doc') {
       return { code: 0, data: { content: parsed } }
     }
-    return { code: 0, data: { content: null } }
+    // JSON 对象但不是 ProseMirror doc，返回原值
+    return { code: 0, data: { content: raw } }
   } catch {
-    return { code: 0, data: { content: null } }
+    // 不是 JSON，按 HTML 原文返回
+    return { code: 0, data: { content: raw } }
   }
 })

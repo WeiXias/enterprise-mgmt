@@ -43,7 +43,7 @@ async function handleRefund() {
   saving.value = true
   try {
     const res = await $api(`/api/deposits/${refundTarget.value.id}/refund`, { method: 'POST', body: refundForm.value }) as any
-    if (res?.code === 0) { toast.add({ title: '退款已处理', color: 'success' }); showRefund.value = false; fetchList() }
+    if (res?.code === 0) { toast.add({ title: '退款已完成', color: 'success' }); showRefund.value = false; fetchList() }
   } catch (err: any) { toast.add({ title: err?.data?.message || '退款失败', color: 'error' }) }
   finally { saving.value = false }
 }

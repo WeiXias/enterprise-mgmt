@@ -24,6 +24,15 @@ const form = ref({
 
 // 模板正文内容（HTML）
 const editorContent = ref('')
+// 导入的 DOCX 原始文件（base64）
+const editorDocxBuffer = ref<string | null>(null)
+// ProseMirror 编辑器文档模型
+const editorDocumentModel = ref<object | null>(null)
+
+// 编辑器内容变更回调
+function onEditorDocChange(doc: object) {
+  editorDocumentModel.value = doc
+}
 
 // 产品清单
 const productItems = ref<{ productId: string; quantity: number; unitPrice: number }[]>([])
@@ -40,7 +49,7 @@ const fileInputRef = ref<HTMLInputElement>()
 async function fetchTemplates() {
   loading.value = true
   try {
-    const res = await $api('/api/contracts/templates') as any
+    const res = await $api('/api/contract-templates') as any
     if (res?.code === 0) templates.value = res.data || []
   } catch { /* ignore */ }
   finally { loading.value = false }
@@ -51,6 +60,7 @@ function openCreate() {
   editId.value = ''
   form.value = { name: '', description: '', category: 'service', sortOrder: 0 }
   editorContent.value = ''
+  editorDocxBuffer.value = null
   productItems.value = []
   showModal.value = true
 }
@@ -60,6 +70,7 @@ function openEdit(t: any) {
   editId.value = t.id
   form.value = { name: t.name, description: t.description || '', category: t.category, sortOrder: t.sortOrder || 0 }
   editorContent.value = t.content || ''
+  editorDocxBuffer.value = t.docxContent || null
   try { productItems.value = JSON.parse(t.productItems || '[]') } catch { productItems.value = [] }
   showModal.value = true
 }
@@ -90,14 +101,15 @@ async function handleSave() {
     const body = {
       ...form.value,
       content: editorContent.value,
+      docxContent: editorDocxBuffer.value || undefined,
       placeholders: JSON.stringify(extractPlaceholders(editorContent.value)),
       productItems: JSON.stringify(productItems.value),
     }
     let res: any
     if (editMode.value === 'create') {
-      res = await $api('/api/contracts/templates', { method: 'POST', body })
+      res = await $api('/api/contract-templates', { method: 'POST', body })
     } else {
-      res = await $api(`/api/contracts/templates/${editId.value}`, { method: 'PUT', body })
+      res = await $api(`/api/contract-templates/${editId.value}/update`, { method: 'POST', body })
     }
     if (res?.code === 0) {
       toast.add({ title: editMode.value === 'create' ? '模板创建成功' : '模板已更新', color: 'success' })
@@ -123,7 +135,7 @@ function promptDelete(t: any) {
 async function handleDeleteConfirmed() {
   if (!deleteTarget.value) return
   try {
-    const res = await $api(`/api/contracts/templates/${deleteTarget.value.id}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/contract-templates/${deleteTarget.value.id}/delete`, { method: 'POST' }) as any
     if (res?.code === 0) {
       toast.add({ title: '模板已删除', color: 'success' })
       fetchTemplates()
@@ -141,7 +153,7 @@ async function handleAIGenerate() {
   }
   aiGenerating.value = true
   try {
-    const res = await $api('/api/contracts/templates/ai-generate', {
+    const res = await $api('/api/contract-templates/ai-generate', {
       method: 'POST',
       body: { prompt: aiPrompt.value, category: form.value.category },
     }) as any
@@ -179,14 +191,15 @@ async function handleFileChange(e: Event) {
   try {
     const formData = new FormData()
     formData.append('file', file)
-    const res = await $api('/api/contracts/templates/import-docx', {
+    const res = await $api('/api/contract-templates/import-docx', {
       method: 'POST',
       body: formData,
     }) as any
     if (res?.code === 0) {
       openCreate()
       editorContent.value = res.data.content
-      form.value.name = res.data.suggestedName || ''
+      editorDocxBuffer.value = res.data.docxBuffer || null
+      form.value.name = res.data.suggestedName || 
       toast.add({ title: 'Word 模板已解析，看看要不要调整一下再保存', color: 'success' })
     }
   } catch (err: any) {
@@ -235,7 +248,7 @@ onMounted(fetchTemplates)
 
     <input ref="fileInputRef" type="file" accept=".docx" class="hidden" @change="handleFileChange" />
 
-    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
+    <div v-if="loading" class="py-4"><ListSkeleton /></div>
     <div v-else-if="templates.length === 0" class="text-center py-12 text-content-muted">还没有模板，创建一个？</div>
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div v-for="t in templates" :key="t.id" class="em-card group">
@@ -340,8 +353,10 @@ onMounted(fetchTemplates)
               <span class="text-content-muted font-normal ml-1">（用 <code v-pre>{{key}}</code> 表示占位符）</span>
             </label>
             <ContractEditor
-              v-model="editorContent"
+              :document-model="editorDocumentModel"
+              :model-value="editorContent"
               placeholder="撰写模板正文，用 {{partyA}}、{{totalAmount}} 等表示占位符..."
+              @update:document-model="onEditorDocChange"
             />
           </div>
           <div v-if="editorPlaceholders.length > 0">

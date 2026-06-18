@@ -30,6 +30,17 @@ function close() {
   emit('update:open', false)
   emit('cancel')
 }
+
+// 弹窗打开时自动聚焦第一个输入框
+watch(() => props.open, (isOpen) => {
+  if (isOpen) {
+    nextTick(() => {
+      const dialog = document.querySelector('[role="dialog"]')
+      const input = dialog?.querySelector('input:not([type="hidden"]), textarea, select') as HTMLElement
+      input?.focus()
+    })
+  }
+})
 </script>
 
 <template>

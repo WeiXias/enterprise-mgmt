@@ -10,6 +10,9 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
+  const sortBy = (query.sortBy as string) || 'updatedAt'
+  const sortOrder = (query.sortOrder as string) || 'desc'
+  const sortFn = sortOrder === 'asc' ? asc : desc
 
   const where: any[] = [isNull(projects.deletedAt)]
   if (query.keyword) where.push(like(projects.name, `%${query.keyword}%`))
@@ -33,7 +36,7 @@ export default defineEventHandler(async (event) => {
       .leftJoin(users, eq(projects.ownerUserId, users.id))
       .leftJoin(contracts, eq(projects.contractId, contracts.id))
       .where(and(...where)).limit(pageSize).offset((page - 1) * pageSize)
-      .orderBy(desc(projects.updatedAt)),
+      .orderBy(sortFn(projects[sortBy as keyof typeof projects] || projects.updatedAt)),
     db.select({ count: count() }).from(projects).where(and(...where)),
   ])
 

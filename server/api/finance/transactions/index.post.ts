@@ -4,6 +4,7 @@ import { financeTransactions } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   type: z.enum(['income', 'expense']),
@@ -17,8 +18,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+  const user = await requirePermission(event, 'finance:manage')
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })

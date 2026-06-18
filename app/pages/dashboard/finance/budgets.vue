@@ -37,7 +37,7 @@ async function fetchItems() {
     if (categoryFilter.value) params.category = categoryFilter.value
     const res = await $api('/api/budgets', { params }) as any
     if (res?.code === 0) { items.value = res.data.items; total.value = res.data.total }
-  } catch { /* ignore */ }
+  } catch { toast.add({ title: "加载预算数据出了点问题", color: "error" }) }
   finally { loading.value = false }
 }
 
@@ -112,12 +112,12 @@ onMounted(() => { fetchItems(); fetchCategories() })
     <div class="mb-6 flex items-center justify-between">
       <div>
         <h1 class="text-lg font-medium text-content-primary">预算管理</h1>
-        <p class="text-sm text-content-muted mt-0.5">设定年度预算，追踪执行进度</p>
+        <p class="text-sm text-content-muted mt-0.5">设定年度预算，随时了解花了多少</p>
       </div>
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">添加预算</UButton>
     </div>
 
-    <!-- 执行总览 -->
+    <!-- 预算概览 -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-target" class="w-5 h-5 text-brand-400" /></div>
@@ -125,11 +125,11 @@ onMounted(() => { fetchItems(); fetchCategories() })
       </div>
       <div class="em-card flex items-center gap-3 !py-3">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-trending-up" class="w-5 h-5 text-teal-500" /></div>
-        <div><p class="text-lg font-medium text-teal-600">{{ formatMoney(totalStats.actualTotal) }}</p><p class="text-xs text-content-muted">实际执行</p></div>
+        <div><p class="text-lg font-medium text-teal-600">{{ formatMoney(totalStats.actualTotal) }}</p><p class="text-xs text-content-muted">实际支出</p></div>
       </div>
       <div class="em-card flex items-center gap-3 !py-3" :class="totalStats.percent > 100 ? 'border-red-300' : totalStats.percent > 80 ? 'border-brand-300' : ''">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-percent" class="w-5 h-5 text-brand-500" /></div>
-        <div><p class="text-lg font-medium" :class="totalStats.percent > 100 ? 'text-danger-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">执行率</p></div>
+        <div><p class="text-lg font-medium" :class="totalStats.percent > 100 ? 'text-danger-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">使用率</p></div>
       </div>
     </div>
 
@@ -141,8 +141,8 @@ onMounted(() => { fetchItems(); fetchCategories() })
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">{{ year }} 年还没有预算，加一条？</div>
+    <div v-if="loading" class="py-4"><ListSkeleton /></div>
+    <EmptyState v-else-if="items.length === 0" icon="i-lucide-target" :message="`${year} 年还没有预算`" action-label="添加预算" @action="openCreate" />
     <div v-else class="space-y-2">
       <div v-for="item in items" :key="item.id" class="em-card flex items-center gap-4">
         <div class="flex-1 min-w-0">

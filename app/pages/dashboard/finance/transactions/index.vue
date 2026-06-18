@@ -48,7 +48,7 @@ async function fetchItems() {
     if (endDate.value) params.endDate = endDate.value
     const res = await $api('/api/finance/transactions', { params }) as any
     if (res?.code === 0) { items.value = res.data.items; total.value = res.data.total }
-  } catch { /* ignore */ }
+  } catch { toast.add({ title: "加载收支数据出了点问题", color: "error" }) }
   finally { loading.value = false }
 }
 
@@ -64,7 +64,7 @@ function openCreate(type = 'income') {
 }
 
 function openEdit(t: any) {
-  if (t.sourceType !== 'manual') { toast.add({ title: '自动生成的记录不能编辑', color: 'warning' }); return }
+  if (t.sourceType !== 'manual') { toast.add({ title: '这条记录是自动记上的，不能手动改', color: 'warning' }); return }
   editTarget.value = t
   form.value = { type: t.type, amount: t.amount, category: t.category, transactionDate: t.transactionDate, description: t.description || '', paymentMethod: t.paymentMethod || '' }
   showModal.value = true
@@ -147,8 +147,8 @@ onMounted(() => { fetchItems(); fetchCategories() })
     </div>
 
     <!-- 列表 -->
-    <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
-    <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">还没有收支记录，记一笔？</div>
+    <div v-if="loading" class="py-4"><ListSkeleton /></div>
+    <EmptyState v-else-if="items.length === 0" icon="i-lucide-coins" message="还没有收支记录" action-label="记一笔" @action="openCreate('income')" />
     <div v-else class="space-y-2">
       <div v-for="t in items" :key="t.id" class="em-card flex items-center gap-3 group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', t.type === 'income' ? 'bg-teal-400' : 'bg-danger-400']" />

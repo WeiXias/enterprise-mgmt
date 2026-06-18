@@ -127,6 +127,7 @@ export const contractTemplates = sqliteTable('contract_templates', {
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),
+  docxContent: text('docx_content'), // 原始 DOCX 文件（base64），供编辑器 loadDocumentBuffer 使用
 })
 
 export const contractContentVersions = sqliteTable('contract_content_versions', {

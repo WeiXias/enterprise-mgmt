@@ -45,27 +45,15 @@ const deleteTarget = ref<any>(null)
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
 
-// 商机状态配置
-const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
-  initial_contact: { label: '初步接触', color: 'bg-surface-hover text-content-secondary', dotColor: 'bg-surface-muted' },
-  requirement_confirmed: { label: '需求确认', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
-  proposal_submitted: { label: '方案提交', color: 'bg-brand-50 text-brand-700', dotColor: 'bg-brand-400' },
-  business_negotiation: { label: '商务谈判', color: 'bg-brand-50 text-brand-600', dotColor: 'bg-brand-400' },
-  closed_won: { label: '已成交', color: 'bg-teal-50 text-teal-700', dotColor: 'bg-teal-400' },
-  closed_lost: { label: '已输单', color: 'bg-danger-50 text-danger-600', dotColor: 'bg-danger-400' },
-}
+  const { statusConfig, stageFlow, getStatusLabel, getStatusColor, canAdvance, getNextStatusLabel } = useOpportunity()
 
-// 商机来源选项
-const sourceOptions = ref<string[]>([])
-async function fetchSourceOptions() {
-  try {
-    const res = await $fetch('/api/dict/opportunity_source', { headers: useAuthHeaders() }) as any
-    if (res?.code === 0) sourceOptions.value = (res.data || []).map((o: any) => o.label)
-  } catch {}
-}
-
-// 阶段流转选项（从前一阶段可以往后一阶段推）
-const stageFlow = ['initial_contact', 'requirement_confirmed', 'proposal_submitted', 'business_negotiation']
+  const sourceOptions = ref<string[]>([])
+  async function fetchSourceOptions() {
+    try {
+      const res = await $fetch('/api/dict/opportunity_source', { headers: useAuthHeaders() }) as any
+      if (res?.code === 0) sourceOptions.value = (res.data || []).map((o: any) => o.label)
+    } catch {}
+  }
 
 async function handleCreate() {
   if (!createForm.value.name) {
@@ -170,83 +158,18 @@ async function advanceStage(opp: any) {
     toast.add({ title: err?.data?.message || '推进失败', color: 'error' })
   }
 }
+  // 赢单/输单弹窗（由 OpportunityWinLoseModal 组件处理）
+  const showWinModal = ref(false)
+  const winTarget = ref<any>(null)
+  const showLoseModal = ref(false)
+  const loseTarget = ref<any>(null)
 
-// 赢单
-const showWinModal = ref(false)
-const winTarget = ref<any>(null)
-const winLoading = ref(false)
-const winGenerateContract = ref(true)
-
-async function handleWin() {
-  if (!winTarget.value) return
-  winLoading.value = true
-  try {
-    const res = await $api(`/api/opportunities/${winTarget.value.id}/win`, {
-      method: 'POST',
-      body: { generateContract: winGenerateContract.value },
-    }) as any
-    if (res?.code === 0) {
-      toast.add({ title: res.message || '恭喜，赢单了！', color: 'success' })
-      showWinModal.value = false
-      winTarget.value = null
-      fetchOpportunities()
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '操作失败', color: 'error' })
-  } finally {
-    winLoading.value = false
-  }
-}
-
-// 输单
-const showLoseModal = ref(false)
-const loseTarget = ref<any>(null)
-const loseLoading = ref(false)
-const loseReason = ref('')
-
-async function handleLose() {
-  if (!loseReason.value) {
-    toast.add({ title: '输单原因得填一下', color: 'warning' })
-    return
-  }
-  loseLoading.value = true
-  try {
-    const res = await $api(`/api/opportunities/${loseTarget.value.id}/lose`, {
-      method: 'POST',
-      body: { lostReason: loseReason.value },
-    }) as any
-    if (res?.code === 0) {
-      toast.add({ title: res.message || '没关系，下次再努力', color: 'success' })
-      showLoseModal.value = false
-      loseTarget.value = null
-      loseReason.value = ''
-      fetchOpportunities()
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '操作失败', color: 'error' })
-  } finally {
-    loseLoading.value = false
-  }
-}
 
 function resetCreateForm() {
   createForm.value = {
     name: '', customerId: '', estimatedAmount: 0,
     estimatedCloseDate: '', source: '', competitor: '',
   }
-}
-
-function canAdvance(status: string) {
-  const idx = stageFlow.indexOf(status)
-  return idx >= 0 && idx < stageFlow.length - 1
-}
-
-function getNextStatusLabel(status: string) {
-  const idx = stageFlow.indexOf(status)
-  if (idx >= 0 && idx < stageFlow.length - 1) {
-    return statusConfig[stageFlow[idx + 1] as keyof typeof statusConfig]?.label || ''
-  }
-  return ''
 }
 
 function formatAmount(amount: number | null) {
@@ -295,7 +218,7 @@ onMounted(() => {
     </div>
 
     <!-- 商机列表 -->
-    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-if="loading" class="py-4"><ListSkeleton /></div>
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">
       <UIcon name="i-lucide-target" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
       <p class="text-sm">还没有商机，加一个？</p>
@@ -375,48 +298,7 @@ onMounted(() => {
       @cancel="resetCreateForm"
     >
       <template #default>
-        <form class="space-y-4" @submit.prevent="handleCreate">
-          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
-            <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
-              <span class="text-sm font-medium text-brand-700">基本信息</span>
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm text-content-secondary mb-1">商机名称 <span class="text-danger-600">*</span></label>
-              <input v-model="createForm.name" type="text" placeholder="给这个商机起个名字" class="w-full input-base focus-ring" />
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm text-content-secondary mb-1">关联客户 <span class="text-danger-600">*</span></label>
-              <CustomerSelect v-model="createForm.customerId" placeholder="选择客户" />
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">预估金额</label>
-                <input v-model.number="createForm.estimatedAmount" type="number" min="0" step="0.01" placeholder="0.00" class="w-full input-base focus-ring" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">预计成交日期</label>
-                <input v-model="createForm.estimatedCloseDate" type="date" class="w-full input-base focus-ring" />
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
-            <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
-              <span class="text-sm font-medium text-brand-700">补充信息</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">来源</label>
-                <EnumSelect v-model="createForm.source" :options="sourceOptions" placeholder="选择来源" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">竞争对手</label>
-                <input v-model="createForm.competitor" type="text" placeholder="竞争对手名称" class="w-full input-base focus-ring" />
-              </div>
-            </div>
-          </div>
-        </form>
+        <OpportunityForm v-model="createForm" @submit="handleCreate" />
       </template>
       <template #footer>
         <div class="flex justify-end gap-2 w-full">
@@ -436,44 +318,7 @@ onMounted(() => {
       @confirm="handleEdit"
     >
       <template #default>
-        <form class="space-y-4" @submit.prevent="handleEdit">
-          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
-            <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
-              <span class="text-sm font-medium text-brand-700">基本信息</span>
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm text-content-secondary mb-1">商机名称 <span class="text-danger-600">*</span></label>
-              <input v-model="editForm.name" type="text" class="w-full input-base focus-ring" />
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">预估金额</label>
-                <input v-model.number="editForm.estimatedAmount" type="number" min="0" step="0.01" class="w-full input-base focus-ring" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">预计成交日期</label>
-                <input v-model="editForm.estimatedCloseDate" type="date" class="w-full input-base focus-ring" />
-              </div>
-            </div>
-          </div>
-          <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
-            <div class="flex items-center gap-1.5 mb-3">
-              <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
-              <span class="text-sm font-medium text-brand-700">补充信息</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">来源</label>
-                <EnumSelect v-model="editForm.source" :options="sourceOptions" placeholder="选择来源" />
-              </div>
-              <div class="mb-4">
-                <label class="block text-sm text-content-secondary mb-1">竞争对手</label>
-                <input v-model="editForm.competitor" type="text" class="w-full input-base focus-ring" />
-              </div>
-            </div>
-          </div>
-        </form>
+        <OpportunityForm v-model="editForm" preselected-customer @submit="handleEdit" />
       </template>
       <template #footer>
         <UButton color="primary" :loading="editLoading" @click="handleEdit">保存</UButton>
@@ -481,68 +326,9 @@ onMounted(() => {
       </template>
     </FormModal>
 
-    <!-- 删除确认弹窗 -->
-    <ConfirmDialog
-      v-if="showDeleteModal"
-      v-model:open="showDeleteModal"
-      title="确认删除"
-      :message="`确定要删除商机「${deleteTarget?.name}」吗？删了就找不回来了。`"
-      confirm-text="确认删除"
-      cancel-text="再想想"
-      :loading="deleteLoading"
-      danger
-      @confirm="handleDelete"
-      @cancel="deleteTarget = null"
-    />
+    <!-- 赢单/输单弹窗 -->
+    <OpportunityWinLoseModal v-model="showWinModal" mode="win" :opportunity-id="winTarget?.id" :opportunity-name="winTarget?.name" @saved="winTarget = null; fetchOpportunities()" @update:model-value="(v: boolean) => { if (!v) winTarget = null }" />
+    <OpportunityWinLoseModal v-model="showLoseModal" mode="lose" :opportunity-id="loseTarget?.id" :opportunity-name="loseTarget?.name" @saved="loseTarget = null; fetchOpportunities()" @update:model-value="(v: boolean) => { if (!v) loseTarget = null }" />
 
-    <!-- 赢单确认弹窗 -->
-    <FormModal
-      v-if="showWinModal"
-      v-model:open="showWinModal"
-      title="确认赢单"
-      :subtitle="`确定将商机「${winTarget?.name}」标记为赢单？`"
-      size="compact"
-      :loading="winLoading"
-      @confirm="handleWin"
-      @cancel="winTarget = null"
-    >
-      <template #default>
-        <label class="flex items-center gap-2 text-sm text-content-secondary">
-          <input v-model="winGenerateContract" type="checkbox" class="rounded border-line" />
-          同时生成合同草稿
-        </label>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2 w-full">
-          <UButton color="primary" :loading="winLoading" @click="handleWin">确认赢单</UButton>
-          <UButton variant="ghost" color="neutral" @click="showWinModal = false; winTarget = null">算了</UButton>
-        </div>
-      </template>
-    </FormModal>
-
-    <!-- 输单确认弹窗 -->
-    <FormModal
-      v-if="showLoseModal"
-      v-model:open="showLoseModal"
-      title="确认输单"
-      :subtitle="`将商机「${loseTarget?.name}」标记为输单`"
-      size="compact"
-      :loading="loseLoading"
-      @confirm="handleLose"
-      @cancel="loseTarget = null; loseReason = ''"
-    >
-      <template #default>
-        <div class="mb-4">
-          <label class="block text-sm text-content-secondary mb-1">输单原因 <span class="text-danger-600">*</span></label>
-          <textarea v-model="loseReason" rows="3" placeholder="分析一下为什么输了..." class="w-full px-3 py-2 text-sm rounded-md border border-line bg-surface-card focus-ring resize-none" />
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2 w-full">
-          <UButton color="error" :loading="loseLoading" @click="handleLose">确认输单</UButton>
-          <UButton variant="ghost" color="neutral" @click="showLoseModal = false; loseTarget = null; loseReason = ''">算了</UButton>
-        </div>
-      </template>
-    </FormModal>
   </div>
 </template>

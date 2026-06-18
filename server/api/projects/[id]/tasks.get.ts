@@ -1,19 +1,30 @@
-import { defineEventHandler, getRouterParams } from 'h3'
+import { defineEventHandler, getRouterParams, getQuery } from 'h3'
 import { db } from '#database'
 import { tasks, users } from '#schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, count } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { id: projectId } = getRouterParams(event)
-  const list = await db.select({
-    id: tasks.id, title: tasks.title, description: tasks.description,
-    assigneeId: tasks.assigneeId, assigneeName: users.name,
-    priority: tasks.priority, status: tasks.status,
-    startDate: tasks.startDate, dueDate: tasks.dueDate,
-    completedAt: tasks.completedAt, sortOrder: tasks.sortOrder,
-    createdAt: tasks.createdAt,
-  }).from(tasks).leftJoin(users, eq(tasks.assigneeId, users.id))
-    .where(and(eq(tasks.projectId, projectId), isNull(tasks.deletedAt)))
-    .orderBy(tasks.sortOrder)
-  return { code: 0, data: list }
+  const query = getQuery(event)
+  const page = Number(query.page) || 1
+  const pageSize = Math.min(Number(query.pageSize) || 100, 500)
+
+  const where = and(eq(tasks.projectId, projectId), isNull(tasks.deletedAt))
+
+  const [list, totalResult] = await Promise.all([
+    db.select({
+      id: tasks.id, title: tasks.name, description: tasks.description,
+      assigneeId: tasks.assigneeId, assigneeName: users.name,
+      priority: tasks.priority, status: tasks.status,
+      startDate: tasks.startDate, dueDate: tasks.endDate,
+      completedAt: tasks.completedAt, sortOrder: tasks.sortOrder,
+      createdAt: tasks.createdAt,
+    }).from(tasks).leftJoin(users, eq(tasks.assigneeId, users.id))
+      .where(where).limit(pageSize).offset((page - 1) * pageSize)
+      .orderBy(tasks.sortOrder),
+    db.select({ count: count() }).from(tasks).where(where),
+  ])
+
+  const total = Number(totalResult[0]?.count || 0)
+  return { code: 0, data: { items: list, total, page, pageSize, totalPages: Math.ceil(total / pageSize) } }
 })

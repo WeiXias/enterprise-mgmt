@@ -18,9 +18,9 @@ const customerOptions = ref<any[]>([])
 const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', remark: '' })
 const contractStatus = ref('')
 
-// 合同正文 — ProseMirror Document JSON
-const contentDocument = ref<object | null>(null)
+    // 合同正文 - 在 editorReadyResolve 前定义
 const documentModel = ref<object | null>(null)
+const contentDocument = ref<object | null>(null)
 const contractEditorRef = ref<InstanceType<typeof ContractEditor> | null>(null)
 
 // 模板选择
@@ -47,9 +47,17 @@ async function fetchData() {
       }
       contractStatus.value = c.status
     }
-    // content.get.ts 返回 { code: 0, data: { content: ProseMirror JSON | null } }
+    // content.get.ts 返回 { code: 0, data: { content: ProseMirror JSON | HTML string | null } }
     if (contentRes?.code === 0 && contentRes.data?.content) {
-      documentModel.value = contentRes.data.content
+      const raw = contentRes.data.content
+      if (typeof raw === 'object' && raw.type === 'doc') {
+        // ProseMirror JSON
+        documentModel.value = raw
+      } else if (typeof raw === 'string' && raw.length > 0) {
+        // HTML 字符串，用 createDocumentWithText 作为 fallback
+        documentModel.value = null
+        // 留空：用户需手动编辑，详情页 renderContractContent 会正确渲染 HTML
+      }
     }
     if (custRes?.code === 0) customerOptions.value = custRes.data.items || []
   } catch { router.push('/dashboard/contracts') }
@@ -58,7 +66,7 @@ async function fetchData() {
 
 async function fetchTemplates() {
   try {
-    const res = await $api('/api/contracts/templates') as any
+    const res = await $api('/api/contract-templates') as any
     if (res?.code === 0) templates.value = res.data || []
   } catch {}
 }
@@ -71,29 +79,25 @@ async function applyTemplateToEdit() {
   if (!selectedTemplate.value) return
   saving.value = true
   try {
-    const applyRes = await $api(`/api/contracts/templates/${selectedTemplate.value.id}/apply`, {
+    const applyRes = await $api(`/api/contract-templates/${selectedTemplate.value.id}/apply`, {
       method: 'POST',
       body: { contractId }
     }) as any
     if (applyRes?.code === 0 && applyRes.data?.content) {
       const htmlContent = applyRes.data.content
-      // 用编辑器加载 HTML（作为纯文本 fallback），ProseMirror JSON 通过 onChange 自动同步
-      const mod = await import('@eigenpal/docx-editor-vue')
-      const tempDoc = mod.createDocumentWithText(htmlContent.replace(/<[^>]*>/g, ''))
-      tempDoc && documentModel.value ? documentModel.value = tempDoc : null
-      // 通过 ref 加载临时文档
-      const editorRef = contractEditorRef.value?.getEditorRef?.()
-      if (editorRef) {
-        editorRef.loadDocument(tempDoc as any)
-        await nextTick()
-        // 保存 ProseMirror JSON
-        const doc = contractEditorRef.value?.getDocument()
-        if (doc) {
-          await $api(`/api/contracts/${contractId}/content`, {
-            method: 'PUT',
-            body: { content: doc }
-          })
+      const docxBuffer = applyRes.data?.docxBuffer || null
+      // 存储 HTML 到合同
+      await $api(`/api/contracts/${contractId}`, { method: 'PUT', body: { content: htmlContent } })
+      // 如果有 DOCX buffer，用 loadDocumentBuffer 加载到编辑器（保留全部 Word 格式）
+      if (docxBuffer && contractEditorRef.value) {
+        const editorRef = contractEditorRef.value.getEditorRef()
+        if (editorRef) {
+          const buf = Uint8Array.from(atob(docxBuffer), c => c.charCodeAt(0)).buffer
+          editorRef.loadDocumentBuffer(buf)
         }
+      } else {
+        const mod = await import('@eigenpal/docx-editor-vue')
+        documentModel.value = mod.createDocumentWithText(htmlContent.replace(/<[^>]*>/g, ''))
       }
       selectedTemplate.value = null
       showTemplateModal.value = false
@@ -111,8 +115,11 @@ async function handleSubmit() {
   saving.value = true
   try {
     const doc = contractEditorRef.value?.getDocument()
+    // 清理 form 中不应该发送的临时字段
+    const formData = { ...form.value }
+    delete formData.content
     const promises: Promise<any>[] = [
-      $api(`/api/contracts/${contractId}`, { method: 'PUT', body: form.value }) as any,
+      $api(`/api/contracts/${contractId}`, { method: 'PUT', body: formData }) as any,
     ]
     if (doc) {
       promises.push(

@@ -3,15 +3,15 @@ import { db } from '#database'
 import { financeTransactions } from '#schema'
 import { eq } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+  const user = await requirePermission(event, 'finance:manage')
   const { id } = getRouterParams(event)
   const existing = await db.select({ id: financeTransactions.id, sourceType: financeTransactions.sourceType })
     .from(financeTransactions).where(eq(financeTransactions.id, id)).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '记录不存在' })
-  if (existing[0].sourceType !== 'manual') throw createError({ statusCode: 400, statusMessage: '自动生成的记录不能删除' })
+  if (existing[0].sourceType !== 'manual') throw createError({ statusCode: 400, statusMessage: '这条记录是自动记上的，不能删除' })
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   await db.update(financeTransactions).set({ deletedAt: now }).where(eq(financeTransactions.id, id))
   await logOperation(event, { action: 'DELETE', module: 'finance', targetId: id, detail: '删除了财务流水' })

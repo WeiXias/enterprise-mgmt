@@ -101,7 +101,135 @@ function getEditorRef(): DocxEditorRef | null {
   return editorRef.value
 }
 
-defineExpose({ getDocument, getDocxBuffer, getHTML, getEditorRef })
+/**
+ * 从 HTML 字符串构建 ProseMirror JSON 文档对象
+ * 不直接加载到编辑器，返回 JSON 供父组件设置 documentModel
+ */
+function buildDocFromHTML(htmlContent: string): object | null {
+  if (!htmlContent) return null
+
+  const domParser = new DOMParser()
+  const htmlDoc = domParser.parseFromString(htmlContent, 'text/html')
+  const body = htmlDoc.body
+
+  const paragraphs: any[] = []
+  let currentRuns: any[] = []
+
+  function pushParagraph() {
+    if (currentRuns.length > 0) {
+      paragraphs.push({
+        type: 'paragraph',
+        content: currentRuns,
+        formatting: { lineSpacing: 276 },
+      })
+      currentRuns = []
+    }
+  }
+
+  function pushRun(text: string, formatting: Record<string, any> = {}) {
+    if (!text) return
+    currentRuns.push({
+      type: 'run',
+      content: [{ type: 'text', text }],
+      formatting: {
+        fontSize: 22,
+        fontFamily: { ascii: 'Arial', hAnsi: 'Arial' },
+        ...formatting,
+      },
+    })
+  }
+
+  function flattenInline(node: Node, formatting: Record<string, any> = {}): { text: string; formatting: Record<string, any> }[] {
+    const results: { text: string; formatting: Record<string, any> }[] = []
+    for (let i = 0; i < node.childNodes.length; i++) {
+      const child = node.childNodes[i] as ChildNode | null
+      if (!child) continue
+      if (child.nodeType === Node.TEXT_NODE) {
+        const t = child.textContent || ''
+        if (t.trim() || t === ' ') {
+          results.push({ text: t, formatting: { ...formatting } })
+        }
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child as HTMLElement
+        const tag = el.tagName.toLowerCase()
+        const newFmt = { ...formatting }
+        if (tag === 'strong' || tag === 'b') newFmt.bold = true
+        if (tag === 'em' || tag === 'i') newFmt.italic = true
+        if (tag === 'u') newFmt.underline = { style: 'single' }
+        if (tag === 'br') {
+          results.push({ text: '\n', formatting: { ...newFmt } })
+        } else {
+          results.push(...flattenInline(el, newFmt))
+        }
+      }
+    }
+    return results
+  }
+
+  function processNode(parent: Node) {
+    for (let i = 0; i < parent.childNodes.length; i++) {
+      const child = parent.childNodes[i] as ChildNode | null
+      if (!child) continue
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const el = child as HTMLElement
+        const tag = el.tagName.toLowerCase()
+        if (tag === 'p' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h6' || tag === 'div') {
+          pushParagraph()
+          flattenInline(el).forEach(part => pushRun(part.text, part.formatting))
+          pushParagraph()
+        } else if (tag === 'br') {
+          pushParagraph()
+        } else if (tag === 'li') {
+          pushRun('• ')
+          flattenInline(el).forEach(part => pushRun(part.text, part.formatting))
+          pushParagraph()
+        } else if (tag === 'strong' || tag === 'b' || tag === 'em' || tag === 'i' || tag === 'u' || tag === 'span' || tag === 'a') {
+          flattenInline(el).forEach(part => pushRun(part.text, part.formatting))
+        } else {
+          processNode(el)
+        }
+      } else if (child.nodeType === Node.TEXT_NODE) {
+        const t = child.textContent || ''
+        if (t.trim()) pushRun(t)
+      }
+    }
+  }
+
+  processNode(body)
+  pushParagraph()
+
+  return {
+    type: 'doc',
+    content: paragraphs.length > 0 ? paragraphs : [{ type: 'paragraph', content: [], formatting: { lineSpacing: 276 } }],
+    finalSectionProperties: {
+      pageWidth: 12240, pageHeight: 15840, orientation: 'portrait',
+      marginTop: 1440, marginBottom: 1440, marginLeft: 1440, marginRight: 1440,
+      headerDistance: 720, footerDistance: 720, gutter: 0,
+      columnCount: 1, columnSpace: 720, equalWidth: true,
+      sectionStart: 'nextPage', verticalAlign: 'top',
+    },
+    styles: {
+      docDefaults: {
+        rPr: { fontSize: 22, fontFamily: { ascii: 'Arial', hAnsi: 'Arial' } },
+        pPr: { lineSpacing: 276 },
+      },
+      styles: [{ styleId: 'Normal', type: 'paragraph', name: 'Normal', default: true, qFormat: true, uiPriority: 0, rPr: { fontSize: 22, fontFamily: { ascii: 'Arial', hAnsi: 'Arial' } }, pPr: { lineSpacing: 276 } }],
+    },
+  }
+}
+
+/**
+ * 从 HTML 字符串加载内容到编辑器（保留格式）
+ * @deprecated 建议用 buildDocFromHTML 返回 JSON，然后通过 documentModel prop 传入
+ */
+function loadHTML(htmlContent: string) {
+  const doc = buildDocFromHTML(htmlContent)
+  if (doc && editorRef.value) {
+    editorRef.value.loadDocument(doc as any)
+  }
+}
+
+defineExpose({ getDocument, getDocxBuffer, getHTML, getEditorRef, loadHTML, buildDocFromHTML })
 </script>
 
 <template>

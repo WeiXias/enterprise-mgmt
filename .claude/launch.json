@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "enterprise-mgmt",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "dev"],
+      "name": "dev",
+      "runtimeExecutable": "true",
+      "runtimeArgs": [],
       "port": 3000,
-      "cwd": "/Users/xiawei/WorkBuddy/2026-06-09-12-05-42/enterprise-mgmt"
+      "timeout": 0
     }
   ]
 }

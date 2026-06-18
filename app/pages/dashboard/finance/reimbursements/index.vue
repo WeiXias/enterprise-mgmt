@@ -45,7 +45,7 @@ async function fetchItems() {
     ])
     if (res?.code === 0) { items.value = res.data.items; total.value = res.data.total }
     if (catRes?.code === 0) { expenseTypes.value = catRes.data.expense || [] }
-  } catch { /* ignore */ }
+  } catch { toast.add({ title: "加载报销数据出了点问题", color: "error" }) }
   finally { loading.value = false }
 }
 
