@@ -136,7 +136,7 @@ const previewFile = ref<any>(null)
 const showPreview = ref(false)
 const previewUrl = computed(() => {
   if (!previewFile.value) return ''
-  return `/api/files/${previewFile.value.id}/preview?source=${props.source}&token=${authStore.accessToken}`
+  return `/api/attachments/${previewFile.value.id}/preview?source=${props.source}&token=${authStore.accessToken}`
 })
 
 function openPreview(file: UploadedFile) {

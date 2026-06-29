@@ -18,7 +18,7 @@ async function loadSystemInfo() {
       systemName.value = res.data.system_name || '一体化管理系统'
       systemSubtitle.value = res.data.system_subtitle || '小团队的一站式管理工具'
       if (res.data.company_logo) {
-        logoUrl.value = '/api/files/logo'
+        logoUrl.value = '/api/attachments/logo'
       }
     }
   } catch { /* ignore */ }

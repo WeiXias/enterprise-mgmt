@@ -2,7 +2,6 @@
 // 显式导入组件防止懒加载导致 SSR hydration mismatch
 import ContractForm from '~/components/contracts/ContractForm.vue'
 import ContractEditor from '~/components/contracts/ContractEditor.client.vue'
-import TemplateSelector from '~/components/contracts/TemplateSelector.vue'
 
 definePageMeta({ layout: 'dashboard', title: '编辑合同', middleware: ['auth'], watermark: true })
 
@@ -17,16 +16,8 @@ const customerOptions = ref<any[]>([])
 
 const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', remark: '' })
 const contractStatus = ref('')
-
-    // 合同正文 - 在 editorReadyResolve 前定义
 const documentModel = ref<object | null>(null)
-const contentDocument = ref<object | null>(null)
 const contractEditorRef = ref<InstanceType<typeof ContractEditor> | null>(null)
-
-// 模板选择
-const templates = ref<any[]>([])
-const showTemplateModal = ref(false)
-const selectedTemplate = ref<any>(null)
 
 // 加载合同数据和正文
 async function fetchData() {
@@ -47,16 +38,12 @@ async function fetchData() {
       }
       contractStatus.value = c.status
     }
-    // content.get.ts 返回 { code: 0, data: { content: ProseMirror JSON | HTML string | null } }
     if (contentRes?.code === 0 && contentRes.data?.content) {
       const raw = contentRes.data.content
       if (typeof raw === 'object' && raw.type === 'doc') {
-        // ProseMirror JSON
         documentModel.value = raw
       } else if (typeof raw === 'string' && raw.length > 0) {
-        // HTML 字符串，用 createDocumentWithText 作为 fallback
         documentModel.value = null
-        // 留空：用户需手动编辑，详情页 renderContractContent 会正确渲染 HTML
       }
     }
     if (custRes?.code === 0) customerOptions.value = custRes.data.items || []
@@ -64,58 +51,11 @@ async function fetchData() {
   finally { loading.value = false }
 }
 
-async function fetchTemplates() {
-  try {
-    const res = await $api('/api/contract-templates') as any
-    if (res?.code === 0) templates.value = res.data || []
-  } catch {}
-}
-
-function onSelectTemplate(tmpl: any) {
-  selectedTemplate.value = tmpl
-}
-
-async function applyTemplateToEdit() {
-  if (!selectedTemplate.value) return
-  saving.value = true
-  try {
-    const applyRes = await $api(`/api/contract-templates/${selectedTemplate.value.id}/apply`, {
-      method: 'POST',
-      body: { contractId }
-    }) as any
-    if (applyRes?.code === 0 && applyRes.data?.content) {
-      const htmlContent = applyRes.data.content
-      const docxBuffer = applyRes.data?.docxBuffer || null
-      // 存储 HTML 到合同
-      await $api(`/api/contracts/${contractId}`, { method: 'PUT', body: { content: htmlContent } })
-      // 如果有 DOCX buffer，用 loadDocumentBuffer 加载到编辑器（保留全部 Word 格式）
-      if (docxBuffer && contractEditorRef.value) {
-        const editorRef = contractEditorRef.value.getEditorRef()
-        if (editorRef) {
-          const buf = Uint8Array.from(atob(docxBuffer), c => c.charCodeAt(0)).buffer
-          editorRef.loadDocumentBuffer(buf)
-        }
-      } else {
-        const mod = await import('@eigenpal/docx-editor-vue')
-        documentModel.value = mod.createDocumentWithText(htmlContent.replace(/<[^>]*>/g, ''))
-      }
-      selectedTemplate.value = null
-      showTemplateModal.value = false
-      toast.add({ title: '模板已应用，正文已加载到编辑器', color: 'success' })
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '应用模板失败', color: 'error' })
-  } finally {
-    saving.value = false
-  }
-}
-
 async function handleSubmit() {
   if (!form.value.name) { toast.add({ title: '合同名称不能为空', color: 'warning' }); return }
   saving.value = true
   try {
     const doc = contractEditorRef.value?.getDocument()
-    // 清理 form 中不应该发送的临时字段
     const formData = { ...form.value }
     delete formData.content
     const promises: Promise<any>[] = [
@@ -135,7 +75,7 @@ async function handleSubmit() {
   finally { saving.value = false }
 }
 
-onMounted(() => { fetchData(); fetchTemplates() })
+onMounted(() => { fetchData() })
 </script>
 
 <template>
@@ -158,29 +98,7 @@ onMounted(() => { fetchData(); fetchTemplates() })
       <div class="em-card mt-4">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-medium text-content-secondary">合同正文</h3>
-          <div class="flex items-center gap-2">
-            <UButton
-              v-if="contractStatus === 'draft' && !selectedTemplate"
-              icon="i-lucide-layout-template"
-              variant="ghost"
-              color="primary"
-              size="xs"
-              @click="showTemplateModal = true"
-            >
-              套用模板
-            </UButton>
-            <span v-if="contractStatus !== 'draft'" class="text-xs text-brand-600">（合同已审批，正文不可修改）</span>
-          </div>
-        </div>
-
-        <!-- 已选模板提示 -->
-        <div v-if="selectedTemplate" class="mb-3 flex items-center gap-3 p-3 bg-brand-50 rounded-xl border border-brand-200">
-          <UIcon name="i-lucide-file-check" class="w-4 h-4 text-brand-600 flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <span class="text-sm text-brand-800 font-medium">{{ selectedTemplate.name }}</span>
-          </div>
-          <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" @click="selectedTemplate = null" />
-          <UButton color="primary" size="xs" :loading="saving" @click="applyTemplateToEdit">应用模板</UButton>
+          <span v-if="contractStatus !== 'draft'" class="text-xs text-brand-600">（合同已审批，正文不可修改）</span>
         </div>
 
         <ContractEditor
@@ -188,28 +106,8 @@ onMounted(() => { fetchData(); fetchTemplates() })
           :document-model="documentModel"
           :disabled="contractStatus !== 'draft'"
           :key="contractId"
-          @update:document-model="contentDocument = $event"
         />
       </div>
-
-      <!-- 模板选择弹窗 -->
-      <FormModal
-        v-if="showTemplateModal"
-        v-model:open="showTemplateModal"
-        title="选择合同模板"
-        size="standard"
-        @cancel="showTemplateModal = false"
-      >
-        <TemplateSelector
-          :templates="templates"
-          :selected-id="selectedTemplate?.id"
-          @select="onSelectTemplate"
-        />
-        <template #footer>
-          <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
-          <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
-        </template>
-      </FormModal>
 
       <!-- 操作按钮 -->
       <div class="mt-6 flex justify-end gap-2">

@@ -5,6 +5,7 @@ allowBuilds:
   esbuild: false
   protobufjs: true
   puppeteer: true
+  simple-git-hooks: true
   tesseract.js: true
   unrs-resolver: false
   vue-demi: false

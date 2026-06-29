@@ -33,36 +33,6 @@ export const contracts = sqliteTable('contracts', {
   content: text('content'), // 合同正文（ProseMirror JSON 或 HTML）
 })
 
-export const subcontractParties = sqliteTable('subcontract_parties', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  contactPerson: text('contact_person'),
-  phone: text('phone'),
-  email: text('email'),
-  address: text('address'),
-  remark: text('remark'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-})
-
-export const subcontracts = sqliteTable('subcontracts', {
-  id: text('id').primaryKey(),
-  code: text('code'),
-  name: text('name').notNull(),
-  parentContractId: text('parent_contract_id').notNull().references(() => contracts.id),
-  subcontractPartyId: text('subcontract_party_id').references(() => subcontractParties.id),
-  totalAmount: integer('total_amount').notNull().default(0),
-  taxRate: real('tax_rate').default(0.05),
-  serviceFee: integer('service_fee').default(0),
-  status: text('status', { enum: ['draft', 'in_progress', 'completed', 'terminated'] }).notNull().default('draft'),
-  startDate: text('start_date'),
-  endDate: text('end_date'),
-  remark: text('remark'),
-  createdBy: text('created_by').notNull().references(() => users.id),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
-  deletedAt: text('deleted_at'),
-})
-
 export const contractProducts = sqliteTable('contract_products', {
   id: text('id').primaryKey(),
   contractId: text('contract_id').notNull().references(() => contracts.id),
@@ -94,7 +64,7 @@ export const payments = sqliteTable('payments', {
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),
-  type: text('type', { enum: ['normal', 'deposit'] }).notNull().default('normal'),
+  type: text('type', { enum: ['normal'] }).notNull().default('normal'),
   customerId: text('customer_id').references(() => customers.id),
   reconciledAt: text('reconciled_at'),
   reconciledById: text('reconciled_by_id').references(() => users.id),
@@ -114,22 +84,6 @@ export const contractAttachments = sqliteTable('contract_attachments', {
   contentHash: text('content_hash'),
 })
 
-// 合同模板表
-export const contractTemplates = sqliteTable('contract_templates', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  description: text('description'),
-  category: text('category', { enum: ['sales', 'procurement', 'service', 'other'] }).notNull(),
-  content: text('content'),
-  placeholders: text('placeholders'), // JSON: [{"key":"partyA","label":"甲方","defaultValue":""}]
-  sortOrder: integer('sort_order').notNull().default(0),
-  createdBy: text('created_by').notNull().references(() => users.id),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
-  deletedAt: text('deleted_at'),
-  docxContent: text('docx_content'), // 原始 DOCX 文件（base64），供编辑器 loadDocumentBuffer 使用
-})
-
 export const contractContentVersions = sqliteTable('contract_content_versions', {
   id: text('id').primaryKey(),
   contractId: text('contract_id').notNull().references(() => contracts.id),
@@ -137,18 +91,4 @@ export const contractContentVersions = sqliteTable('contract_content_versions', 
   version: integer('version').notNull(),
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-})
-
-export const depositWriteOffs = sqliteTable('deposit_write_offs', {
-  id: text('id').primaryKey(),
-  depositPaymentId: text('deposit_payment_id').notNull().references(() => payments.id),
-  contractId: text('contract_id').notNull().references(() => contracts.id),
-  amount: integer('amount').notNull().default(0),
-  remark: text('remark'),
-  status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().default('pending'),
-  appliedBy: text('applied_by').notNull().references(() => users.id),
-  approvedBy: text('approved_by').references(() => users.id),
-  approvedAt: text('approved_at'),
-  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
-  deletedAt: text('deleted_at'),
 })

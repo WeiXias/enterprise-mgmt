@@ -9,7 +9,11 @@ const schema = z.object({
   code: z.string().max(50).optional(),
   contactPerson: z.string().optional().default(''),
   phone: z.string().optional().default(''),
+  email: z.string().optional().default(''),
   address: z.string().optional().default(''),
+  bankName: z.string().optional().default(''),
+  bankAccount: z.string().optional().default(''),
+  taxId: z.string().optional().default(''),
   remark: z.string().optional().default(''),
 })
 
@@ -26,8 +30,9 @@ export default defineEventHandler(async (event) => {
 
   await db.insert(suppliers).values({
     id, name: parsed.data.name, code, contactPerson: parsed.data.contactPerson,
-    phone: parsed.data.phone, address: parsed.data.address, remark: parsed.data.remark,
-    status: 'active',
+    phone: parsed.data.phone, email: parsed.data.email, address: parsed.data.address,
+    bankName: parsed.data.bankName, bankAccount: parsed.data.bankAccount, taxId: parsed.data.taxId,
+    remark: parsed.data.remark, status: 'active',
   })
 
   return { code: 0, data: { id }, message: '搞定了！供应商已添加' }

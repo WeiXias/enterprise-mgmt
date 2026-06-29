@@ -44,6 +44,10 @@ const colorMap: Record<string, { bg: string; text: string }> = {
   counting: { bg: 'bg-brand-50', text: 'text-brand-600' },
   counted: { bg: 'bg-brand-50', text: 'text-brand-500' },
   reviewed: { bg: 'bg-teal-50', text: 'text-teal-600' },
+  // 采购订单
+  submitted: { bg: 'bg-brand-50', text: 'text-brand-600' },
+  received: { bg: 'bg-teal-50', text: 'text-teal-600' },
+  cancelled: { bg: 'bg-red-50', text: 'text-red-500' },
 }
 
 const colors = computed(() => colorMap[props.value] || { bg: 'bg-surface-hover', text: 'text-content-muted' })

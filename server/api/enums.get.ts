@@ -50,6 +50,7 @@ import {
   PaymentType, PaymentTypeLabels,
   CountStatus, CountStatusLabels,
   CountItemStatus, CountItemStatusLabels,
+  PurchaseOrderStatus, PurchaseOrderStatusLabels,
   enumToOptions
 } from '#enums'
 
@@ -121,6 +122,7 @@ export default defineEventHandler(async () => {
       paymentType: applyOverride(enumToOptions(PaymentType, PaymentTypeLabels), overrides.PaymentType),
       countStatus: applyOverride(enumToOptions(CountStatus, CountStatusLabels), overrides.CountStatus),
       countItemStatus: applyOverride(enumToOptions(CountItemStatus, CountItemStatusLabels), overrides.CountItemStatus),
+      purchaseOrderStatus: applyOverride(enumToOptions(PurchaseOrderStatus, PurchaseOrderStatusLabels), overrides.PurchaseOrderStatus),
     }
   }
 })

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
-const imStore = useIMStore()
 const watermarkStore = useWatermarkStore()
 const router = useRouter()
 const route = useRoute()
@@ -53,7 +52,6 @@ onMounted(async () => {
   const saved = localStorage.getItem('sidebar-collapsed')
   if (saved !== null) sidebarCollapsed.value = saved === 'true'
   notificationStore.startPolling()
-  imStore.startPolling()
   loadSystemConfig()
   window.addEventListener('keydown', handleGlobalKeydown)
   try {
@@ -67,7 +65,7 @@ onMounted(async () => {
 watch(sidebarCollapsed, (val) => {
   localStorage.setItem('sidebar-collapsed', String(val))
 })
-onUnmounted(() => { notificationStore.stopPolling(); imStore.stopAllPolling(); window.removeEventListener('keydown', handleGlobalKeydown) })
+onUnmounted(() => { notificationStore.stopPolling(); window.removeEventListener('keydown', handleGlobalKeydown) })
 
 // 系统配置
 const systemConfig = ref<any>({})
@@ -79,7 +77,7 @@ async function loadSystemConfig() {
       systemConfig.value = res.data || {}
       watermarkStore.loadFromSystemConfig(res.data || {})
       if (systemConfig.value.company_logo) {
-        logoUrl.value = '/api/files/logo?token=' + authStore.accessToken
+        logoUrl.value = '/api/attachments/logo?token=' + authStore.accessToken
       }
     }
   } catch { /* ignore */ }
@@ -119,7 +117,6 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
       items: [
         { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 0 },
         { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 1 },
-        { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 2 },
         {
           label: '合同', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 3,
         },
@@ -138,11 +135,12 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
       key: 'inventory',
       label: '进销存',
       items: [
-        { label: '采购', icon: 'i-lucide-shopping-cart', to: '/dashboard/purchases', sort: configSort('purchases') !== 99 ? configSort('purchases') : 0 },
-        { label: '销售', icon: 'i-lucide-trending-up', to: '/dashboard/sales', sort: configSort('sales') !== 99 ? configSort('sales') : 1 },
-        { label: '库存', icon: 'i-lucide-package', to: '/dashboard/inventory', sort: configSort('inventory') !== 99 ? configSort('inventory') : 2, hidden: !authStore.isAdmin && !authStore.isSalesManager },
-        { label: '仓库', icon: 'i-lucide-warehouse', to: '/dashboard/warehouses', sort: configSort('warehouses') !== 99 ? configSort('warehouses') : 3, hidden: !authStore.isAdmin && !authStore.isSalesManager },
-        { label: '供应商', icon: 'i-lucide-building-2', to: '/dashboard/suppliers', sort: configSort('suppliers') !== 99 ? configSort('suppliers') : 4 },
+        { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 0 },
+        { label: '采购', icon: 'i-lucide-shopping-cart', to: '/dashboard/purchases', sort: configSort('purchases') !== 99 ? configSort('purchases') : 1 },
+        { label: '销售', icon: 'i-lucide-trending-up', to: '/dashboard/sales', sort: configSort('sales') !== 99 ? configSort('sales') : 2 },
+        { label: '库存', icon: 'i-lucide-package', to: '/dashboard/inventory', sort: configSort('inventory') !== 99 ? configSort('inventory') : 3, hidden: !authStore.isAdmin && !authStore.isSalesManager },
+        { label: '仓库', icon: 'i-lucide-warehouse', to: '/dashboard/warehouses', sort: configSort('warehouses') !== 99 ? configSort('warehouses') : 4, hidden: !authStore.isAdmin && !authStore.isSalesManager },
+        { label: '供应商', icon: 'i-lucide-building-2', to: '/dashboard/suppliers', sort: configSort('suppliers') !== 99 ? configSort('suppliers') : 5 },
       ],
     },
     {
@@ -154,10 +152,8 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
             label: '财务', icon: 'i-lucide-dollar-sign', to: '/dashboard/finance', sort: configSort('finance') !== 99 ? configSort('finance') : 0, hidden: !authStore.isFinance && !authStore.isAdmin,
           },
           { label: '提成', icon: 'i-lucide-wallet', to: '/dashboard/commissions', sort: configSort('commissions') !== 99 ? configSort('commissions') : 1 },
-          { label: '账务', icon: 'i-lucide-book-open', to: '/dashboard/accounting/entries', sort: configSort('accounting') !== 99 ? configSort('accounting') : 2, hidden: !authStore.isAdmin },
           { label: '应收总账', icon: 'i-lucide-scale', to: '/dashboard/finance/ar', sort: configSort('ar') !== 99 ? configSort('ar') : 3, hidden: !authStore.isFinance && !authStore.isAdmin },
           { label: '客户对账', icon: 'i-lucide-file-check-2', to: '/dashboard/finance/reconciliations', sort: configSort('reconciliations') !== 99 ? configSort('reconciliations') : 4, hidden: !authStore.isFinance && !authStore.isAdmin },
-          { label: '订金管理', icon: 'i-lucide-hand-coins', to: '/dashboard/finance/deposits', sort: configSort('deposits') !== 99 ? configSort('deposits') : 5, hidden: !authStore.isFinance && !authStore.isAdmin },
         ]
         return items
       })(),
@@ -239,32 +235,12 @@ function formatTime(dateStr: string): string {
             </li>
             <li>
               <NuxtLink
-                to="/dashboard/im"
-                :title="sidebarCollapsed ? '畅聊' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/im') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-message-circle" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">畅聊</span>
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
                 to="/dashboard/notifications"
                 :title="sidebarCollapsed ? '消息' : undefined"
                 :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/notifications') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
               >
                 <UIcon name="i-lucide-bell" class="w-[18px] h-[18px] shrink-0" />
                 <span v-show="!sidebarCollapsed" class="truncate">消息</span>
-              </NuxtLink>
-            </li>
-            <li v-if="authStore.isAdmin">
-              <NuxtLink
-                to="/dashboard/workflow/approvals"
-                :title="sidebarCollapsed ? '审批' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/workflow') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-check-check" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">审批</span>
               </NuxtLink>
             </li>
           </ul>
@@ -348,26 +324,6 @@ function formatTime(dateStr: string): string {
               >
                 <UIcon name="i-lucide-settings" class="w-[18px] h-[18px] shrink-0" />
                 <span v-show="!sidebarCollapsed" class="truncate">设置</span>
-              </NuxtLink>
-            </li>
-            <li v-if="authStore.isAdmin">
-              <NuxtLink
-                to="/dashboard/reports"
-                :title="sidebarCollapsed ? '报表' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/reports') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-bar-chart-3" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">报表</span>
-              </NuxtLink>
-            </li>
-            <li v-if="authStore.isAdmin">
-              <NuxtLink
-                to="/dashboard/logs"
-                :title="sidebarCollapsed ? '操作记录' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/logs') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-clock" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">操作记录</span>
               </NuxtLink>
             </li>
           </ul>
@@ -485,16 +441,16 @@ function formatTime(dateStr: string): string {
               <UIcon :name="themeName === 'blue' ? 'i-lucide-sun' : 'i-lucide-moon'" class="w-5 h-5" />
             </button>
 
-            <!-- 通知铃铛（合并 IM + 系统通知） + 下拉面板 -->
+            <!-- 通知铃铛 + 下拉面板 -->
             <div class="relative">
               <button
                 class="p-2 rounded-md text-content-muted hover:bg-surface-hover transition-colors relative"
                 @click="showNotificationPanel = !showNotificationPanel; if (showNotificationPanel) loadPanelNotifications()"
               >
                 <UIcon name="i-lucide-bell" class="w-5 h-5" />
-                <span v-if="notificationStore.unreadCount + imStore.unreadTotal > 0"
+                <span v-if="notificationStore.unreadCount > 0"
                   class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center px-0.5">
-                  {{ notificationStore.unreadCount + imStore.unreadTotal > 99 ? '99+' : notificationStore.unreadCount + imStore.unreadTotal }}
+                  {{ notificationStore.unreadCount > 99 ? '99+' : notificationStore.unreadCount }}
                 </span>
               </button>
 
@@ -503,7 +459,6 @@ function formatTime(dateStr: string): string {
                 <div class="flex items-center justify-between px-4 py-3 border-b border-line-light">
                   <h3 class="text-sm font-medium text-content-secondary">消息通知</h3>
                   <div class="flex items-center gap-1">
-                    <NuxtLink to="/dashboard/im" class="text-xs text-brand-600 hover:text-brand-700 transition-colors" @click="showNotificationPanel = false">畅聊</NuxtLink>
                     <button class="text-xs text-content-muted hover:text-brand-600 transition-colors" @click="handleMarkAllRead">全部已读</button>
                     <NuxtLink to="/dashboard/notifications" class="text-xs text-content-muted hover:text-content-secondary transition-colors ml-1" @click="showNotificationPanel = false">查看全部</NuxtLink>
                   </div>

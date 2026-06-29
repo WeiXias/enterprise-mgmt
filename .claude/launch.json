@@ -3,10 +3,9 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "true",
-      "runtimeArgs": [],
+      "command": "cd enterprise-mgmt && pnpm dev",
       "port": 3000,
-      "timeout": 0
+      "timeout": 30000
     }
   ]
 }

@@ -4,7 +4,6 @@ definePageMeta({ layout: 'dashboard', title: '同事', middleware: ['auth'] })
 const toast = useToast()
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
-const imStore = useIMStore()
 const router = useRouter()
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
@@ -179,17 +178,6 @@ async function confirmApprove() {
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
-async function handleSendMessage(u: any) {
-  const convId = await imStore.createConversation(u.id)
-  if (convId) {
-    router.push('/dashboard/im')
-    imStore.setActiveConversation(convId)
-  }
-}
-
-function viewLogs(u: any) {
-  router.push(`/dashboard/logs?userId=${u.id}&userName=${encodeURIComponent(u.name)}`)
-}
 
 onMounted(() => { fetchItems(); loadOptions() })
 </script>
@@ -240,8 +228,6 @@ onMounted(() => { fetchItems(); loadOptions() })
           </template>
           <template v-else>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(u)" />
-            <UButton v-if="u.id !== authStore.user?.id" icon="i-lucide-message-circle" variant="ghost" color="primary" size="xs" @click="handleSendMessage(u)">发消息</UButton>
-            <UButton icon="i-lucide-file-text" variant="ghost" color="neutral" size="xs" @click="viewLogs(u)">日志</UButton>
             <UButton icon="i-lucide-key" variant="ghost" color="warning" size="xs" @click="resetPwdTarget = u; newPassword = ''; showPasswordModal = true" />
             <template v-if="u.role !== 'admin'">
               <UButton :icon="u.status === 'active' ? 'i-lucide-ban' : 'i-lucide-check-circle'" variant="ghost" :color="u.status === 'active' ? 'warning' : 'primary'" size="xs" @click="handleToggleStatus(u)" />

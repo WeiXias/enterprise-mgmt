@@ -10,7 +10,7 @@ export const financeTransactions = sqliteTable('finance_transactions', {
   type: text('type', { enum: ['income', 'expense'] }).notNull(),
   amount: integer('amount').notNull().default(0),
   category: text('category').notNull(),
-  sourceType: text('source_type', { enum: ['contract_payment', 'commission_payout', 'reimbursement', 'manual', 'deposit_writeoff', 'deposit_refund'] }).notNull().default('manual'),
+  sourceType: text('source_type', { enum: ['contract_payment', 'commission_payout', 'reimbursement', 'manual'] }).notNull().default('manual'),
   sourceId: text('source_id'),
   contractId: text('contract_id').references(() => contracts.id),
   projectId: text('project_id').references(() => projects.id),

@@ -10,7 +10,7 @@ const images = ref<any[]>([])
 const loading = ref(false)
 const uploading = ref(false)
 
-function getUrl(img: any) { return img.filePath?.startsWith('/uploads') ? img.filePath : `/api/files/${img.fileName}` }
+function getUrl(img: any) { return img.filePath?.startsWith('/uploads') ? img.filePath : `/api/attachments/${img.fileName}` }
 
 async function fetchImages() {
   loading.value = true

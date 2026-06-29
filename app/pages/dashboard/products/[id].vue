@@ -38,7 +38,7 @@ const profitMargin = computed(() => {
 function mainImageUrl(productImages: any[]) {
   if (!productImages.length) return ''
   const img = productImages[0]
-  return img.filePath?.startsWith('/uploads') ? img.filePath : `/api/files/${img.fileName}`
+  return img.filePath?.startsWith('/uploads') ? img.filePath : `/api/attachments/${img.fileName}`
 }
 
 async function fetchDetail() {

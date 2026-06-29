@@ -207,8 +207,6 @@ export const TransactionSourceType = {
   COMMISSION_PAYOUT: 'commission_payout',
   REIMBURSEMENT: 'reimbursement',
   MANUAL: 'manual',
-  DEPOSIT_WRITEOFF: 'deposit_writeoff',
-  DEPOSIT_REFUND: 'deposit_refund',
 } as const
 export type TransactionSourceType = (typeof TransactionSourceType)[keyof typeof TransactionSourceType]
 export const TransactionSourceTypeLabels: Record<TransactionSourceType, string> = {
@@ -216,8 +214,6 @@ export const TransactionSourceTypeLabels: Record<TransactionSourceType, string> 
   [TransactionSourceType.COMMISSION_PAYOUT]: '提成发放',
   [TransactionSourceType.REIMBURSEMENT]: '报销',
   [TransactionSourceType.MANUAL]: '手动登记',
-  [TransactionSourceType.DEPOSIT_WRITEOFF]: '订金核销',
-  [TransactionSourceType.DEPOSIT_REFUND]: '订金退款',
 }
 
 // ---- ReimbursementStatus ----
@@ -453,10 +449,10 @@ export const PaymentPlanStatusLabels: Record<PaymentPlanStatus, string> = {
 }
 
 // ---- ContractType ----
-export const ContractType = { MAIN: 'main', SUBCONTRACT: 'subcontract' } as const
+export const ContractType = { MAIN: 'main' } as const
 export type ContractType = (typeof ContractType)[keyof typeof ContractType]
 export const ContractTypeLabels: Record<ContractType, string> = {
-  [ContractType.MAIN]: '主合同', [ContractType.SUBCONTRACT]: '分包合同',
+  [ContractType.MAIN]: '主合同',
 }
 
 // ---- ContractTemplateCategory ----
@@ -548,10 +544,10 @@ export const ReconciliationStatusLabels: Record<ReconciliationStatus, string> = 
 }
 
 // ---- PaymentType ----
-export const PaymentType = { NORMAL: 'normal', DEPOSIT: 'deposit' } as const
+export const PaymentType = { NORMAL: 'normal' } as const
 export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
 export const PaymentTypeLabels: Record<PaymentType, string> = {
-  [PaymentType.NORMAL]: '常规收款', [PaymentType.DEPOSIT]: '订金',
+  [PaymentType.NORMAL]: '常规收款',
 }
 
 // ---- DepositWriteOffStatus ----
@@ -573,4 +569,19 @@ export const CountItemStatus = { PENDING: 'pending', COUNTED: 'counted', REVIEWE
 export type CountItemStatus = (typeof CountItemStatus)[keyof typeof CountItemStatus]
 export const CountItemStatusLabels: Record<CountItemStatus, string> = {
   [CountItemStatus.PENDING]: '待盘点', [CountItemStatus.COUNTED]: '已录入', [CountItemStatus.REVIEWED]: '已审核',
+}
+
+// ---- PurchaseOrderStatus ----
+export const PurchaseOrderStatus = {
+  DRAFT: 'draft',
+  SUBMITTED: 'submitted',
+  RECEIVED: 'received',
+  CANCELLED: 'cancelled',
+} as const
+export type PurchaseOrderStatus = (typeof PurchaseOrderStatus)[keyof typeof PurchaseOrderStatus]
+export const PurchaseOrderStatusLabels: Record<PurchaseOrderStatus, string> = {
+  [PurchaseOrderStatus.DRAFT]: '草稿',
+  [PurchaseOrderStatus.SUBMITTED]: '已提交',
+  [PurchaseOrderStatus.RECEIVED]: '已收货',
+  [PurchaseOrderStatus.CANCELLED]: '已取消',
 }

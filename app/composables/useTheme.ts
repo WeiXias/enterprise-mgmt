@@ -26,12 +26,9 @@ const searchIndex: SearchItem[] = [
   { label: '财务管理', desc: '回款、发票、收付款', to: '/dashboard/finance', icon: 'i-lucide-dollar-sign', group: '财务', keywords: ['财务', 'finance', '回款', '发票', '收款', '付款'] },
   { label: '库存管理', desc: '进销存与仓库管理', to: '/dashboard/inventory', icon: 'i-lucide-package', group: '进销存', keywords: ['库存', 'inventory', '进出库', '仓库', '货品'] },
   { label: '待办事项', desc: '我的待办任务', to: '/dashboard/todos', icon: 'i-lucide-list-checks', group: '常用', keywords: ['待办', 'todo', '任务', '提醒', '跟进'] },
-  { label: '畅聊', desc: '团队即时通讯', to: '/dashboard/im', icon: 'i-lucide-message-circle', group: '常用', keywords: ['畅聊', '聊天', '消息', '私信', '沟通', 'IM'] },
-  { label: '消息通知', desc: '查看所有通知', to: '/dashboard/notifications', icon: 'i-lucide-bell', group: '常用', keywords: ['通知', '提醒', '消息', '铃铛'] },
   { label: '个人中心', desc: '修改个人信息和密码', to: '/dashboard/profile', icon: 'i-lucide-user', group: '常用', keywords: ['个人', '我的', '资料', '密码', '账号'] },
   { label: '同事管理', desc: '团队成员与角色', to: '/dashboard/users', icon: 'i-lucide-user-round-plus', group: '常用', keywords: ['同事', '用户', '成员', '员工', '角色', '权限', '管理员'] },
   { label: '系统设置', desc: '配置系统参数与规则', to: '/dashboard/settings', icon: 'i-lucide-settings', group: '常用', keywords: ['设置', 'settings', '配置', '系统', '参数', '规则'] },
-  { label: '操作记录', desc: '查看系统操作日志', to: '/dashboard/logs', icon: 'i-lucide-clock', group: '常用', keywords: ['日志', '操作', '记录', '审计', '历史'] },
 ]
 
 function score(item: SearchItem, query: string): number {
@@ -76,9 +73,9 @@ export function useGlobalSearch() {
       project: 'i-lucide-folder-open', task: 'i-lucide-list-checks', product: 'i-lucide-tag',
       supplier: 'i-lucide-building-2', purchase_order: 'i-lucide-shopping-cart',
       sales_order: 'i-lucide-trending-up', invoice: 'i-lucide-receipt',
-      todo: 'i-lucide-list-checks', subcontract_party: 'i-lucide-link',
+      todo: 'i-lucide-list-checks',
       commission: 'i-lucide-wallet', commission_rule: 'i-lucide-credit-card',
-      finance_transaction: 'i-lucide-dollar-sign', seal: 'i-lucide-stamp',
+      finance_transaction: 'i-lucide-dollar-sign',
       user: 'i-lucide-user-round-plus', quote: 'i-lucide-file-check',
     }
     return map[type] || 'i-lucide-file'

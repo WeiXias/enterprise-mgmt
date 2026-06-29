@@ -71,7 +71,8 @@ async function handleLose() {
 <template>
   <FormModal
     v-if="modelValue"
-    v-model:open="modelValue"
+    :open="modelValue"
+    @update:open="emit('update:modelValue', $event)"
     :title="mode === 'win' ? '确认赢单' : '确认输单'"
     :subtitle="mode === 'win' ? `确定将商机「${opportunityName}」标记为赢单？` : `将商机「${opportunityName}」标记为输单`"
     size="compact"

@@ -89,7 +89,7 @@ async function handleSendQuote() {
   if (!sendForm.value.to) { toast.add({ title: '收件人邮箱还没填呢', color: 'warning' }); return }
   sendLoading.value = true
   try {
-    const res = await $api(`/api/quotes/${sendTarget.value.id}/send`, { method: 'POST', body: sendForm.value }) as any
+    const res = await $api(`/api/opportunities/${props.oppId}/quotes/${sendTarget.value.id}/send`, { method: 'POST', body: sendForm.value }) as any
     if (res?.code === 0) { toast.add({ title: res?.data?.emailSent ? '报价已发送' : res?.message || '已发送', color: 'success' }); showSendModal.value = false; emit('refresh') }
   } catch (err: any) { toast.add({ title: err?.data?.message || '发送失败', color: 'error' }) }
   finally { sendLoading.value = false }
@@ -106,7 +106,7 @@ function promptDeleteQuote(quoteId: string) {
 
 async function handleDeleteQuoteConfirmed() {
   try {
-    const res = await $api(`/api/quotes/${deleteQuoteId.value}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/opportunities/${props.oppId}/quotes/${deleteQuoteId.value}`, { method: 'DELETE' }) as any
     if (res?.code === 0) { toast.add({ title: '报价已删除', color: 'success' }); emit('refresh') }
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
   finally { showDeleteQuoteDialog.value = false }
@@ -122,7 +122,7 @@ async function openQuotePreview(quoteId: string) {
   previewLoading.value = true; showPreviewModal.value = true
   nowRef.value = new Date().toLocaleString("zh-CN")
   try {
-    const res = await $api(`/api/quotes/${quoteId}`) as any
+    const res = await $api(`/api/opportunities/${props.oppId}/quotes/${quoteId}`) as any
     if (res?.code === 0) previewQuote.value = res.data
   } catch { /* ignore */ }
   finally { previewLoading.value = false }
@@ -131,7 +131,7 @@ async function openQuotePreview(quoteId: string) {
 // ====== 报价状态变更 ======
 async function handleQuoteStatus(quoteId: string, newStatus: string) {
   try {
-    const res = await $api(`/api/quotes/${quoteId}`, { method: 'PUT', body: { status: newStatus } }) as any
+    const res = await $api(`/api/opportunities/${props.oppId}/quotes/${quoteId}`, { method: 'PUT', body: { status: newStatus } }) as any
     if (res?.code === 0) { toast.add({ title: '状态已更新', color: 'success' }); emit('refresh') }
   } catch (err: any) { toast.add({ title: err?.data?.message || '更新失败', color: 'error' }) }
 }

@@ -83,9 +83,6 @@ async function handleExportPdf() {
   }
 }
 
-// 签章
-const signModalRef = ref<InstanceType<typeof import('~/components/contracts/ContractSignModal.vue').default> | null>(null)
-
 // 编辑合同
 const showEditModal = ref(false)
 const editLoading = ref(false)
@@ -344,7 +341,6 @@ onMounted(() => {
       { label: '收款计划', slot: 'plans' },
       { label: '收款记录', slot: 'payments' },
       { label: '附件', slot: 'attachments' },
-      { label: '分包管理', slot: 'subcontracts' },
       { label: '合同审阅', slot: 'ai-review' },
     ]" v-model="activeTab" :unmount-on-hide="false">
       <template #content>
@@ -354,7 +350,6 @@ onMounted(() => {
             <div class="flex items-center gap-2">
               <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" :to="`/dashboard/contracts/${contract.id}/edit`">编辑正文</UButton>
               <UButton icon="i-lucide-file-down" variant="ghost" color="primary" size="xs" :loading="pdfLoading" @click="handleExportPdf">导出 PDF</UButton>
-              <UButton icon="i-lucide-stamp" variant="ghost" color="warning" size="xs" @click="signModalRef?.open()">签章</UButton>
             </div>
           </div>
           <div v-if="!contract.content" class="text-center py-12 text-content-muted">
@@ -390,10 +385,6 @@ onMounted(() => {
             @delete="(f: any) => handleDeleteAttachment(f)"
           />
         </div>
-      </template>
-
-      <template #subcontracts>
-        <ContractSubcontracts :contract-id="contractId" />
       </template>
 
       <template #ai-review>
@@ -498,8 +489,5 @@ onMounted(() => {
         <UButton variant="ghost" color="neutral" @click="showTransferModal = false">算了</UButton>
       </template>
     </FormModal>
-
-    <!-- 签章弹窗 -->
-    <ContractSignModal ref="signModalRef" :contract-id="contractId" @save="fetchContract()" />
   </div>
 </template>

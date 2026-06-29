@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
-import { purchaseOrders } from '#schema'
-import { eq, and, isNull, desc, count } from 'drizzle-orm'
+import { purchaseOrders, suppliers, purchaseOrderItems, products } from '#schema'
+import { eq, like, and, isNull, desc, count } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -10,13 +10,32 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
+  const keyword = query.keyword as string | undefined
+  const status = query.status as string | undefined
   const supplierId = query.supplierId as string | undefined
 
   const where: any[] = [isNull(purchaseOrders.deletedAt)]
+  if (keyword) {
+    where.push(like(purchaseOrders.code, `%${keyword}%`))
+  }
+  if (status) where.push(eq(purchaseOrders.status, status))
   if (supplierId) where.push(eq(purchaseOrders.supplierId, supplierId))
 
   const [list, totalResult] = await Promise.all([
-    db.select().from(purchaseOrders)
+    db.select({
+      id: purchaseOrders.id,
+      code: purchaseOrders.code,
+      name: purchaseOrders.name,
+      supplierId: purchaseOrders.supplierId,
+      supplierName: suppliers.name,
+      expectedDate: purchaseOrders.expectedDate,
+      totalAmount: purchaseOrders.totalAmount,
+      status: purchaseOrders.status,
+      remark: purchaseOrders.remark,
+      createdAt: purchaseOrders.createdAt,
+      updatedAt: purchaseOrders.updatedAt,
+    }).from(purchaseOrders)
+      .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
       .where(and(...where))
       .limit(pageSize).offset((page - 1) * pageSize)
       .orderBy(desc(purchaseOrders.createdAt)),

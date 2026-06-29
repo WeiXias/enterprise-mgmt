@@ -10,12 +10,6 @@ const STATE_MACHINES: Record<string, Record<string, string[]>> = {
     completed: [],
     terminated: [],
   },
-  subcontracts: {
-    draft: ['in_progress', 'terminated'],
-    in_progress: ['completed', 'terminated'],
-    completed: [],
-    terminated: [],
-  },
   commissions: {
     pending: ['approved', 'rejected'],
     approved: ['paid', 'rejected'],

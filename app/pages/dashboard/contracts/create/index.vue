@@ -2,7 +2,6 @@
 // 显式导入组件防止懒加载导致 SSR hydration mismatch
 import ContractForm from '~/components/contracts/ContractForm.vue'
 import ContractEditor from '~/components/contracts/ContractEditor.client.vue'
-import TemplateSelector from '~/components/contracts/TemplateSelector.vue'
 
 definePageMeta({ layout: 'dashboard', title: '新建合同', middleware: ['auth'], watermark: true })
 
@@ -22,65 +21,11 @@ const form = ref({
 const contentDocument = ref<object | null>(null)
 const contractEditorRef = ref<InstanceType<typeof ContractEditor> | null>(null)
 
-// 模板选择
-const templates = ref<any[]>([])
-const showTemplateModal = ref(false)
-const selectedTemplate = ref<any>(null)
-
 async function fetchCustomers() {
   try {
     const res = await $api('/api/customers', { params: { pageSize: 200 } }) as any
     if (res?.code === 0) customerOptions.value = res.data.items || []
   } catch {}
-}
-
-async function fetchTemplates() {
-  try {
-    const res = await $api('/api/contract-templates') as any
-    if (res?.code === 0) templates.value = res.data || []
-  } catch {}
-}
-
-function onSelectTemplate(tmpl: any) {
-  selectedTemplate.value = tmpl
-}
-
-async function applyTemplate() {
-  if (!selectedTemplate.value || !form.value.customerId) return
-  saving.value = true
-  try {
-    const createRes = await $api('/api/contracts', { method: 'POST', body: form.value }) as any
-    if (createRes?.code !== 0) {
-      toast.add({ title: createRes?.message || '创建失败', color: 'error' })
-      return
-    }
-    const contractId = createRes.data.id
-
-    // 应用模板 → 获取替换后的 HTML → 前端转为 ProseMirror JSON
-    const applyRes = await $api(`/api/contract-templates/${selectedTemplate.value.id}/apply`, {
-      method: 'POST',
-      body: { contractId }
-    }) as any
-
-    if (applyRes?.code === 0 && applyRes.data?.content) {
-      // 模板后端返回 HTML（详情页用）+ DOCX buffer（编辑器用）
-      // 由于新建合同创建后直接跳转详情页，只需保存 HTML
-      await $api(`/api/contracts/${contractId}`, {
-        method: 'PUT',
-        body: { content: applyRes.data.content }
-      })
-      // 如果有 DOCX，也保存到 content 字段供后续编辑页使用
-      if (applyRes.data?.docxBuffer) {
-        // 新建时暂时只存 HTML；用户在编辑页重新套模板即可加载 DOCX
-      }
-    }
-
-    router.push(`/dashboard/contracts/${contractId}`)
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '操作失败', color: 'error' })
-  } finally {
-    saving.value = false
-  }
 }
 
 async function handleSubmit() {
@@ -114,7 +59,6 @@ async function handleSubmit() {
 
 onMounted(() => {
   fetchCustomers()
-  fetchTemplates()
 })
 </script>
 
@@ -133,74 +77,22 @@ onMounted(() => {
       <ContractForm v-model="form" :customer-options="customerOptions" @submit="handleSubmit" />
     </div>
 
-    <!-- 模板选择区域 -->
-    <div class="em-card mt-4">
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <h3 class="text-sm font-medium text-content-secondary">从模板开始</h3>
-          <p class="text-xs text-content-muted mt-0.5">选一个模板快速生成合同正文，占位符会自动替换为合同实际信息</p>
-        </div>
-        <UButton
-          v-if="!selectedTemplate"
-          icon="i-lucide-layout-template"
-          color="primary"
-          variant="soft"
-          size="xs"
-          @click="showTemplateModal = true"
-        >
-          选择模板
-        </UButton>
-      </div>
-
-      <!-- 已选模板提示 -->
-      <div v-if="selectedTemplate" class="flex items-center gap-3 p-3 bg-brand-50 rounded-xl border border-brand-200">
-        <UIcon name="i-lucide-file-check" class="w-4 h-4 text-brand-600 flex-shrink-0" />
-        <div class="flex-1 min-w-0">
-          <span class="text-sm text-brand-800 font-medium">{{ selectedTemplate.name }}</span>
-          <span class="text-xs text-brand-600 ml-2">（保存时将自动应用模板生成合同正文）</span>
-        </div>
-        <UButton icon="i-lucide-x" variant="ghost" color="neutral" size="xs" @click="selectedTemplate = null; showTemplateModal = false" />
-      </div>
-    </div>
-
     <!-- 合同正文编辑区 -->
     <div class="em-card mt-4">
       <h3 class="text-sm font-medium text-content-secondary mb-3">合同正文</h3>
       <ContractEditor
         ref="contractEditorRef"
         @update:document-model="contentDocument = $event"
-        placeholder="开始撰写合同正文，或从上方选择模板快速生成..."
+        placeholder="开始撰写合同正文..."
       />
     </div>
 
     <!-- 操作按钮 -->
     <div class="mt-6 flex justify-end gap-2">
       <UButton variant="ghost" color="neutral" @click="router.back()">取消</UButton>
-      <UButton color="primary" :loading="saving" @click="selectedTemplate ? applyTemplate() : handleSubmit()">
-        {{ selectedTemplate ? '创建并套用模板' : '创建合同' }}
+      <UButton color="primary" :loading="saving" @click="handleSubmit()">
+        创建合同
       </UButton>
     </div>
-
-    <!-- 模板选择弹窗 -->
-    <FormModal
-      v-if="showTemplateModal"
-      v-model:open="showTemplateModal"
-      title="选择合同模板"
-      size="standard"
-      @cancel="showTemplateModal = false"
-    >
-      <p class="text-xs text-content-muted mb-4">选一个模板，保存时占位符会自动替换为合同中的实际信息（如客户名称、金额、日期等）。</p>
-      <TemplateSelector
-        :templates="templates"
-        :selected-id="selectedTemplate?.id"
-        @select="onSelectTemplate"
-      />
-      <template #footer>
-        <div class="flex justify-end gap-2 w-full">
-          <UButton color="primary" :disabled="!selectedTemplate" @click="showTemplateModal = false">确定</UButton>
-          <UButton variant="ghost" color="neutral" @click="showTemplateModal = false">算了</UButton>
-        </div>
-      </template>
-    </FormModal>
   </div>
 </template>

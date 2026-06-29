@@ -14,16 +14,6 @@ async function fetchStats() {
   } catch { /* ignore */ }
 }
 
-// ── 操作记录 ──
-const logs = ref<any[]>([])
-async function fetchLogs() {
-  try {
-    const res = await $api('/api/system/operation-logs', {
-      params: { userId: authStore.user?.id, pageSize: 10 },
-    }) as any
-    if (res?.code === 0) logs.value = res.data.items || []
-  } catch { /* ignore */ }
-}
 
 // ── 头像上传 ──
 const avatarUploading = ref(false)
@@ -40,7 +30,7 @@ async function handleAvatarUpload(e: Event) {
     const formData = new FormData()
     formData.append('file', file)
     const token = authStore.accessToken
-    const res = await $fetch('/api/files/upload', {
+    const res = await $fetch('/api/attachments/upload', {
       method: 'POST',
       body: formData,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -184,14 +174,13 @@ function formatDate(dateStr?: string | null): string {
 const moduleLabels: Record<string, string> = {
   customer: '客户', contact: '联系人', followup: '跟进记录', opportunity: '商机',
   quote: '报价', product: '产品', category: '产品分类', contract: '合同',
-  payment: '收付款', subcontract: '分包', project: '项目', task: '任务',
+  payment: '收付款', project: '项目', task: '任务',
   deliverable: '交付物', commission: '提成', payout: '提成发放', finance: '财务',
   reimbursement: '报销', user: '用户', tag: '标签', system: '系统',
 }
 
 onMounted(() => {
   fetchStats()
-  fetchLogs()
 })
 </script>
 
@@ -312,32 +301,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 右下（跨整行）：最近操作 -->
-        <div class="em-card md:col-span-2">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-medium text-content-secondary">最近操作</h3>
-            <NuxtLink to="/dashboard/logs" class="text-xs text-brand-600 hover:text-brand-700 font-medium transition-colors">查看全部 →</NuxtLink>
-          </div>
-          <div v-if="logs.length === 0" class="text-xs text-content-muted py-8 text-center">
-            <UIcon name="i-lucide-clock" class="w-5 h-5 text-content-muted mx-auto mb-1.5" />
-            还没有操作记录
-          </div>
-          <div v-else class="space-y-0.5">
-            <div
-              v-for="log in logs.slice(0, 8)"
-              :key="log.id"
-              class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-surface-hover transition-colors"
-            >
-              <div class="flex items-center gap-2.5 min-w-0">
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted shrink-0">
-                  {{ moduleLabels[log.module] || log.module }}
-                </span>
-                <span class="text-xs text-content-secondary truncate">{{ log.detail || '—' }}</span>
-              </div>
-              <span class="text-[11px] text-content-muted shrink-0 ml-2">{{ formatTime(log.createdAt) }}</span>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <!-- ══════════════════════ 弹窗 ══════════════════════ -->
