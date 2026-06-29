@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions, products } from '#schema'
-import { eq, and, asc, desc, sql } from 'drizzle-orm'
+import { eq, and, asc, desc, sql, isNull } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const q = getQuery(event) as Record<string, string>
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const page = Math.max(1, parseInt(q.page || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '20')))
 
-  const conditions: Record<string, unknown>[] = []
+  const conditions: Record<string, unknown>[] = [isNull(inventoryTransactions.deletedAt)]
   if (q.type) conditions.push(eq(inventoryTransactions.type, q.type))
   if (q.productId) conditions.push(eq(inventoryTransactions.productId, q.productId))
   if (q.contractId) conditions.push(eq(inventoryTransactions.contractId, q.contractId))
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   }
   const orderColumn = sortColumns[sortBy] || inventoryTransactions.createdAt
 
-  const where = conditions.length > 0 ? and(...conditions) : undefined
+  const where = and(isNull(inventoryTransactions.deletedAt), ...(conditions.length > 0 ? conditions : []))
 
   const [list, totalResult] = await Promise.all([
     db.select({

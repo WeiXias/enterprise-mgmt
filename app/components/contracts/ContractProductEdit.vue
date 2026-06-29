@@ -8,6 +8,8 @@ const emit = defineEmits<{ save: [] }>()
 const toast = useToast()
 const { $api } = useNuxtApp()
 const showProductModal = ref(false)
+const showSelectModal = ref(false)
+const selectedProductInfo = ref<any>(null)
 const productLoading = ref(false)
 const editProducts = ref<any[]>([])
 const contract = inject<any>('contract')
@@ -88,7 +90,16 @@ defineExpose({ openModal })
     <FormModal v-if="showProductModal" v-model:open="showProductModal" title="编辑产品明细" :loading="productLoading" :secondary-action="{ label: '添加产品行', onClick: addProductRow }">
       <div class="space-y-3 max-h-[50vh] overflow-y-auto">
         <div v-for="(p, i) in editProducts" :key="i" class="flex items-center gap-2 text-sm">
-          <ProductSelect v-model="p.productId" class="flex-[2]" @select="(prod: any) => { if (prod) p.unitPrice = p.unitPrice || (prod.price || 0) }" />
+          <div class="flex-[2] relative">
+            <UIcon name="i-lucide-search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-content-muted pointer-events-none z-10" />
+            <input
+              :value="p._name || ''"
+              type="text"
+              readonly
+              class="w-full pl-7 pr-6 py-1.5 text-sm rounded border border-line bg-surface-card cursor-pointer"
+              @click="showProductModal = false; showSelectModal = true"
+            />
+          </div>
           <input v-model.number="p.quantity" type="number" min="1" class="w-16 px-1 py-1.5 text-center rounded border border-line text-sm" />
           <input v-model.number="p.unitPrice" type="number" step="0.01" placeholder="单价" class="w-20 px-1 py-1.5 rounded border border-line text-sm" />
           <input v-model.number="p.discount" type="number" min="0" max="100" class="w-16 px-1 py-1.5 text-center rounded border border-line text-sm" title="折扣%" />
@@ -101,5 +112,20 @@ defineExpose({ openModal })
         <UButton variant="ghost" color="neutral" @click="showProductModal = false">算了</UButton>
       </template>
     </FormModal>
+
+    <!-- 产品选择弹窗 -->
+    <ProductSelectModal
+      v-model="selectedProductInfo"
+      nested
+      :open="showSelectModal"
+      @update:open="showSelectModal = $event"
+      @select="(p: any) => { selectedProductInfo = p; showSelectModal = false; // 在已有产品行空位填入
+            const emptyRow = editProducts.find((ep: any) => !ep.productId)
+            if (emptyRow) { emptyRow.productId = p.id; emptyRow._name = p.name; emptyRow.unitPrice = p.price || 0 }
+            else { editProducts.push({ productId: p.id, _name: p.name, quantity: 1, unitPrice: p.price || 0, discount: 100 }) }
+          }"
+
+<｜｜DSML｜｜parameter name="replace_all" string="false">false
+    />
   </div>
 </template>

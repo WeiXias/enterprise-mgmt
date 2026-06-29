@@ -8,6 +8,13 @@ const router = useRouter()
 const saving = ref(false)
 const supplierOptions = ref<any[]>([])
 
+// 已选产品列表
+const selectedProducts = ref<{ id: string; name: string; code: string; price: number; stockQuantity: number; status: string }[]>([])
+
+// 产品选择弹窗
+const showProductModal = ref(false)
+const selectedProductInfo = ref<any>(null)
+
 const form = ref({
   supplierId: '',
   expectedDate: '',
@@ -23,13 +30,28 @@ async function fetchSuppliers() {
   } catch { /* 静默 */ }
 }
 
+function onProductSelected(product: any) {
+  selectedProductInfo.value = product
+  const emptyIdx = items.value.findIndex(i => !i.productId)
+  if (emptyIdx >= 0) {
+    items.value[emptyIdx].productId = product.id
+    items.value[emptyIdx]._name = product.name
+    items.value[emptyIdx].unitPrice = product.price || 0
+    updateItemAmount(emptyIdx)
+  } else {
+    items.value.push({ productId: product.id, _name: product.name, quantity: 1, unitPrice: product.price || 0, discount: 1, amount: 0 })
+    updateItemAmount(items.value.length - 1)
+  }
+  showProductModal.value = false
+}
+
 function updateItemAmount(idx: number) {
   const item = items.value[idx]
   item.amount = Math.round(item.quantity * item.unitPrice * item.discount * 100) / 100
 }
 
 function addItem() {
-  items.value.push({ productId: '', quantity: 1, unitPrice: 0, discount: 1, amount: 0 })
+  showProductModal.value = true
 }
 
 function removeItem(idx: number) {
@@ -87,12 +109,35 @@ onMounted(() => { fetchSuppliers() })
         <div>
           <div class="flex items-center justify-between mb-2">
             <label class="text-sm text-content-secondary">采购产品</label>
-            <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addItem">添加行</UButton>
+            <UButton icon="i-lucide-plus" variant="ghost" color="neutral" size="xs" @click="addItem">添加产品</UButton>
           </div>
           <div class="space-y-2">
             <div v-for="(item, idx) in items" :key="idx" class="grid grid-cols-12 gap-2 items-end">
               <div class="col-span-4">
-                <ProductSelect v-model="item.productId" placeholder="选产品" @select="updateItemAmount(idx)" />
+                <div class="relative">
+                  <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
+                  <input
+                    v-if="item.productId"
+                    :value="item._name || '已选产品'"
+                    type="text"
+                    readonly
+                    class="w-full pl-8 input-base bg-surface-hover cursor-pointer text-sm"
+                    @click="showProductModal = true"
+                  />
+                  <input
+                    v-else
+                    type="text"
+                    placeholder="点击选择产品"
+                    readonly
+                    class="w-full pl-8 input-base cursor-pointer text-sm text-content-muted"
+                    @click="showProductModal = true"
+                  />
+                  <button
+                    v-if="item.productId"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded text-content-muted hover:text-content-secondary"
+                    @click="item.productId = ''; item.unitPrice = 0; item.amount = 0"
+                  ><UIcon name="i-lucide-x" class="w-3.5 h-3.5" /></button>
+                </div>
               </div>
               <div class="col-span-2">
                 <input v-model.number="item.quantity" type="number" min="1" placeholder="数量" class="w-full px-2 py-1.5 text-sm rounded border border-line focus-ring" @input="updateItemAmount(idx)" />
@@ -121,5 +166,13 @@ onMounted(() => { fetchSuppliers() })
         </div>
       </form>
     </div>
+
+    <!-- 产品选择弹窗 -->
+    <ProductSelectModal
+      v-model="selectedProductInfo"
+      :open="showProductModal"
+      @update:open="showProductModal = $event"
+      @select="onProductSelected"
+    />
   </div>
 </template>

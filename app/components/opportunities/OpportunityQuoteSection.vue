@@ -15,6 +15,21 @@ const { $api } = useNuxtApp()
 const quotes = ref<any[]>([])
 const products = ref<any[]>([])
 
+const showSelectModal = ref(false)
+const editingQuoteIdx = ref(0)
+const selectedProductInfo = ref<any>(null)
+
+function onQuoteProductSelected(product: any) {
+  const item = quoteForm.value.items[editingQuoteIdx.value]
+  if (item) {
+    item.productId = product.id
+    item._name = product.name
+    item.listPrice = product.price || 0
+  }
+  showSelectModal.value = false
+}
+
+
 async function fetchQuotes() {
   // quotes 由父组件 fetchDetail 后通过 provide 传入
   // 这里通过 watch 监听
@@ -272,7 +287,15 @@ defineExpose({ openQuoteModal })
               <div class="w-6" />
             </div>
             <div v-for="(item, i) in quoteForm.items" :key="i" class="flex items-center gap-1.5 text-xs">
-              <ProductSelect v-model="item.productId" placeholder="选产品" @select="(prod: { id: string; name: string; code: string; price: number }) => { if (prod) { item.productName = prod.name; item.listPrice = prod.price } }" />
+              <div class="flex-[2] relative">
+                <UIcon name="i-lucide-search" class="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-content-muted pointer-events-none z-10" />
+                <input
+                  :value="item._name || ''"
+                  type="text"
+                  readonly
+                  class="w-full pl-6 pr-5 py-1 text-xs rounded border border-line bg-surface-card cursor-pointer"
+                  @click="showSelectModal = true; editingQuoteIdx = i"
+                />
               <span class="w-16 text-center text-content-muted">{{ item.listPrice != null ? '¥' + item.listPrice.toLocaleString() : '-' }}</span>
               <input v-model.number="item.discount" type="number" min="0" max="100" class="w-12 px-1 py-1.5 text-center rounded border border-line text-xs" />
               <span class="w-16 text-right text-brand-700 font-medium">{{ '¥' + ((item.listPrice || 0) * ((item.discount ?? 100) / 100)).toLocaleString() }}</span>
@@ -371,5 +394,13 @@ defineExpose({ openQuoteModal })
     title="删除报价"
     message="确定要删除这个报价吗？删了就找不回来了。"
     @confirm="handleDeleteQuoteConfirmed"
+  />
+
+  <ProductSelectModal
+    v-model="selectedProductInfo"
+    nested
+    :open="showSelectModal"
+    @update:open="showSelectModal = $event"
+    @select="onQuoteProductSelected"
   />
 </template>

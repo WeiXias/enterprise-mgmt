@@ -3,7 +3,7 @@ import { contracts, opportunityProducts, contractProducts } from '#schema'
 import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 
-export async function createContractFromOpportunity(oppId: string, oppName: string, customerId: string, estimatedAmount: number, createdBy: string) {
+export async function createContractFromOpportunity(oppId: string, oppName: string, customerId: string, customerName: string, estimatedAmount: number, createdBy: string) {
   const contractId = generateId()
   const code = `HT-${Date.now().toString().slice(-8)}`
 
@@ -13,7 +13,7 @@ export async function createContractFromOpportunity(oppId: string, oppName: stri
     name: oppName + ' 合同',
     customerId,
     opportunityId: oppId,
-    partyA: oppName,
+    partyA: customerName,
     partyB: '',
     totalAmount: estimatedAmount || 0,
     status: 'draft',

@@ -8,6 +8,20 @@ const emit = defineEmits<{
   refresh: []
 }>()
 
+const showSelectModal = ref(false)
+const editingRowIndex = ref(0)
+const selectedProductInfo = ref<any>(null)
+
+function onProductSelected(product: any) {
+  const sp = selectedProducts.value[editingRowIndex.value]
+  if (sp) {
+    sp.productId = product.id
+    sp._name = product.name
+    sp.unitPrice = product.price || 0
+  }
+  showSelectModal.value = false
+}
+
 const toast = useToast()
 const { $api } = useNuxtApp()
 
@@ -73,7 +87,15 @@ defineExpose({ open })
         <div v-if="!selectedProducts.length" class="text-xs text-content-muted py-2">还没有关联产品</div>
         <div v-else class="space-y-2">
           <div v-for="(sp, i) in selectedProducts" :key="i" class="flex items-center gap-2 text-xs">
-            <ProductSelect v-model="sp.productId" placeholder="选产品" @select="(prod: { id: string; name: string; code: string; price: number }) => { if (prod) sp.unitPrice = prod.price }" />
+            <div class="flex-[2] relative">
+              <UIcon name="i-lucide-search" class="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-content-muted pointer-events-none z-10" />
+              <input
+                :value="sp._name || ''"
+                type="text"
+                readonly
+                class="w-full pl-6 pr-5 py-1 text-xs rounded border border-line bg-surface-card cursor-pointer"
+                @click="showSelectModal = true; editingRowIndex = i"
+              />
             <input v-model.number="sp.quantity" type="number" min="1" class="w-14 px-1 py-1 text-center rounded border border-line text-xs" />
             <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeRow(i)" />
           </div>
@@ -85,4 +107,12 @@ defineExpose({ open })
       <UButton variant="ghost" color="neutral" @click="showProductModal = false">算了</UButton>
     </template>
   </FormModal>
+
+  <ProductSelectModal
+    v-model="selectedProductInfo"
+    nested
+    :open="showSelectModal"
+    @update:open="showSelectModal = $event"
+    @select="onProductSelected"
+  />
 </template>

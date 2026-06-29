@@ -34,5 +34,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 422, statusMessage: `库存不足（当前库存 ${recheck.stockQuantity}）` })
   }
 
-  return { code: 0, data: result[0], message: '搞定了！库存已更新' }
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+  const transactionId = generateId()
+  await db.insert(inventoryTransactions).values({
+    id: transactionId,
+    productId,
+    type,
+    quantity: delta,
+    unitPrice: unitPrice || 0,
+    batchNo: batchNo || null,
+    remark: remark || null,
+    operatorId: user.userId,
+    createdAt: now,
+  })
+
+  return { code: 0, data: { id: transactionId }, message: '搞定了！库存已更新' }
 })

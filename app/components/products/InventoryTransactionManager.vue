@@ -54,6 +54,8 @@ async function handleDelete() {
 }
 
 defineExpose({ fetchTransactions })
+
+onMounted(() => { fetchTransactions() })
 </script>
 
 <template>

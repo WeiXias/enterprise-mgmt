@@ -52,7 +52,15 @@ async function fetchDetail() {
 }
 
 async function fetchCategories() {
-  try { const res = await $api('/api/product-categories') as any; if (res?.code === 0) categoryOptions.value = res.data || [] } catch {}
+  try {
+    const res = await $api('/api/dict/product_category') as any
+    if (res?.code === 0) {
+      categoryOptions.value = (res.data || []).map((d: any) => ({
+        id: d.value,
+        name: d.label,
+      }))
+    }
+  } catch {}
 }
 
 function openEditModal() {

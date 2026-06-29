@@ -246,7 +246,7 @@ onMounted(() => { fetchWarehouses() })
           </div>
           <div>
             <label class="block text-sm text-content-secondary mb-1">负责人</label>
-            <input v-model="createForm.manager" type="text" placeholder="负责人" class="w-full input-base focus-ring" />
+            <UserSelect v-model="createForm.manager" placeholder="选一个负责人" />
           </div>
           <div>
             <label class="block text-sm text-content-secondary mb-1">备注</label>
@@ -274,7 +274,7 @@ onMounted(() => { fetchWarehouses() })
           </div>
           <div>
             <label class="block text-sm text-content-secondary mb-1">负责人</label>
-            <input v-model="editForm.manager" type="text" class="w-full input-base focus-ring" />
+            <UserSelect v-model="editForm.manager" placeholder="选一个负责人" />
           </div>
           <div>
             <label class="block text-sm text-content-secondary mb-1">备注</label>

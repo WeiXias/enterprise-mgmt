@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
-import { inventoryTransactions, products } from '#schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { inventoryTransactions, products, purchaseOrders } from '#schema'
+import { eq, and, isNull, sql } from 'drizzle-orm'
 import dayjs from 'dayjs'
 import { logOperation } from '#server-utils/log'
 
@@ -21,6 +21,20 @@ export default defineEventHandler(async (event) => {
       // 不阻止删除，但保护库存非负
     }
     await db.update(products).set({ stockQuantity: product.stockQuantity + delta }).where(eq(products.id, record.productId))
+  }
+
+  // 如果是采购收货产生的入库（batchNo 以 PO- 开头），回滚采购订单状态到 submitted
+  if (record.batchNo?.startsWith('PO-')) {
+    const code = record.batchNo.replace(/^PO-/, '')
+    if (code) {
+      const [po] = await db.select({ id: purchaseOrders.id, status: purchaseOrders.status }).from(purchaseOrders)
+        .where(and(eq(purchaseOrders.code, code), isNull(purchaseOrders.deletedAt))).limit(1)
+      if (po && po.status === 'received') {
+        const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
+        await db.update(purchaseOrders).set({ status: 'submitted', updatedAt: now }).where(eq(purchaseOrders.id, po.id))
+        await logOperation(event, { action: 'UPDATE', module: 'purchase_order', targetId: po.id, detail: '库存记录删除，采购订单回滚到已提交' })
+      }
+    }
   }
 
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')

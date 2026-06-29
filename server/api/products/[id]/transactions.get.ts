@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParams, getQuery } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions } from '#schema'
-import { eq, desc, sql } from 'drizzle-orm'
+import { eq, desc, sql, isNull, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const page = Math.max(1, parseInt(q.page || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '20')))
 
-  const where = eq(inventoryTransactions.productId, id)
+  const where = and(eq(inventoryTransactions.productId, id), isNull(inventoryTransactions.deletedAt))
 
   const [list, totalResult] = await Promise.all([
     db.select().from(inventoryTransactions).where(where).orderBy(desc(inventoryTransactions.createdAt)).limit(pageSize).offset((page - 1) * pageSize),

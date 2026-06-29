@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
-import { purchaseOrders, purchaseOrderItems, inventoryTransactions, products } from '#schema'
+import { purchaseOrders, purchaseOrderItems, inventoryTransactions, products, purchasePayables } from '#schema'
 import { eq, and, isNull, sql } from 'drizzle-orm'
 import dayjs from 'dayjs'
 import { generateId } from '#server-utils/id'
@@ -18,6 +18,8 @@ export default defineEventHandler(async (event) => {
     id: purchaseOrders.id,
     status: purchaseOrders.status,
     code: purchaseOrders.code,
+    supplierId: purchaseOrders.supplierId,
+    totalAmount: purchaseOrders.totalAmount,
   }).from(purchaseOrders)
     .where(and(eq(purchaseOrders.id, id), isNull(purchaseOrders.deletedAt)))
     .limit(1)
@@ -55,5 +57,19 @@ export default defineEventHandler(async (event) => {
 
   await logOperation(event, { action: 'UPDATE', module: 'purchase_order', targetId: id, detail: `确认收货了采购订单「${existing[0].code}」` })
 
-  return { code: 0, data: null, message: '搞定了！已确认收货，库存已更新' }
+  // 3. 生成应付记录
+  await db.insert(purchasePayables).values({
+    id: generateId(),
+    orderId: id,
+    supplierId: existing[0].supplierId!,
+    totalAmount: existing[0].totalAmount || 0,
+    paidAmount: 0,
+    invoiceAmount: 0,
+    status: 'pending',
+    createdBy: user.userId,
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  return { code: 0, data: null, message: '搞定了！已确认收货，库存已更新，应付记录已生成' }
 })

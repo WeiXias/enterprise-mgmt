@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
-import { products, productCategories } from '#schema/products'
+import { products, productCategories } from '#schema'
 import { eq, and, isNull, like, or, sql, asc, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
       code: products.code,
       standardPrice: products.standardPrice,
       costPrice: products.costPrice,
-      stockQuantity: products.stockQuantity,
+      stockQuantity: sql<number>`COALESCE(${products.stockQuantity}, 0)`,
       status: products.status,
       categoryId: products.categoryId,
       categoryName: productCategories.name,
@@ -58,7 +58,9 @@ export default defineEventHandler(async (event) => {
     data: {
       items: list.map((p: any) => ({
         ...p,
+        stockQuantity: Number(p.stockQuantity) || 0,
         category: p.categoryId ? { id: p.categoryId, name: p.categoryName } : null,
+        categoryName: p.categoryName || null,
       })),
       total, page, pageSize,
       totalPages: Math.ceil(total / pageSize),

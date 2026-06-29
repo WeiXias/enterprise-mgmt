@@ -11,6 +11,9 @@ const showModal = ref(false)
 const saving = ref(false)
 const editTarget = ref<any>(null)
 const form = ref({ name: '', baseType: 'contract_amount', rate: 0.05, productId: '', minAmount: 0, maxAmount: 0, isActive: 'yes' })
+const showSelectModal = ref(false)
+const selectedProductInfo = ref<any>(null)
+const selectedProductName = computed(() => selectedProductInfo.value?.name || '')
 
 const { getLabel } = useEnum()
 
@@ -127,7 +130,18 @@ onMounted(() => fetchRules())
         <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" placeholder="如：标准提成" class="w-full input-base focus-ring" /></div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-sm text-content-secondary mb-1">提成基数</label><select v-model="form.baseType" class="w-full input-base focus-ring"><option value="contract_amount">合同金额</option><option value="payment_amount">回款金额</option></select></div>
-          <div><label class="block text-sm text-content-secondary mb-1">关联产品</label><ProductSelect v-model="form.productId" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">关联产品</label>
+            <div class="relative">
+              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
+              <input
+                :value="selectedProductName"
+                type="text"
+                readonly
+                class="w-full pl-8 input-base bg-surface-card cursor-pointer"
+                @click="showSelectModal = true"
+              />
+            </div>
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-sm text-content-secondary mb-1">提成比例</label><input v-model.number="form.rate" type="number" step="0.01" min="0" max="1" placeholder="0.05 = 5%" class="w-full input-base focus-ring" /></div>
@@ -145,5 +159,12 @@ onMounted(() => fetchRules())
         </div>
       </template>
     </FormModal>
+
+    <ProductSelectModal
+      v-model="selectedProductInfo"
+      :open="showSelectModal"
+      @update:open="showSelectModal = $event"
+      @select="(p: any) => { selectedProductInfo = p; form.productId = p.id; showSelectModal = false }"
+    />
   </div>
 </template>

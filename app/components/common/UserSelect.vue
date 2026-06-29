@@ -5,14 +5,14 @@
  */
 
 interface Props {
-  modelValue: string
+  modelValue?: string
   placeholder?: string
-  /** 按角色过滤 */
   roleFilter?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '选择用户',
+  modelValue: undefined,
 })
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -35,7 +35,14 @@ async function load() {
       options.value = res.data.items || []
     }
   } catch { /* ignore */ }
-  finally { loading.value = false }
+  finally {
+    loading.value = false
+    // 初次加载时回填已有值对应的用户名
+    if (loaded.value && props.modelValue && !searchKeyword.value) {
+      const matched = options.value.find(o => o.name === props.modelValue)
+      if (matched) searchKeyword.value = matched.name
+    }
+  }
 }
 
 let timer: any = null
@@ -47,8 +54,9 @@ function onSearch() {
   timer = setTimeout(load, 250)
 }
 
-function select(id: string) {
-  emit('update:modelValue', id)
+function select(id: string, name: string) {
+  emit('update:modelValue', name)
+  searchKeyword.value = name
   isOpen.value = false
 }
 
@@ -82,20 +90,13 @@ function onBlur() {
       class="absolute z-20 w-full mt-1 max-h-48 overflow-y-auto bg-surface-card border border-line rounded-xl shadow-lg"
     >
       <button
-        v-if="!props.modelValue"
-        class="w-full text-left px-3 py-2 text-xs text-content-muted hover:bg-surface-hover"
-        disabled
-      >
-        选择用户
-      </button>
-      <button
         v-for="opt in options"
         :key="opt.id"
         :class="[
           'w-full text-left px-3 py-2 text-sm hover:bg-brand-50 transition-colors flex items-center gap-2',
-          modelValue === opt.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary'
+          modelValue === opt.name ? 'bg-brand-50 text-brand-700' : 'text-content-secondary'
         ]"
-        @click="select(opt.id)"
+        @mousedown.prevent="select(opt.id, opt.name)"
       >
         <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
           <span class="text-brand-700 text-[10px]">{{ opt.name?.charAt(0) }}</span>

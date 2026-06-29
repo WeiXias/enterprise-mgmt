@@ -413,3 +413,358 @@ async function saveCurrentDict() {
 function loadDictItems() { if (selectedDictType.value) selectDictType(selectedDictType.value) }
 loadDictTypes()
 
+
+</script>
+<template>
+  <div>
+    <!-- 页面标题 —— 杂志风大标题 + 引导文案 -->
+    <div class="mb-10">
+      <h1 class="text-2xl font-medium text-content-primary tracking-tight">系统设置</h1>
+      <p class="text-sm text-content-muted mt-1.5 max-w-lg leading-relaxed">
+        这里管着整个系统的运行参数。当前版本 <span class="text-brand-600 font-medium">{{ appVersion }}</span>，每一项调整都会即时生效，改之前可以多看一眼。
+      </p>
+    </div>
+
+    <div class="flex gap-8">
+      <!-- 左侧导航 -->
+      <nav class="w-44 shrink-0">
+        <p class="text-[10px] font-medium text-content-muted uppercase tracking-[0.12em] mb-3 px-1">设置分类</p>
+        <div class="space-y-0.5">
+          <button
+            v-for="tab in tabs" :key="tab.key"
+            class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200"
+            :class="activeTab === tab.key
+              ? 'bg-surface-card shadow-sm text-content-primary font-medium ring-1 ring-brand-200/50'
+              : 'text-content-muted hover:text-content-secondary hover:bg-surface-hover'"
+            @click="activeTab = tab.key"
+          >
+            <div class="flex items-center gap-2.5">
+              <UIcon :name="tab.icon" class="w-4 h-4 shrink-0" :class="activeTab === tab.key ? 'text-brand-500' : ''" />
+              <span>{{ tab.label }}</span>
+            </div>
+          </button>
+        </div>
+      </nav>
+
+      <!-- 右侧 -->
+      <div class="flex-1 min-w-0">
+        <!-- 引导卡 -->
+        <div class="em-card mb-6 border-l-4 border-l-brand-500">
+          <h2 class="text-base font-medium text-content-primary mb-1">{{ tabs.find(t => t.key === activeTab)?.label }}</h2>
+          <p class="text-sm text-content-muted">{{ tabDescs[activeTab] || '' }}</p>
+        </div>
+
+        <!-- 基本信息 -->
+        <div v-show="activeTab === 'basic'" class="grid grid-cols-2 gap-5">
+          <div v-for="field in basicFields" :key="field.key" class="em-card">
+            <div class="flex items-start gap-4">
+              <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0"><UIcon name="i-lucide-building-2" class="w-5 h-5 text-brand-600" /></div>
+              <div class="flex-1">
+                <label class="text-sm font-medium text-content-primary">{{ field.label }}</label>
+                <p class="text-[11px] text-content-muted mt-0.5">{{ field.key === 'company_name' ? '对外展示的企业全称' : field.key === 'system_name' ? '浏览器标签页显示的名称' : field.key === 'system_subtitle' ? '一句简短的口号或说明' : '附件和图片存放的位置，相对路径相对于项目目录' }}</p>
+                <input v-model="config[field.key]" type="text" :placeholder="field.placeholder" class="w-full mt-2.5 input-base focus-ring text-sm" />
+              </div>
+            </div>
+            <div class="flex justify-end mt-3"><UButton size="xs" color="primary" :loading="saving[field.key]" @click="saveConfig(field.key)">保存</UButton></div>
+          </div>
+          <div class="em-card">
+            <div class="flex items-start gap-4">
+              <div class="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center shrink-0"><UIcon name="i-lucide-image" class="w-5 h-5 text-brand-600" /></div>
+              <div class="flex-1">
+                <label class="text-sm font-medium text-content-primary">公司 Logo</label>
+                <p class="text-[11px] text-content-muted mt-0.5">支持 png/jpg/gif/webp/svg</p>
+                <div class="mt-2.5 flex items-center gap-3">
+                  <div class="w-14 h-14 rounded-xl bg-surface-hover flex items-center justify-center border-2 border-dashed border-line"><UIcon name="i-lucide-image" class="w-6 h-6 text-content-muted" /></div>
+                  <UButton size="xs" color="neutral" variant="outline">选择图片</UButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 组织架构 -->
+        <div v-show="activeTab === 'organizations'" class="grid grid-cols-3 gap-5">
+          <div class="em-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-content-primary">部门列表</h3>
+              <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openNewDept()">添加</UButton>
+            </div>
+            <div class="space-y-0.5">
+              <template v-for="dept in departments" :key="dept.id">
+                <div
+                  class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-colors"
+                  :class="selectedDept?.id === dept.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary hover:bg-surface-hover'"
+                  @click="selectDept(dept)"
+                >
+                  <UIcon name="i-lucide-building-2" class="w-3.5 h-3.5 shrink-0" />
+                  <span class="truncate">{{ dept.name }}</span>
+                  <span class="ml-auto text-[10px] text-content-muted shrink-0">{{ dept.memberCount || 0 }}人</span>
+                </div>
+                <div
+                  v-for="child in dept.children"
+                  :key="child.id"
+                  class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-colors ml-4"
+                  :class="selectedDept?.id === child.id ? 'bg-brand-50 text-brand-700' : 'text-content-secondary hover:bg-surface-hover'"
+                  @click="selectDept(child)"
+                >
+                  <UIcon name="i-lucide-corner-down-right" class="w-3.5 h-3.5 text-content-muted shrink-0" />
+                  <span class="truncate">{{ child.name }}</span>
+                  <span class="ml-auto text-[10px] text-content-muted shrink-0">{{ child.memberCount || 0 }}人</span>
+                </div>
+              </template>
+              <div v-if="departments.length === 0" class="text-xs text-content-muted text-center py-4">暂无部门，点上方添加</div>
+            </div>
+          </div>
+          <div v-if="selectedDept" class="em-card col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-medium text-content-primary">{{ selectedDept.name }}</h3>
+                <p v-if="selectedDept.description" class="text-xs text-content-muted mt-0.5">{{ selectedDept.description }}</p>
+              </div>
+              <div class="flex items-center gap-1">
+                <UButton icon="i-lucide-user-plus" variant="ghost" color="primary" size="xs" @click="startAddMembers">加人</UButton>
+                <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditDept(selectedDept)">编辑</UButton>
+                <UButton icon="i-lucide-trash-2" variant="ghost" color="neutral" size="xs" class="text-red-400 hover:text-red-600" @click="deleteDept(selectedDept)">删除</UButton>
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <div v-for="m in deptMembers" :key="m.id" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-hover transition-colors group">
+                <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 text-xs font-medium">{{ (m.name || '?')[0] }}</div>
+                <div class="flex-1"><p class="text-sm text-content-primary">{{ m.name }}</p><p class="text-[11px] text-content-muted">@{{ m.username }}</p></div>
+                <span v-if="m.role" class="text-[10px] px-2 py-0.5 rounded-full bg-teal-50 text-teal-700">{{ m.role }}</span>
+                <button class="w-5 h-5 flex items-center justify-center rounded text-content-muted opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-50" @click="removeMember(m.id)"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+              </div>
+              <div v-if="deptMembers.length === 0" class="text-xs text-content-muted text-center py-4">暂无成员</div>
+            </div>
+
+            <!-- 绑定成员弹窗 -->
+            <FormModal v-if="showAddMember" v-model:open="showAddMember" title="添加成员" size="standard" :loading="addMemberLoading" @confirm="confirmAddMembers" @cancel="showAddMember = false">
+              <div class="space-y-1 max-h-80 overflow-y-auto">
+                <div v-for="u in allUsers" :key="u.id" class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-surface-hover transition-colors" :class="selectedUserIds.includes(u.id) ? 'bg-brand-50' : ''" @click="toggleUserSelection(u.id)">
+                  <input type="checkbox" :checked="selectedUserIds.includes(u.id)" class="w-3.5 h-3.5 rounded accent-brand-500" />
+                  <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 text-xs font-medium">{{ (u.name || '?')[0] }}</div>
+                  <div class="flex-1"><p class="text-sm text-content-primary">{{ u.name }}</p><p class="text-[11px] text-content-muted">@{{ u.username }}</p></div>
+                  <span v-if="u.departmentName" class="text-[10px] text-content-muted">{{ u.departmentName }}</span>
+                </div>
+              </div>
+            </FormModal>
+          </div>
+          <div v-else class="em-card col-span-2 flex items-center justify-center text-xs text-content-muted">从左边选一个部门查看详情</div>
+        </div>
+
+        <!-- 组织架构弹窗 -->
+        <FormModal v-if="deptModalOpen" v-model:open="deptModalOpen" :title="deptEditingId ? '编辑部门' : '新建部门'" size="compact" :loading="deptModalLoading" @confirm="saveDept">
+          <form class="space-y-4" @submit.prevent="saveDept">
+            <div><label class="block text-xs text-content-secondary mb-1">名称</label><input v-model="deptForm.name" type="text" class="w-full input-base" /></div>
+            <div><label class="block text-xs text-content-secondary mb-1">上级部门</label>
+              <select v-model="deptForm.parentId" class="w-full input-base text-sm">
+                <option value="">顶级部门（无）</option>
+                <template v-for="dept in departments" :key="dept.id">
+                  <option :value="dept.id">{{ dept.name }}</option>
+                  <option v-for="child in dept.children" :key="child.id" :value="child.id">&nbsp;&nbsp;&nbsp;{{ child.name }}</option>
+                </template>
+              </select>
+            </div>
+            <div><label class="block text-xs text-content-secondary mb-1">描述</label><input v-model="deptForm.description" type="text" class="w-full input-base" /></div>
+          </form>
+        </FormModal>
+
+        <!-- 角色权限 -->
+        <div v-show="activeTab === 'roles'" class="grid grid-cols-2 gap-5">
+          <div class="em-card">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-medium text-content-primary">角色列表</h3>
+              <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="openNewRole()">添加</UButton>
+            </div>
+            <div class="space-y-1">
+              <div
+                v-for="r in roles" :key="r.id"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
+                :class="selectedRole?.id === r.id ? 'bg-brand-50' : 'hover:bg-surface-hover'"
+                @click="selectRole(r)"
+              >
+                <UIcon :name="r.isSystem ? 'i-lucide-lock' : 'i-lucide-shield'" class="w-3.5 h-3.5 shrink-0" :class="selectedRole?.id === r.id ? 'text-brand-500' : 'text-content-muted'" />
+                <span class="text-sm text-content-secondary">{{ r.name }}</span>
+                <span class="ml-auto text-[10px] text-content-muted">{{ r.memberCount || 0 }}人</span>
+              </div>
+              <div v-if="roles.length === 0" class="text-xs text-content-muted text-center py-4">暂无角色</div>
+            </div>
+          </div>
+          <div v-if="selectedRole" class="em-card">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-medium text-content-primary">{{ selectedRole.name }} · 权限</h3>
+                <p class="text-xs text-content-muted mt-0.5">{{ selectedRole.description || '' }}</p>
+              </div>
+              <div class="flex items-center gap-1">
+                <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditRole(selectedRole)">编辑</UButton>
+                <UButton v-if="!selectedRole.isSystem" icon="i-lucide-trash-2" variant="ghost" color="neutral" size="xs" class="text-red-400 hover:text-red-600" @click="deleteRole(selectedRole)">删除</UButton>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div v-for="(perms, resource) in permissionGroups" :key="resource" class="border border-line-light rounded-lg p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[11px] font-medium text-content-muted uppercase tracking-wide">{{ resource }}</span>
+                  <button class="text-[10px] text-brand-600 hover:text-brand-700" @click="toggleAllPermissions(resource)">全选</button>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <label
+                    v-for="p in perms" :key="p.id"
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] cursor-pointer transition-colors"
+                    :class="rolePermissions.includes(p.id) ? 'bg-brand-50 text-brand-700' : 'bg-surface-hover text-content-muted hover:bg-brand-50 hover:text-brand-700'"
+                  >
+                    <input type="checkbox" :checked="rolePermissions.includes(p.id)" class="w-3 h-3 rounded accent-brand-500" @change="togglePermission(p.id)" />
+                    {{ p.action }}
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-end mt-4"><UButton size="xs" color="primary" @click="saveRolePermissions">保存权限</UButton></div>
+          </div>
+          <div v-else class="em-card flex items-center justify-center text-xs text-content-muted">从左边选一个角色管理权限</div>
+        </div>
+
+        <!-- 角色弹窗 -->
+        <FormModal v-if="roleModalOpen" v-model:open="roleModalOpen" :title="roleEditingId ? '编辑角色' : '新建角色'" size="compact" :loading="roleModalLoading" @confirm="saveRole">
+          <form class="space-y-4" @submit.prevent="saveRole">
+            <div><label class="block text-xs text-content-secondary mb-1">名称</label><input v-model="roleForm.name" type="text" class="w-full input-base" /></div>
+            <div><label class="block text-xs text-content-secondary mb-1">编码</label><input v-model="roleForm.code" type="text" class="w-full input-base font-mono" /></div>
+            <div><label class="block text-xs text-content-secondary mb-1">描述</label><input v-model="roleForm.description" type="text" class="w-full input-base" /></div>
+          </form>
+        </FormModal>
+
+        <!-- 数据字典 -->
+        <div v-show="activeTab === 'datadict'">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="relative flex-1 max-w-xs">
+              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+              <input v-model="dictSearch" type="text" placeholder="搜索字典或选项..." class="w-full pl-9 input-base focus:outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-400" />
+            </div>
+            <span class="text-xs text-content-muted">共 {{ filteredDictTypes.length }} 组</span>
+          </div>
+
+          <div class="flex gap-5">
+            <div class="w-48 shrink-0">
+              <div v-for="cat in dictCategories" :key="cat.name" class="mb-3">
+                <p class="text-[10px] font-medium text-content-muted uppercase tracking-wide px-2 py-1.5">{{ cat.name }}</p>
+                <button
+                  v-for="dt in cat.types"
+                  :key="dt.key"
+                  class="w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors mb-0.5"
+                  :class="selectedDictType === dt.key ? 'bg-brand-50 text-brand-700 font-medium' : 'text-content-muted hover:bg-surface-hover'"
+                  @click="selectDictType(dt.key)"
+                >{{ dt.label }}</button>
+              </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div v-if="!selectedDictType" class="em-card text-center py-16">
+                <UIcon name="i-lucide-database" class="w-10 h-10 text-content-muted mx-auto mb-3" />
+                <h3 class="text-sm font-medium text-content-secondary mb-1">数据字典</h3>
+                <p class="text-xs text-content-muted">从左边选一个字典开始管理</p>
+              </div>
+
+              <template v-else>
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-sm font-medium text-content-secondary">{{ selectedDictLabel }}</h3>
+                  <span class="text-xs text-content-muted">{{ currentDictItems.length }} 项</span>
+                </div>
+
+                <div class="em-card mb-4">
+                  <div class="flex flex-wrap gap-2">
+                    <div v-for="(item, idx) in currentDictItems" :key="item.id || idx" class="flex items-center gap-1.5 group">
+                      <span
+                        class="px-2.5 py-1 rounded-md text-xs transition-all cursor-pointer select-none border"
+                        :class="item.isActive === false ? 'bg-surface-hover text-content-muted border-line line-through' : 'bg-brand-50 text-brand-700 border-brand-100 hover:shadow-sm'"
+                      >{{ item.label }}</span>
+                      <button
+                        class="w-4 h-4 flex items-center justify-center rounded text-content-muted opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-50"
+                        @click="removeDictItem(idx)"
+                      ><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+                    </div>
+                    <button
+                      class="px-2.5 py-1 rounded-md text-xs border border-dashed border-line text-content-muted hover:border-brand-400 hover:text-brand-600 transition-colors flex items-center gap-1"
+                      @click="addDictItem()"
+                    ><UIcon name="i-lucide-plus" class="w-3 h-3" />添加</button>
+                  </div>
+                </div>
+
+                <div v-if="editingDictItemIdx !== null" class="flex items-center gap-2 mb-4">
+                  <input v-model="editingDictItemLabel" type="text" placeholder="中文标签" ref="newLabelInput" class="flex-1 px-2.5 h-8 text-xs rounded border border-line focus:outline-none focus:border-brand-400" @keydown.enter="saveDictItem()" @keydown.escape="cancelDictItemEdit()" />
+                  <UButton size="xs" color="primary" :loading="translating" @click="saveDictItem()">
+                    {{ translating ? '翻译中...' : '确定' }}
+                  </UButton>
+                  <UButton size="xs" variant="ghost" color="neutral" @click="cancelDictItemEdit()">算了</UButton>
+                </div>
+
+                <div class="flex items-center gap-2 pt-3 border-t border-line-light">
+                  <UButton size="xs" color="primary" :loading="dictSaveLoading" @click="saveCurrentDict()">保存变更</UButton>
+                  <UButton size="xs" variant="ghost" color="neutral" @click="loadDictItems()">放弃</UButton>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- 邮件配置 -->
+        <div v-show="activeTab === 'smtp'" class="em-card max-w-2xl">
+          <h3 class="text-sm font-medium text-content-primary mb-4">SMTP 发信服务设置</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="text-xs text-content-secondary mb-1 block">SMTP 服务器</label><input v-model="smtp.smtp_host" type="text" placeholder="smtp.example.com" class="w-full input-base" /></div>
+            <div><label class="text-xs text-content-secondary mb-1 block">端口</label><input v-model="smtp.smtp_port" type="number" placeholder="587" class="w-full input-base" /></div>
+            <div><label class="text-xs text-content-secondary mb-1 block">发件邮箱</label><input v-model="smtp.smtp_user" type="text" placeholder="noreply@example.com" class="w-full input-base" /></div>
+            <div><label class="text-xs text-content-secondary mb-1 block">密码</label><input v-model="smtp.smtp_pass" type="password" placeholder="••••••••" class="w-full input-base" /></div>
+            <div><label class="text-xs text-content-secondary mb-1 block">发件人名称</label><input v-model="smtp.smtp_from" type="text" placeholder="系统通知" class="w-full input-base" /></div>
+          </div>
+          <div class="flex justify-end mt-4"><UButton size="xs" color="primary" :loading="smtpSaving" @click="saveSmtp">保存</UButton></div>
+        </div>
+        <!-- 数据备份 -->
+        <div v-show="activeTab === 'backup'" class="em-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-content-primary">数据备份</h3>
+            <UButton size="xs" color="primary" :loading="backupCreating" @click="createBackup">创建新备份</UButton>
+          </div>
+          <p class="text-xs text-content-muted mb-3">创建、下载和恢复数据库备份</p>
+          <div class="overflow-hidden">
+            <table class="w-full text-sm" v-if="backups.length > 0">
+              <thead><tr class="border-b border-line-light text-left text-xs text-content-muted"><th class="py-2.5 px-4">文件名</th><th class="py-2.5 px-4">大小</th><th class="py-2.5 px-4">时间</th><th class="py-2.5 px-4">操作</th></tr></thead>
+              <tbody>
+                <tr v-for="b in backups" :key="b.id" class="border-b border-line-light last:border-0 hover:bg-surface-hover/50 transition-colors">
+                  <td class="py-2 px-4 text-xs text-content-secondary font-mono">{{ b.fileName }}</td>
+                  <td class="py-2 px-4 text-xs text-content-muted">{{ b.fileSize ? (b.fileSize / 1024 / 1024).toFixed(2) + ' MB' : '-' }}</td>
+                  <td class="py-2 px-4 text-xs text-content-muted">{{ b.createdAt?.slice(0, 16) }}</td>
+                  <td class="py-2 px-4">
+                    <div class="flex items-center gap-1">
+                      <UButton size="xs" variant="ghost" color="neutral" @click="downloadBackup(b.id)">下载</UButton>
+                      <UButton size="xs" variant="ghost" color="neutral" @click="confirmRestoreId = b.id">恢复</UButton>
+                      <UButton size="xs" variant="ghost" color="neutral" class="text-red-400 hover:text-red-600" @click="deleteBackupItem(b.id)">删除</UButton>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="text-center py-12 text-xs text-content-muted">暂无备份，点击上方按钮创建</div>
+          </div>
+        </div>
+        <!-- 恢复确认 -->
+        <ConfirmDialog v-if="confirmRestoreId" :open="!!confirmRestoreId" @update:open="confirmRestoreId = null" title="恢复备份" message="恢复后将覆盖当前数据库，确定要恢复吗？" confirm-text="确认恢复" :danger="true" @confirm="restoreBackup(confirmRestoreId!)" />
+        <!-- 版本升级 -->
+        <!-- 菜单排序 -->
+        <div v-show="activeTab === 'sidebar'" class="em-card">
+          <h3 class="text-sm font-medium text-content-primary mb-4">侧边栏模块排序</h3>
+          <p class="text-xs text-content-muted mb-4">调整左侧菜单显示顺序</p>
+          <div class="space-y-1.5 max-w-sm">
+            <div v-for="(m, idx) in menuItems" :key="m.key" class="flex items-center gap-3 px-3 py-2 rounded-lg border border-line-light bg-surface-card hover:shadow-sm transition-shadow">
+              <div class="flex items-center gap-1">
+                <button class="w-5 h-5 flex items-center justify-center rounded text-content-muted hover:text-content-secondary" :disabled="idx === 0" @click="moveMenuItem(idx, -1)"><UIcon name="i-lucide-chevron-up" class="w-3 h-3" /></button>
+                <button class="w-5 h-5 flex items-center justify-center rounded text-content-muted hover:text-content-secondary" :disabled="idx === menuItems.length - 1" @click="moveMenuItem(idx, 1)"><UIcon name="i-lucide-chevron-down" class="w-3 h-3" /></button>
+              </div>
+              <span class="text-sm text-content-secondary">{{ m.label }}</span>
+            </div>
+          </div>
+          <div class="flex justify-end mt-4"><UButton size="xs" color="primary" @click="saveMenuOrder">保存排序</UButton></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

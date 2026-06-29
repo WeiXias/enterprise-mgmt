@@ -326,6 +326,9 @@ onMounted(() => {
       </template>
     </FormModal>
 
+    <!-- 删除确认 -->
+    <ConfirmDialog v-if="showDeleteModal" v-model:open="showDeleteModal" title="确认删除商机" :message="`确定要删除商机「${deleteTarget?.name}」吗？删了就找不回来了。`" confirm-text="确认删除" cancel-text="再想想" :loading="deleteLoading" danger @confirm="handleDelete" />
+
     <!-- 赢单/输单弹窗 -->
     <OpportunityWinLoseModal v-model="showWinModal" mode="win" :opportunity-id="winTarget?.id" :opportunity-name="winTarget?.name" @saved="winTarget = null; fetchOpportunities()" @update:model-value="(v: boolean) => { if (!v) winTarget = null }" />
     <OpportunityWinLoseModal v-model="showLoseModal" mode="lose" :opportunity-id="loseTarget?.id" :opportunity-name="loseTarget?.name" @saved="loseTarget = null; fetchOpportunities()" @update:model-value="(v: boolean) => { if (!v) loseTarget = null }" />

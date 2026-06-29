@@ -4,6 +4,10 @@
  * 供产品列表页使用，管理产品分类树
  */
 
+const props = defineProps<{
+  open: boolean
+}>()
+
 const toast = useToast()
 const { $api } = useNuxtApp()
 
@@ -88,7 +92,10 @@ async function handleDelete() {
   }
 }
 
-const emit = defineEmits<{ categoriesLoaded: [cats: any[]] }>()
+const emit = defineEmits<{
+  categoriesLoaded: [cats: any[]]
+  'update:open': [value: boolean]
+}>()
 
 defineExpose({ fetchCategories, categories })
 

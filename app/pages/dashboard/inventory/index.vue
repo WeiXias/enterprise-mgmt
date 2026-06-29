@@ -12,6 +12,9 @@ const pageSize = ref(20)
 
 const typeFilter = ref('')
 const productIdFilter = ref('')
+const showProductSelectModal = ref(false)
+const selectedProductInfo = ref<any>(null)
+const selectedProductName = computed(() => selectedProductInfo.value?.name || '')
 const productOptions = ref<any[]>([])
 
 // 库存概览
@@ -41,8 +44,7 @@ async function fetchProducts() {
     const res = await $api('/api/products', { params: { pageSize: 200 } }) as any
     if (res?.code === 0) {
       productOptions.value = res.data.items || []
-      // 计算库存概览
-      const products = res.data.items as any[]
+      const products = (res.data.items as any[])
       overview.value.totalProducts = products.length
       overview.value.totalStock = products.reduce((sum: number, p: any) => sum + (Number(p.stockQuantity) || 0), 0)
       overview.value.lowStockProducts = products.filter((p: any) => {
@@ -98,7 +100,9 @@ async function handleDeleteConfirmed() {
   try {
     await $api(`/api/inventory/transactions/${deleteTarget.value.id}`, { method: 'DELETE' })
     toast.add({ title: '已删除', color: 'success' })
+    showDeleteDialog.value = false
     fetchItems()
+    fetchProducts()
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
   finally { showDeleteDialog.value = false }
 }
@@ -155,8 +159,23 @@ onMounted(() => { fetchItems(); fetchProducts() })
         placeholder="全部类型"
         @update:model-value="page = 1; fetchItems()"
       />
-      <ProductSelect v-model="productIdFilter" placeholder="筛选产品..." @update:model-value="page = 1; fetchItems()" />
-      <span class="text-xs text-content-secondary">共 {{ total }} 条</span>
+      <div class="relative min-w-[180px]">
+          <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
+          <input
+            :value="selectedProductName"
+            type="text"
+            readonly
+            placeholder="筛选产品..."
+            class="w-full pl-8 input-base bg-surface-card cursor-pointer text-sm"
+            @click="showProductSelectModal = true"
+          />
+          <button
+            v-if="productIdFilter"
+            class="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded text-content-muted hover:text-content-secondary"
+            @click="productIdFilter = ''; selectedProductInfo = null; page = 1; fetchItems()"
+          ><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
+        </div>
+        <span class="text-xs text-content-secondary">共 {{ total }} 条</span>
     </div>
 
     <div v-if="loading" class="text-center py-12 text-content-secondary">加载中...</div>
@@ -199,7 +218,17 @@ onMounted(() => { fetchItems(); fetchProducts() })
     <FormModal v-if="showModal" v-model:open="showModal" title="登记库存流水" size="standard" :loading="saving" @confirm="handleSave">
       <div>
         <label class="block text-sm text-content-secondary mb-1">产品 <span class="text-danger-600">*</span></label>
-        <ProductSelect v-model="form.productId" placeholder="选择产品" />
+        <div class="relative">
+          <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
+          <input
+            :value="selectedProductName"
+            type="text"
+            readonly
+            placeholder="点击选择产品"
+            class="w-full pl-8 input-base bg-surface-card cursor-pointer"
+            @click="showProductSelectModal = true"
+          />
+        </div>
       </div>
       <div class="mt-3">
         <label class="block text-sm text-content-secondary mb-1">类型</label>
@@ -238,6 +267,14 @@ onMounted(() => { fetchItems(); fetchProducts() })
       title="删除库存记录"
       message="删除后库存将回退，确定要删吗？"
       @confirm="handleDeleteConfirmed"
+    />
+
+    <ProductSelectModal
+      v-model="selectedProductInfo"
+      nested
+      :open="showProductSelectModal"
+      @update:open="showProductSelectModal = $event"
+      @select="(p: any) => { selectedProductInfo = p; productIdFilter = p.id; form.productId = p.id; showProductSelectModal = false; page = 1; fetchItems() }"
     />
   </div>
 </template>

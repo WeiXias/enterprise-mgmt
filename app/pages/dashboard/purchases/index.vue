@@ -20,7 +20,7 @@ async function handleDelete() {
   if (!deleteTarget.value) return
   deleteLoading.value = true
   try {
-    const res = await $api(`/api/purchase-orders/${deleteTarget.value.id}`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/purchase-orders/${deleteTarget.value.id}/delete`, { method: 'DELETE' }) as any
     if (res?.code === 0) {
       toast.add({ title: '已删除', color: 'success' })
       showDeleteModal.value = false

@@ -39,8 +39,10 @@ export default defineEventHandler(async (event) => {
 
   let contractId: string | undefined
   if (parsed.data.generateContract) {
+    const [cust] = await db.select({ name: customers.name }).from(customers).where(eq(customers.id, existing[0].customerId)).limit(1)
+    const customerName = cust?.name || '未知客户'
     const result = await createContractFromOpportunity(
-      id, existing[0].name, existing[0].customerId, existing[0].estimatedAmount || 0, user.userId,
+      id, existing[0].name, existing[0].customerId, customerName, existing[0].estimatedAmount || 0, user.userId,
     )
     contractId = result.contractId
   }
