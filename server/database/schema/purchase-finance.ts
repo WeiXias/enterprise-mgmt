@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
-import { suppliers, purchaseOrders } from './suppliers'
+import { suppliers } from './suppliers'
+import { purchaseOrders } from './purchase-orders'
 import { users } from './users'
 
 // 应付账款（采购收货时自动生成）

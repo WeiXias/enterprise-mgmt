@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
-import { customers, opportunities, contracts, commissions } from '#schema'
+import { customers } from '#schema'
 import { and, isNull, sql, eq } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 

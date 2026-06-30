@@ -19,7 +19,7 @@ const followUpTypes = ['phone','visit','wechat','email','other']
           @click="$emit('update:modelValue', { ...modelValue, type: t })">{{ getLabel("FollowUpType", t) || t }}</button>
       </div>
     </div>
-    <div><label class="block text-sm text-content-secondary mb-1">跟进内容 <span class="text-red-400">*</span></label>
+    <div><label class="block text-sm text-content-secondary mb-1">跟进内容 <span class="text-danger-500">*</span></label>
       <textarea :value="modelValue.content" rows="3" placeholder="记一下沟通内容..."
         class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none"
         @input="$emit('update:modelValue', { ...modelValue, content: ($event.target as HTMLTextAreaElement).value })" /></div>
