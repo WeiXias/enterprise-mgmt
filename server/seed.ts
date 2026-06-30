@@ -23,23 +23,23 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'db', 
 const dir = path.dirname(DB_PATH)
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 
-// Remove old DB
+// Remove old DB first (before creating any connection)
 if (fs.existsSync(DB_PATH)) fs.unlinkSync(DB_PATH)
 
-const sqlite = new Database(DB_PATH)
-sqlite.pragma('journal_mode = WAL')
-sqlite.pragma('foreign_keys = ON')
-
-const db = drizzle(sqlite, { schema })
-
 // ====== Drizzle auto-create tables ======
-// We push schema via drizzle-kit in the package.json "seed" script.
-// This function generates CREATE TABLE statements from Drizzle schema.
+// Push schema via drizzle-kit before creating our own sqlite connection
 async function pushSchema() {
   const { execSync } = await import('child_process')
   const cwd = path.join(__dirname, '..')
   execSync('npx drizzle-kit push --force', { cwd, stdio: 'pipe' })
 }
+
+// Now create connection after drizzle-kit has created the DB
+const sqlite = new Database(DB_PATH)
+sqlite.pragma('journal_mode = WAL')
+sqlite.pragma('foreign_keys = ON')
+
+const db = drizzle(sqlite, { schema })
 
 // ====== Seed Data ======
 async function seed() {
