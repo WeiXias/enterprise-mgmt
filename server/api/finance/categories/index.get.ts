@@ -5,8 +5,8 @@ import { eq, asc } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  const incomeRows = await db.select({
   await requirePermission(event, 'finance:read')
+  const incomeRows = await db.select({
     id: dictEntries.id,
     name: dictEntries.label,
     sort: dictEntries.sort,
