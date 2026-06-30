@@ -235,6 +235,16 @@ onMounted(() => { fetchItems(); fetchOptions() })
           <label class="block text-sm text-content-secondary mb-1">备注</label>
           <textarea v-model="form.remark" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
         </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">电子发票（PDF / 图片）</label>
+          <FileUpload
+            :upload-url="`/api/attachments?source=invoice${editTarget ? '&targetId=' + editTarget.id : ''}`"
+            accept=".pdf,.png,.jpg,.jpeg"
+            @uploaded="(f: any) => { form.filePath = f.filePath || f.path || '' }"
+          />
+        </div>
+        <div>
+        </div>
       </form>
     </FormModal>
 

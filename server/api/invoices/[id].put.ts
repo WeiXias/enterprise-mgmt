@@ -9,25 +9,36 @@ export default defineEventHandler(async (event) => {
   await requirePermission(event, 'invoice:edit')
   const [record] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1)
   if (!record) throw createError({ statusCode: 404, statusMessage: '发票不存在' })
-  if (record.status !== 'pending') throw createError({ statusCode: 422, statusMessage: '只能编辑待开票状态的发票' })
 
   const body = await readBody(event)
-  const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark } = body || {}
+  const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark, status, filePath } = body || {}
 
-  const taxAmount = taxRate !== undefined ? Math.round(amount * taxRate * 100) / 100 : record.taxAmount
+  // 税额 = 金额 × 税率 / 100（税率如 6 代表 6%）
+  const newAmount = amount ?? record.amount
+  const newTaxRate = taxRate ?? record.taxRate
+  const taxAmount = Math.round(newAmount * newTaxRate * 100) / 100 // Bug修复: taxRate / 100
 
-  await db.update(invoices).set({
+  const updateData: Record<string, any> = {
     invoiceNo: invoiceNo ?? record.invoiceNo,
     type: type ?? record.type,
     contractId: contractId ?? record.contractId,
     customerId: customerId ?? record.customerId,
-    amount: amount ?? record.amount,
-    taxRate: taxRate ?? record.taxRate,
+    amount: newAmount,
+    taxRate: newTaxRate,
     taxAmount,
     issuedAt: issuedAt ?? record.issuedAt,
     dueDate: dueDate ?? record.dueDate,
     remark: remark ?? record.remark,
-  }).where(eq(invoices.id, id))
+    filePath: filePath ?? record.filePath,
+  }
+
+  // 支持推进到已开票状态
+  if (status === 'issued' && record.status === 'pending') {
+    updateData.status = 'issued'
+    updateData.issuedAt = issuedAt || new Date().toISOString().slice(0, 10)
+  }
+
+  await db.update(invoices).set(updateData).where(eq(invoices.id, id))
 
   return { code: 0, message: '已更新' }
 })

@@ -19,7 +19,7 @@ const createSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'product:view')
+  await requirePermission(event, 'invoice:create')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark } = parsed.data
   if (!invoiceNo || !amount) throw createError({ statusCode: 422, statusMessage: '发票号和金额不能为空' })
 
-  const taxAmount = Math.round(amount * (taxRate || 0) * 100) / 100
+  const taxAmount = Math.round(amount * (taxRate || 0)) / 100 // taxRate 如 6 代表 6%
 
   const result = await db.insert(invoices).values({
     id: generateId(),
