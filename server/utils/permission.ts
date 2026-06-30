@@ -35,16 +35,21 @@ export async function requireRole(event: H3Event, roles: string[]): Promise<Auth
   return user
 }
 
-/** 检查用户是否是系统 admin（通过 roleId 查 roles 表的 isSystem 标记） */
-async function isSystemAdmin(userId: string): Promise<boolean> {
+/** 检查用户是否是系统 admin（通过 roleId 查 roles 表，或回退到 role 字段） */
+async function isSystemAdmin(userId: string, role?: string): Promise<boolean> {
   try {
     const { db } = await import('#database')
     const { users, roles } = await import('#schema')
-    const userRows = await db.select({ roleId: users.roleId }).from(users).where(eq(users.id, userId)).limit(1)
-    if (!userRows[0]?.roleId) return false
-    const roleRows = await db.select({ code: roles.code, isSystem: roles.isSystem })
-      .from(roles).where(eq(roles.id, userRows[0].roleId)).limit(1)
-    return roleRows[0]?.code === 'admin' && roleRows[0]?.isSystem === true
+    const userRows = await db.select({ roleId: users.roleId, role: users.role }).from(users).where(eq(users.id, userId)).limit(1)
+    if (!userRows[0]) return false
+    // 有 roleId 则查 roles 表验证
+    if (userRows[0].roleId) {
+      const roleRows = await db.select({ code: roles.code, isSystem: roles.isSystem })
+        .from(roles).where(eq(roles.id, userRows[0].roleId)).limit(1)
+      return roleRows[0]?.code === 'admin' && roleRows[0]?.isSystem === true
+    }
+    // 无 roleId 时回退：role === 'admin' 即视为系统管理员
+    return userRows[0].role === 'admin'
   } catch {
     return false
   }

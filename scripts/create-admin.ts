@@ -13,8 +13,12 @@ import * as schema from '../server/database/schema/index'
 import { hashPassword } from '../server/utils/auth'
 import { generateId } from '../server/utils/id'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
-const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, '..', 'data', 'enterprise.db')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, '..', 'data', 'db', 'enterprise.db')
 const USERNAME = process.env.ADMIN_USERNAME || 'admin'
 const PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'
 
