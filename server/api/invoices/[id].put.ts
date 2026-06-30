@@ -14,6 +14,8 @@ export default defineEventHandler(async (event) => {
   const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark, status, filePath } = body || {}
 
   // 税额 = 价税合计 - 不含税金额
+  const newAmount = amount ?? record.amount
+  const newTaxRate = taxRate ?? record.taxRate
   const exTax = Math.round(newAmount / (1 + newTaxRate / 100))
   const taxAmount = newAmount - exTax
 
