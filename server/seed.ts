@@ -26,12 +26,13 @@ if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 // Remove old DB first (before creating any connection)
 if (fs.existsSync(DB_PATH)) fs.unlinkSync(DB_PATH)
 
-// ====== Drizzle auto-create tables ======
-// Push schema via drizzle-kit before creating our own sqlite connection
-async function pushSchema() {
-  const { execSync } = await import('child_process')
-  const cwd = path.join(__dirname, '..')
-  execSync('npx drizzle-kit push --force', { cwd, stdio: 'pipe' })
+// ====== Create fresh DB with drizzle-kit ======
+const { execSync } = await import('child_process')
+try {
+  execSync('npx drizzle-kit push --force', { stdio: 'pipe', timeout: 30000 })
+} catch (e: any) {
+  console.error('[seed] drizzle-kit push failed:', e.stderr?.toString() || e.message)
+  process.exit(1)
 }
 
 // Now create connection after drizzle-kit has created the DB
@@ -105,7 +106,6 @@ async function seed() {
     { code: 'commission:approve', name: '审批提成', resource: 'commission', action: 'approve' },
     { code: 'commission:adjust', name: '调整提成', resource: 'commission', action: 'adjust' },
     { code: 'commission:manage', name: '管理提成规则与发放', resource: 'commission', action: 'manage' },
-    { code: 'user:view', name: '查看用户', resource: 'user', action: 'view' },
     { code: 'user:create', name: '创建用户', resource: 'user', action: 'create' },
     { code: 'user:edit', name: '编辑用户', resource: 'user', action: 'edit' },
     { code: 'user:delete', name: '删除用户', resource: 'user', action: 'delete' },
@@ -129,7 +129,6 @@ async function seed() {
   // 1.6 角色数据
   const roleDefs = [
     { id: roleIds.admin, name: '管理员', code: 'admin', isSystem: true, allPerms: true },
-    { id: roleIds.salesManager, name: '销售负责人', code: 'sales_manager', isSystem: true, allPerms: false, perms: ['customer:view','customer:create','customer:edit','customer:delete','customer:transfer','opportunity:view','opportunity:create','opportunity:edit','opportunity:delete','contract:view','contract:create','contract:edit','contract:delete','contract:approve','contract:transfer','contract:manage','project:view','project:create','project:edit','project:delete','project:manage','product:view','commission:view','commission:approve','commission:adjust','commission:manage','user:view','finance:view'] },
     { id: roleIds.salesMember, name: '销售成员', code: 'sales_member', isSystem: true, allPerms: false, perms: ['customer:view','customer:create','customer:edit','opportunity:view','opportunity:create','opportunity:edit','contract:view','contract:create','project:view','product:view'] },
     { id: roleIds.finance, name: '财务', code: 'finance', isSystem: true, allPerms: false, perms: ['contract:view','contract:approve','commission:view','commission:approve','commission:adjust','commission:manage','finance:view','finance:manage','customer:view','opportunity:view','project:view','product:view'] },
   ]
@@ -499,8 +498,7 @@ async function seed() {
 }
 
 async function main() {
-  // Step 1: Push schema
-  await pushSchema()
+  // Step 1: already pushed schema via drizzle-kit above
   // Step 2: Seed data
   await seed()
   sqlite.close()
