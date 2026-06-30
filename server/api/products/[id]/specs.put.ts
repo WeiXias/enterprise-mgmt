@@ -4,6 +4,7 @@ import { productSpecs } from '#schema/products'
 import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   specs: z.array(z.object({
@@ -15,6 +16,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'product:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id: productId } = getRouterParams(event)

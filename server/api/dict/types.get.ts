@@ -1,4 +1,5 @@
 import { defineEventHandler } from 'h3'
+import { requirePermission } from '#server-utils/permission'
 
 // 字典类型注册表：dict_type → { label, category }
 const DICT_TYPES: Record<string, { label: string; category: string }> = {
@@ -17,6 +18,7 @@ const DICT_TYPES: Record<string, { label: string; category: string }> = {
 
 export default defineEventHandler(() => {
   const types = Object.entries(DICT_TYPES).map(([key, val]) => ({
+  await requirePermission(event, 'dict:read')
     key,
     label: val.label,
     category: val.category,

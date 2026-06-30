@@ -4,11 +4,13 @@ import { deliverables } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ name: z.string().min(1).max(200), description: z.string().optional() })
 
 export default defineEventHandler(async (event) => {
   const { id: projectId } = getRouterParams(event)
+  await requirePermission(event, 'deliverable:create')
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })

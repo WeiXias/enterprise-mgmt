@@ -2,8 +2,10 @@ import { defineEventHandler, getRouterParams, getQuery } from 'h3'
 import { db } from '#database'
 import { tasks, users } from '#schema'
 import { eq, and, isNull, count } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
+  await requirePermission(event, 'task:read')
   const { id: projectId } = getRouterParams(event)
   const query = getQuery(event)
   const page = Number(query.page) || 1

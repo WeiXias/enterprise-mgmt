@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
 import { invoices } from '#schema'
 import { eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'invoice:edit')
   const [record] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1)
   if (!record) throw createError({ statusCode: 404, statusMessage: '发票不存在' })
   if (record.status !== 'pending') throw createError({ statusCode: 422, statusMessage: '只能编辑待开票状态的发票' })

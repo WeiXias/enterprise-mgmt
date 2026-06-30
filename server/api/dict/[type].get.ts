@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams } from 'h3'
 import { db } from '#database'
 import { dictEntries } from '#schema'
 import { eq, asc } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { type } = getRouterParams(event)
+  await requirePermission(event, 'dict:read')
 
   const rows = await db
     .select()

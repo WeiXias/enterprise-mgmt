@@ -4,6 +4,7 @@ import { comments, projects, users, notifications } from '#schema'
 import { z } from 'zod'
 import { eq, and, isNull, inArray } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
+import { requirePermission } from '#server-utils/permission'
 import { logOperation } from '#server-utils/log'
 
 const schema = z.object({
@@ -22,8 +23,7 @@ function parseMentions(content: string): string[] {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+  const user = await requirePermission(event, 'comment:create')
 
   const { id: projectId } = getRouterParams(event)
   const body = await readBody(event)

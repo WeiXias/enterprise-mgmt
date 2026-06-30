@@ -5,9 +5,11 @@ import { eq, and, isNull, sql } from 'drizzle-orm'
 import dayjs from 'dayjs'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'purchase-order:edit')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

@@ -2,9 +2,11 @@ import { defineEventHandler } from 'h3'
 import { db } from '#database'
 import { products, productCategories, contractProducts } from '#schema'
 import { and, isNull, desc, sql, eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'product:read')
   if (!user?.userId) return { code: 0, data: { byCategory: [], byProduct: [] } }
 
   // 按分类统计

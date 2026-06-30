@@ -4,6 +4,7 @@ import { contacts } from '#schema/customers'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -17,6 +18,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'contact:edit')
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })

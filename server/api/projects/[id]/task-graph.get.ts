@@ -3,9 +3,11 @@ import { db } from '#database'
 import { tasks } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { topologicalSort } from '#server-utils/task-deps'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id: projectId } = getRouterParams(event)
+  await requirePermission(event, 'task:read')
 
   const list = await db.select({
     id: tasks.id,

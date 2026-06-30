@@ -5,7 +5,9 @@ interface User {
   name: string
   username: string
   role: string
+  roleId: string | null
   avatar: string | null
+  permissions: string[]
 }
 
 interface AuthPayload { code: number; data: { accessToken: string; refreshToken: string; user: User }; message?: string }
@@ -31,6 +33,12 @@ export const useAuthStore = defineStore('auth', {
         finance: '财务'
       }
       return labels[state.user?.role || ''] || ''
+    },
+    /** 检查是否拥有指定权限码。admin 的 permissions 为 ['__all__'] 时始终返回 true */
+    hasPermission: (state) => (code: string) => {
+      if (!state.user) return false
+      if (state.user.permissions.includes('__all__')) return true
+      return state.user.permissions.includes(code)
     }
   },
 

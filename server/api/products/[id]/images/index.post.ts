@@ -4,11 +4,13 @@ import { productImages } from '#schema/products'
 import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 import { saveUploadedFile } from '#server-utils/upload'
+import { requirePermission } from '#server-utils/permission'
 
 const IMAGE_MIME = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'product:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id: productId } = getRouterParams(event)

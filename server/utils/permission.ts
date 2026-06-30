@@ -5,6 +5,7 @@ import { verifyAccessToken } from './auth'
 export interface AuthUser {
   userId: string
   role: string
+  roleId?: string
 }
 
 export async function getAuthUser(event: H3Event): Promise<AuthUser | null> {
@@ -15,7 +16,7 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | null> {
   const payload = await verifyAccessToken(token)
   if (!payload || payload.type !== 'access') return null
 
-  return { userId: payload.userId, role: payload.role }
+  return { userId: payload.userId, role: payload.role, roleId: payload.roleId }
 }
 
 export async function requireAuth(event: H3Event): Promise<AuthUser> {
@@ -34,10 +35,25 @@ export async function requireRole(event: H3Event, roles: string[]): Promise<Auth
   return user
 }
 
+/** 检查用户是否是系统 admin（通过 roleId 查 roles 表的 isSystem 标记） */
+async function isSystemAdmin(userId: string): Promise<boolean> {
+  try {
+    const { db } = await import('#database')
+    const { users, roles } = await import('#schema')
+    const userRows = await db.select({ roleId: users.roleId }).from(users).where(eq(users.id, userId)).limit(1)
+    if (!userRows[0]?.roleId) return false
+    const roleRows = await db.select({ code: roles.code, isSystem: roles.isSystem })
+      .from(roles).where(eq(roles.id, userRows[0].roleId)).limit(1)
+    return roleRows[0]?.code === 'admin' && roleRows[0]?.isSystem === true
+  } catch {
+    return false
+  }
+}
+
 export async function requirePermission(event: H3Event, permissionCode: string): Promise<AuthUser> {
   const user = await requireAuth(event)
-  // 管理员拥有所有权限
-  if (user.role === 'admin') return user
+  // 系统管理员拥有所有权限
+  if (await isSystemAdmin(user.userId)) return user
 
   // 从数据库查用户角色拥有的权限
   try {
@@ -71,7 +87,7 @@ export async function requirePermission(event: H3Event, permissionCode: string):
 export async function checkPermission(event: H3Event, permissionCode: string): Promise<boolean> {
   const user = await getAuthUser(event)
   if (!user) return false
-  if (user.role === 'admin') return true
+  if (await isSystemAdmin(user.userId)) return true
 
   try {
     const { db } = await import('#database')

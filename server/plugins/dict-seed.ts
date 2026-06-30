@@ -128,7 +128,7 @@ export default defineNitroPlugin(async () => {
           is_active: '1',
           createdAt: now,
           updatedAt: now,
-        }).catch(() => {})
+        } as any).catch(() => {})
       }
       console.log(`[dict-seed] ${spec.dict_type} 初始化 (${spec.items.length} 条)`)
     }

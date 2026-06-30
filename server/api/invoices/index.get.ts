@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
 import { invoices, contracts, customers } from '#schema'
 import { eq, and, desc, like, sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const q = getQuery(event) as Record<string, string>
+  await requirePermission(event, 'product:read')
   const page = Math.max(1, parseInt(q.page || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '20')))
 

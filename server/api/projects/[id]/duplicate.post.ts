@@ -5,11 +5,13 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const bodySchema = z.object({ name: z.string().min(1).max(200).optional() }).default({})
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'project:create')
   if (!user) throw createError({ statusCode: 401 })
   const { id } = getRouterParams(event)
   const body = await readBody(event)

@@ -5,11 +5,13 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ userId: z.string(), role: z.enum(['leader', 'member']) })
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'project:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: projectId } = getRouterParams(event)
   const body = await readBody(event)

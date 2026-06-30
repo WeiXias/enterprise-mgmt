@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams, getQuery } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions } from '#schema'
 import { eq, desc, sql, isNull, and } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'product:read')
   const q = getQuery(event) as Record<string, string>
   const page = Math.max(1, parseInt(q.page || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '20')))

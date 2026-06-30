@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams, getQuery } from 'h3'
 import { db } from '#database'
 import { milestones } from '#schema'
 import { eq, and, isNull, asc, desc, count } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id: projectId } = getRouterParams(event)
+  await requirePermission(event, 'milestone:read')
   const query = getQuery(event)
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 50, 200)

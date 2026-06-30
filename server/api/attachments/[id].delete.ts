@@ -7,9 +7,11 @@ import { logOperation } from '#server-utils/log'
 import path from 'path'
 import fs from 'fs'
 import dayjs from 'dayjs'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'attachment:delete')
 
   const existing = await db.select({
     id: contractAttachments.id,

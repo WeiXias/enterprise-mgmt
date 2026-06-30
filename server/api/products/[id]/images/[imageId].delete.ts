@@ -5,9 +5,11 @@ import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import { getUploadDir } from '#server-utils/upload'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'product:delete')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { imageId } = getRouterParams(event)

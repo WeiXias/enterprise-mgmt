@@ -2,8 +2,10 @@ import { defineEventHandler, getRouterParams } from 'h3'
 import { db } from '#database'
 import { projects, contracts, payments, timeLogs } from '#schema'
 import { eq, and, isNull, sum, count } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
+  await requirePermission(event, 'budget:read')
   const { id } = getRouterParams(event)
 
   const [project] = await db.select({

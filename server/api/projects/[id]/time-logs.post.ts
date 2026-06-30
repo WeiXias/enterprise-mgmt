@@ -4,6 +4,7 @@ import { timeLogs } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
+import { requirePermission } from '#server-utils/permission'
 import { logOperation } from '#server-utils/log'
 
 const schema = z.object({
@@ -14,7 +15,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
+  const user = await requirePermission(event, 'time-log:create')
   if (!user) throw createError({ statusCode: 401 })
   const { id: projectId } = getRouterParams(event)
   const body = await readBody(event)

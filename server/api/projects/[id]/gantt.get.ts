@@ -2,8 +2,10 @@ import { defineEventHandler, getRouterParams } from 'h3'
 import { db } from '#database'
 import { projects, tasks, users } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
+  await requirePermission(event, 'project:read')
   const { id } = getRouterParams(event)
 
   // 项目日期范围

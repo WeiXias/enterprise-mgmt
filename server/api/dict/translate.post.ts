@@ -4,6 +4,7 @@ import { aiProviders, aiEmployees } from '#schema/ai'
 import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { createProvider, decryptApiKey } from '#ai-utils'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   text: z.string().min(1, '要翻译的文本不能为空'),
@@ -11,6 +12,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'dict:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

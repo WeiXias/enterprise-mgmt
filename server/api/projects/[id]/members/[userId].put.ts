@@ -4,11 +4,13 @@ import { projectMembers } from '#schema'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ role: z.enum(['leader', 'member']) })
 
 export default defineEventHandler(async (event) => {
   const { id, userId } = getRouterParams(event)
+  await requirePermission(event, 'project:edit')
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: '角色不对' })

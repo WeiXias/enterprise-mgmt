@@ -3,6 +3,7 @@ import { db } from '#database'
 import { invoices } from '#schema'
 import { generateId } from '#server-utils/id'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const createSchema = z.object({
   invoiceNo: z.string().min(1, '发票号不能为空'),
@@ -18,6 +19,7 @@ const createSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'product:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

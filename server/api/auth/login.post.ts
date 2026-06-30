@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
     username: users.username,
     name: users.name,
     role: users.role,
+    roleId: users.roleId,
     status: users.status,
     avatar: users.avatar,
     password: users.password,
@@ -39,7 +40,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: '用户名或密码不对' })
   }
 
-  const accessToken = await generateAccessToken({ userId: user!.id, role: user.role, name: user.name, tokenVersion: user!.tokenVersion })
+  const accessToken = await generateAccessToken({ userId: user!.id, role: user.role, name: user.name, roleId: user!.roleId, tokenVersion: user!.tokenVersion })
   const refreshToken = await generateRefreshToken({ userId: user!.id, tokenVersion: user!.tokenVersion })
 
   const userInfo = {
@@ -47,7 +48,22 @@ export default defineEventHandler(async (event) => {
     name: user!.name,
     username: user!.username,
     role: user!.role,
+    roleId: user!.roleId,
     avatar: user!.avatar,
+    permissions: [] as string[],
+  }
+
+  // 查询用户权限列表
+  if (user!.roleId) {
+    const { rolePermissions: rp, permissions: permTable } = await import('#schema')
+    const permRows = await db.select({ code: permTable.code })
+      .from(rp)
+      .innerJoin(permTable, eq(rp.permissionId, permTable.id))
+      .where(eq(rp.roleId, user!.roleId))
+    userInfo.permissions = permRows.map((r: any) => r.code)
+  } else if (user.role === 'admin') {
+    // 硬编码 admin（无 roleId 的后备）：标记为全权限
+    userInfo.permissions = ['__all__']
   }
 
   // 写 cookie 让 SSR 能读取用户状态，避免 hydration mismatch

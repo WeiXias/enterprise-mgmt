@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { products, productCategories } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'product:read')
 
   const result = await db.select({
     id: products.id,

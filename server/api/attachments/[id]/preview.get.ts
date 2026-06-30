@@ -6,9 +6,11 @@ import { eq } from 'drizzle-orm'
 import { getUploadDir, getContentType } from '#server-utils/upload'
 import path from 'path'
 import fs from 'fs'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'attachment:read')
   const { source } = getQuery(event) as { source?: string }
 
   let record: { id: string; fileName?: string; filePath?: string } | undefined

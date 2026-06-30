@@ -3,6 +3,7 @@ import { db } from '#database'
 import { tasks } from '#schema'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   status: z.enum(['not_started', 'in_progress', 'completed']),
@@ -11,6 +12,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'project:edit')
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) return { code: 1, message: parsed.error.issues[0].message }
