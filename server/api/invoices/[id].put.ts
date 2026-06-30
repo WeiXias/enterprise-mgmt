@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   // 税额 = 金额 × 税率 / 100（税率如 6 代表 6%）
   const newAmount = amount ?? record.amount
   const newTaxRate = taxRate ?? record.taxRate
-  const taxAmount = Math.round(newAmount * newTaxRate * 100) / 100 // Bug修复: taxRate / 100
+  const taxAmount = Math.round(newAmount * newTaxRate) / 100
 
   const updateData: Record<string, any> = {
     invoiceNo: invoiceNo ?? record.invoiceNo,

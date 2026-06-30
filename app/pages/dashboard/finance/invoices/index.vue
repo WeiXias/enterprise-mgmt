@@ -128,6 +128,15 @@ function formatMoney(v: any) {
   return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 }
 
+
+async function handleIssue(inv: any) {
+  try {
+    await $api(`/api/invoices/${inv.id}`, { method: 'PUT', body: { status: 'issued' } })
+    toast.add({ title: '已推进到已开票', color: 'success' })
+    fetchItems()
+  } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
+}
+
 onMounted(() => { fetchItems(); fetchOptions() })
 </script>
 
@@ -172,6 +181,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
           </div>
         </div>
         <div class="flex gap-1">
+          <UButton v-if="inv.status === 'pending'" icon="i-lucide-check-circle" variant="ghost" color="primary" size="xs" @click="handleIssue(inv)" title="推进到已开票" />
           <UButton v-if="inv.status === 'pending'" icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(inv)" />
           <UButton v-if="inv.status !== 'voided'" icon="i-lucide-x-circle" variant="ghost" color="error" size="xs" @click="promptVoid(inv)" />
         </div>
@@ -226,10 +236,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
             <label class="block text-sm text-content-secondary mb-1">开票日期</label>
             <input v-model="form.issuedAt" type="date" class="w-full input-base focus-ring" />
           </div>
-          <div>
-            <label class="block text-sm text-content-secondary mb-1">到期日</label>
-            <input v-model="form.dueDate" type="date" class="w-full input-base focus-ring" />
-          </div>
+
         </div>
         <div>
           <label class="block text-sm text-content-secondary mb-1">备注</label>

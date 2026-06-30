@@ -8,9 +8,14 @@ export default defineEventHandler(async (event) => {
   const { id: orderId } = getRouterParams(event)
   await requirePermission(event, 'purchase-order:view')
 
-  const list = await db.select().from(purchasePayments)
-    .where(and(eq(purchasePayments.orderId, orderId), isNull(purchasePayments.deletedAt)))
-    .orderBy(desc(purchasePayments.createdAt))
+  try {
+    const list = await db.select().from(purchasePayments)
+      .where(and(eq(purchasePayments.orderId, orderId), isNull(purchasePayments.deletedAt)))
+      .orderBy(desc(purchasePayments.createdAt))
 
-  return { code: 0, data: list }
+    return { code: 0, data: list }
+  } catch (err: any) {
+    console.error('[payments] 查询失败:', err.message)
+    return { code: 0, data: [] }
+  }
 })
