@@ -29,7 +29,9 @@ export default defineEventHandler(async (event) => {
   const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark } = parsed.data
   if (!invoiceNo || !amount) throw createError({ statusCode: 422, statusMessage: '发票号和金额不能为空' })
 
-  const taxAmount = Math.round(amount * (taxRate || 0)) / 100 // taxRate 如 6 代表 6%
+  // 税额 = 价税合计 - 不含税金额 = amount - amount/(1 + taxRate/100)
+  const exTax = Math.round(amount / (1 + (taxRate || 0) / 100))
+  const taxAmount = amount - exTax
 
   const result = await db.insert(invoices).values({
     id: generateId(),

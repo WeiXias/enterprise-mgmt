@@ -13,10 +13,9 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark, status, filePath } = body || {}
 
-  // 税额 = 金额 × 税率 / 100（税率如 6 代表 6%）
-  const newAmount = amount ?? record.amount
-  const newTaxRate = taxRate ?? record.taxRate
-  const taxAmount = Math.round(newAmount * newTaxRate) / 100
+  // 税额 = 价税合计 - 不含税金额
+  const exTax = Math.round(newAmount / (1 + newTaxRate / 100))
+  const taxAmount = newAmount - exTax
 
   const updateData: Record<string, any> = {
     invoiceNo: invoiceNo ?? record.invoiceNo,

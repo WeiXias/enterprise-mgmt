@@ -223,7 +223,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm text-content-secondary mb-1">金额 <span class="text-danger-500">*</span></label>
+            <label class="block text-sm text-content-secondary mb-1">价税合计 <span class="text-danger-500">*</span></label>
             <input v-model.number="form.amount" type="number" step="0.01" class="w-full input-base focus-ring" />
           </div>
           <div>
