@@ -17,16 +17,26 @@ const selectedProductInfo = ref<any>(null)
 
 const form = ref({
   supplierId: '',
+  contractId: '',
   expectedDate: '',
   remark: '',
 })
 
 const items = ref<any[]>([{ productId: '', quantity: 1, unitPrice: 0, discount: 1, amount: 0 }])
 
+const contractOptions = ref<any[]>([])
+
 async function fetchSuppliers() {
   try {
     const res = await $api('/api/suppliers', { params: { status: 'active', pageSize: 200 } }) as any
     if (res?.code === 0) supplierOptions.value = res.data?.items || []
+  } catch { /* 静默 */ }
+}
+
+async function fetchContracts() {
+  try {
+    const res = await $api('/api/contracts', { params: { status: 'approved', pageSize: 200 } }) as any
+    if (res?.code === 0) contractOptions.value = res.data?.items || []
   } catch { /* 静默 */ }
 }
 
@@ -78,9 +88,8 @@ async function handleSubmit() {
   finally { saving.value = false }
 }
 
-onMounted(() => { fetchSuppliers() })
+onMounted(() => { fetchSuppliers(); fetchContracts() })
 </script>
-
 <template>
   <div class="max-w-3xl mx-auto">
     <PageHeader title="新建采购订单">
@@ -97,6 +106,13 @@ onMounted(() => { fetchSuppliers() })
             <select v-model="form.supplierId" class="w-full input-base focus-ring">
               <option value="">选择供应商</option>
               <option v-for="s in supplierOptions" :key="s.id" :value="s.id">{{ s.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-content-secondary mb-1">关联合同</label>
+            <select v-model="form.contractId" class="w-full input-base focus-ring">
+              <option value="">选择合同（可选）</option>
+              <option v-for="c in contractOptions" :key="c.id" :value="c.id">{{ c.code }} - {{ c.name }}</option>
             </select>
           </div>
           <div>
