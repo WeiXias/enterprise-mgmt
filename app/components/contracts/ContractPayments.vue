@@ -9,7 +9,7 @@ const contract = inject<any>('contract')
 const { getLabel } = useEnum()
 const showPaymentModal = ref(false)
 const paymentLoading = ref(false)
-const paymentForm = ref({ amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '' })
+const paymentForm = ref({ amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '', attachmentPath: '' })
 
 function formatMoney(v: any) {
   const n = Number(v)
@@ -33,7 +33,7 @@ async function addPayment() {
     if (res?.code === 0) {
       toast.add({ title: '收款已登记', color: 'success' })
       showPaymentModal.value = false
-      paymentForm.value = { amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '' }
+      paymentForm.value = { amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '', attachmentPath: '' }
       emit('save')
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '登记失败', color: 'error' }) }
@@ -52,7 +52,7 @@ async function deletePayment(paymentId: string) {
   <div class="mt-4">
     <div class="flex items-center justify-between mb-3">
       <span class="text-sm text-content-muted">收款记录列表</span>
-      <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="paymentForm = { amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '' }; showPaymentModal = true">登记收款</UButton>
+      <UButton icon="i-lucide-plus" variant="ghost" color="primary" size="xs" @click="paymentForm = { amount: 0, paymentDate: '', paymentMethod: '', paymentPlanId: '', remark: '', attachmentPath: '' }; showPaymentModal = true">登记收款</UButton>
     </div>
     <div v-if="!contract?.payments?.length" class="text-center py-8 text-content-muted text-sm">暂无收款记录</div>
     <div v-else class="space-y-2">
@@ -94,6 +94,14 @@ async function deletePayment(paymentId: string) {
         <div>
           <label class="block text-sm text-content-secondary mb-1">备注</label>
           <input v-model="paymentForm.remark" type="text" placeholder="备注信息..." class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">付款凭证</label>
+          <FileUpload
+            :upload-url="`/api/attachments?source=payment`"
+            accept=".pdf,.png,.jpg,.jpeg"
+            @uploaded="(f: any) => { paymentForm.attachmentPath = f.filePath || f.path || '' }"
+          />
         </div>
       </div>
       <template #footer>

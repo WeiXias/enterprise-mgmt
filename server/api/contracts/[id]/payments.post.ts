@@ -13,6 +13,7 @@ const schema = z.object({
   paymentDate: z.string(),
   paymentMethod: z.string().optional(),
   remark: z.string().optional(),
+  attachmentPath: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -34,6 +35,7 @@ export default defineEventHandler(async (event) => {
     paymentDate: parsed.data.paymentDate,
     paymentMethod: parsed.data.paymentMethod || null,
     remark: parsed.data.remark || null,
+    attachmentPath: parsed.data.attachmentPath || null,
     createdBy: user.userId,
     createdAt: now,
   })
