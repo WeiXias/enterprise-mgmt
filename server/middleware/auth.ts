@@ -28,8 +28,8 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/api/ai': 'ai:manage',
   '/api/tags': 'tag:manage',
   '/api/commissions': 'commission:read',
-  '/api/commission-rules': 'commission-rule:read',
-  '/api/commission-payouts': 'commission-payout:read',
+  '/api/commission-rules': 'commission:read',
+  '/api/commission-payouts': 'commission:read',
   '/api/finance': 'finance:read',
   '/api/product-categories': 'product-category:edit',
 }
