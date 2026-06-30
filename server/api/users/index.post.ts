@@ -1,6 +1,6 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { db } from '#database'
-import { users } from '#schema'
+import { users, roles } from '#schema'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
@@ -33,6 +33,14 @@ export default defineEventHandler(async (event) => {
   const passwordHash = await bcrypt.hash(parsed.data.password, 10)
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
+  // 确保 roleId 指向对应系统角色
+  let roleId = parsed.data.roleId || null
+  if (!roleId) {
+    const roleRows = await db.select({ id: roles.id }).from(roles)
+      .where(eq(roles.code, parsed.data.role)).limit(1)
+    if (roleRows[0]) roleId = roleRows[0].id
+  }
+
   const newUserId = generateId()
   await db.insert(users).values({
     id: newUserId,
@@ -42,7 +50,7 @@ export default defineEventHandler(async (event) => {
     phone: parsed.data.phone || null,
     email: parsed.data.email || null,
     role: parsed.data.role,
-    roleId: parsed.data.roleId || null,
+    roleId,
     departmentId: parsed.data.departmentId || null,
     status: 'active',
     createdAt: now,

@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
-import { users } from '#schema'
+import { users, roles } from '#schema'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
-  const existing = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, id)).limit(1)
+  const existing = await db.select({ id: users.id, role: users.role, roleId: users.roleId }).from(users).where(eq(users.id, id)).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '用户不存在' })
 
   // 不能修改管理员的角色和状态
@@ -38,6 +38,15 @@ export default defineEventHandler(async (event) => {
   const updateData: Record<string, unknown> = { updatedAt: now }
   for (const key of ['name', 'phone', 'email', 'role', 'roleId', 'departmentId', 'status'] as const) {
     if (parsed.data[key] !== undefined) updateData[key] = parsed.data[key]
+  }
+
+  // 当修改 role 但没有传 roleId 时，自动同步 roleId 指向对应系统角色
+  if (parsed.data.role && !parsed.data.roleId) {
+    const roleRows = await db.select({ id: roles.id }).from(roles)
+      .where(eq(roles.code, parsed.data.role)).limit(1)
+    if (roleRows[0]) {
+      updateData['roleId'] = roleRows[0].id
+    }
   }
 
   await db.update(users).set(updateData).where(eq(users.id, id))
