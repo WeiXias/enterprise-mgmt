@@ -5,7 +5,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'project:read')
+  await requirePermission(event, 'project:view')
   const { id } = getRouterParams(event)
 
   // 项目日期范围

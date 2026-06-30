@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  await requirePermission(event, 'finance:read')
+  await requirePermission(event, 'finance:view')
   const year = (query.year as string) || new Date().toISOString().slice(0, 4)
 
   const rows = await db.all(

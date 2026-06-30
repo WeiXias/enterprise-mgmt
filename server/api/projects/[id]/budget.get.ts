@@ -5,7 +5,7 @@ import { eq, and, isNull, sum, count } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'budget:read')
+  await requirePermission(event, 'budget:view')
   const { id } = getRouterParams(event)
 
   const [project] = await db.select({

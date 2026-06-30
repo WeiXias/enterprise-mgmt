@@ -4,7 +4,7 @@ import { financeSettings } from '#schema'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'finance:read')
+  await requirePermission(event, 'finance:view')
   const rows = await db.select().from(financeSettings)
   const result: Record<string, any> = {}
   for (const row of rows) {

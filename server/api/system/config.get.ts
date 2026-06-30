@@ -11,7 +11,7 @@ const PUBLIC_KEYS = ['app_name', 'system_name', 'company_name', 'company_logo', 
 
 export default defineEventHandler(async (event) => {
   // 先尝试读取 token
-  await requirePermission(event, 'system:read')
+  await requirePermission(event, 'system:view')
   const authHeader = getHeader(event, 'authorization')
   const isPublicRequest = !authHeader?.startsWith('Bearer ')
 

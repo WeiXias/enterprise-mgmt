@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  await requirePermission(event, 'product-category:read')
+  await requirePermission(event, 'product-category:view')
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 100, 500)
   const sortBy = (query.sortBy as string) || 'sort'

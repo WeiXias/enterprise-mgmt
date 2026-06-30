@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  await requirePermission(event, 'finance:read')
+  await requirePermission(event, 'finance:view')
   const projectId = query.projectId as string | undefined
 
   const whereP: ReturnType<typeof isNull>[] = [isNull(projects.deletedAt)]

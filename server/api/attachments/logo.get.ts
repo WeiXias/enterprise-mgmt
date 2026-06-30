@@ -9,7 +9,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const [row] = await db.select().from(systemConfig).where(eq(systemConfig.key, 'company_logo')).limit(1)
-  await requirePermission(event, 'system:read')
+  await requirePermission(event, 'system:view')
   if (!row?.value) throw createError({ statusCode: 404, statusMessage: '未设置 Logo' })
 
   const uploadDir = await getUploadDir()

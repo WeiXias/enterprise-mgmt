@@ -16,7 +16,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
-  await requirePermission(event, 'reimbursement:read')
+  await requirePermission(event, 'reimbursement:view')
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })

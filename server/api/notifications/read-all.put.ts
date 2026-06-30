@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'notification:read')
+  await requirePermission(event, 'notification:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   await db.update(notifications).set({ isRead: true })

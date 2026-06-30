@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  await requirePermission(event, 'product:read')
+  await requirePermission(event, 'product:view')
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
   const keyword = query.keyword as string | undefined

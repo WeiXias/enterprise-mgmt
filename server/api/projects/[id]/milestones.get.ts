@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id: projectId } = getRouterParams(event)
-  await requirePermission(event, 'milestone:read')
+  await requirePermission(event, 'milestone:view')
   const query = getQuery(event)
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 50, 200)

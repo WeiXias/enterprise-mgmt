@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
-  await requirePermission(event, 'quote:read')
+  await requirePermission(event, 'quote:view')
   const result = await db.select().from(quotes).where(eq(quotes.id, id)).limit(1)
   if (result.length === 0) throw createError({ statusCode: 404, statusMessage: '报价不存在' })
   const q = result[0]

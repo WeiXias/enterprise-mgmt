@@ -10,7 +10,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
-  await requirePermission(event, 'attachment:read')
+  await requirePermission(event, 'attachment:view')
   const { source } = getQuery(event) as { source?: string }
 
   let record: { id: string; fileName?: string; filePath?: string } | undefined

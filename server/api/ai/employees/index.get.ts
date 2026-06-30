@@ -6,7 +6,7 @@ import { checkPermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const hasManage = await checkPermission(event, 'ai:manage')
-  await requirePermission(event, 'ai:read')
+  await requirePermission(event, 'ai:view')
 
   const list = await db.select({
     id: aiEmployees.id,

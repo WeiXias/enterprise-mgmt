@@ -17,7 +17,7 @@ const DICT_TYPES: Record<string, { label: string; category: string }> = {
 }
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'dict:read')
+  await requirePermission(event, 'dict:view')
   const types = Object.entries(DICT_TYPES).map(([key, val]) => ({
     key,
     label: val.label,

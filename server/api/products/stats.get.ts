@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'product:read')
+  await requirePermission(event, 'product:view')
   if (!user?.userId) return { code: 0, data: { byCategory: [], byProduct: [] } }
 
   // 按分类统计

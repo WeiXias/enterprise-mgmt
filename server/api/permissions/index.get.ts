@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'role:read')
+  await requirePermission(event, 'role:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const list = await db.select().from(permissions).orderBy(asc(permissions.resource), asc(permissions.action))

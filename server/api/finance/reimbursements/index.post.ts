@@ -16,7 +16,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'reimbursement:read')
+  await requirePermission(event, 'reimbursement:view')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const body = await readBody(event)
   const parsed = schema.safeParse(body)

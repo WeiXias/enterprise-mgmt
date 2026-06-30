@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id: orderId } = getRouterParams(event)
-  await requirePermission(event, 'purchase-order:read')
+  await requirePermission(event, 'purchase-order:view')
 
   const list = await db.select().from(purchasePayments)
     .where(and(eq(purchasePayments.orderId, orderId), isNull(purchasePayments.deletedAt)))

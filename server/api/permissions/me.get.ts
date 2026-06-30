@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const u = event.context.user
-  await requirePermission(event, 'role:read')
+  await requirePermission(event, 'role:view')
   if (!u) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   // 管理员拥有所有权限

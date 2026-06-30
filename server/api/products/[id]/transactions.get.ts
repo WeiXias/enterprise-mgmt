@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
-  await requirePermission(event, 'product:read')
+  await requirePermission(event, 'product:view')
   const q = getQuery(event) as Record<string, string>
   const page = Math.max(1, parseInt(q.page || '1'))
   const pageSize = Math.min(100, Math.max(1, parseInt(q.pageSize || '20')))

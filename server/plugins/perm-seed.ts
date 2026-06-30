@@ -210,13 +210,13 @@ const seedPermissions = [
   { code: 'user:delete', name: '删除用户', resource: '用户', action: '删除' },
   { code: 'user:manage', name: '管理用户', resource: '用户', action: '管理' },
   // ── 角色 ──
-  { code: 'role:read', name: '查看角色', resource: '角色', action: '查看' },
+  { code: 'role:view', name: '查看角色', resource: '角色', action: '查看' },
   { code: 'role:create', name: '新增角色', resource: '角色', action: '新增' },
   { code: 'role:edit', name: '编辑角色', resource: '角色', action: '编辑' },
   { code: 'role:delete', name: '删除角色', resource: '角色', action: '删除' },
   { code: 'role:manage', name: '管理角色权限', resource: '角色', action: '管理' },
   // ── 部门 ──
-  { code: 'department:read', name: '查看部门', resource: '部门', action: '查看' },
+  { code: 'department:view', name: '查看部门', resource: '部门', action: '查看' },
   { code: 'department:create', name: '新增部门', resource: '部门', action: '新增' },
   { code: 'department:edit', name: '编辑部门', resource: '部门', action: '编辑' },
   { code: 'department:delete', name: '删除部门', resource: '部门', action: '删除' },
@@ -423,8 +423,8 @@ export default defineNitroPlugin(async () => {
     // 系统只读
     'system:read',
     'user:read',
-    'role:read',
-    'department:read',
+    'role:view',
+    'department:view',
     'ai:read',
   ]
   await assignPerms('finance', financeCodes)

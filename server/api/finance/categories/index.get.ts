@@ -5,7 +5,7 @@ import { eq, asc } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'finance:read')
+  await requirePermission(event, 'finance:view')
   const incomeRows = await db.select({
     id: dictEntries.id,
     name: dictEntries.label,

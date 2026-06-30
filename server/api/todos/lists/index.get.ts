@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'todo:read')
+  await requirePermission(event, 'todo:view')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   // 只返回当前用户的清单，按 sortOrder 排序

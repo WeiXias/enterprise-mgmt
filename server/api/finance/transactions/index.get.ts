@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'finance:read')
+  await requirePermission(event, 'finance:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const query = getQuery(event)
   const page = Number(query.page) || 1

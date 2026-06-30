@@ -7,7 +7,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id: projectId } = getRouterParams(event)
-  await requirePermission(event, 'task:read')
+  await requirePermission(event, 'task:view')
 
   const list = await db.select({
     id: tasks.id,

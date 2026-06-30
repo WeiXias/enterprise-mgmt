@@ -19,7 +19,7 @@ const createSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'product:read')
+  await requirePermission(event, 'product:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

@@ -16,7 +16,7 @@ function parseDate(s: string): Date {
 }
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'project:read')
+  await requirePermission(event, 'project:view')
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 

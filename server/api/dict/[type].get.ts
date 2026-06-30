@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { type } = getRouterParams(event)
-  await requirePermission(event, 'dict:read')
+  await requirePermission(event, 'dict:view')
 
   const rows = await db
     .select()

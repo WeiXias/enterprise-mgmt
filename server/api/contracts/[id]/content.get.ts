@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'contract:read')
+  await requirePermission(event, 'contract:view')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

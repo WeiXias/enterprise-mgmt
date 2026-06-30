@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const q = getQuery(event) as Record<string, string>
-  await requirePermission(event, 'inventory:read')
+  await requirePermission(event, 'inventory:view')
   const user = event.context.user
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const sortBy = (q.sortBy as string) || 'createdAt'

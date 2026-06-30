@@ -5,7 +5,7 @@ import { eq, and, isNull, asc, desc, count } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'time-log:read')
+  await requirePermission(event, 'time-log:view')
   const { id: projectId } = getRouterParams(event)
   const query = getQuery(event)
   const page = Number(query.page) || 1

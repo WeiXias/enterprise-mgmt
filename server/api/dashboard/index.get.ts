@@ -11,7 +11,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'dashboard:read')
+  await requirePermission(event, 'dashboard:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   // 构建角色隔离条件

@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
-  await requirePermission(event, 'invoice:read')
+  await requirePermission(event, 'invoice:view')
   const [record] = await db.select({
     id: invoices.id, invoiceNo: invoices.invoiceNo, type: invoices.type,
     contractId: invoices.contractId, contractName: contracts.name,

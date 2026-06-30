@@ -5,7 +5,7 @@ import { isNull, asc } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'tag:read')
+  await requirePermission(event, 'tag:view')
   const list = await db.select({
     id: tags.id,
     name: tags.name,
