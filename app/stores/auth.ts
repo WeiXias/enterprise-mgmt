@@ -37,6 +37,10 @@ export const useAuthStore = defineStore('auth', {
     /** 检查是否拥有指定权限码。admin 的 permissions 为 ['__all__'] 时始终返回 true */
     hasPermission: (state) => (code: string) => {
       if (!state.user) return false
+      if (!state.user.permissions || state.user.permissions.length === 0) {
+        // 兼容旧数据：没有 permissions 字段时，回退到 role 检查
+        return state.user.role === 'admin'
+      }
       if (state.user.permissions.includes('__all__')) return true
       return state.user.permissions.includes(code)
     }
