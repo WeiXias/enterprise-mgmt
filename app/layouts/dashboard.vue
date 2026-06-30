@@ -314,7 +314,7 @@ function formatTime(dateStr: string): string {
 
           <!-- 管理：同事 / 设置 / 报表 / 操作记录 -->
           <ul class="space-y-0.5">
-            <li v-if="can('system:manage')">
+            <li v-if="can('user:read')">
               <NuxtLink
                 to="/dashboard/users"
                 :title="sidebarCollapsed ? '同事' : undefined"
@@ -324,7 +324,7 @@ function formatTime(dateStr: string): string {
                 <span v-show="!sidebarCollapsed" class="truncate">同事</span>
               </NuxtLink>
             </li>
-            <li v-if="can('system:config')">
+            <li v-if="can('user:read')">
               <NuxtLink
                 to="/dashboard/settings"
                 :title="sidebarCollapsed ? '设置' : undefined"
