@@ -16,9 +16,9 @@ const DICT_TYPES: Record<string, { label: string; category: string }> = {
   spec_template_service: { label: '规格模板-服务产品', category: '产品规格模板' },
 }
 
-export default defineEventHandler(() => {
-  const types = Object.entries(DICT_TYPES).map(([key, val]) => ({
+export default defineEventHandler(async (event) => {
   await requirePermission(event, 'dict:read')
+  const types = Object.entries(DICT_TYPES).map(([key, val]) => ({
     key,
     label: val.label,
     category: val.category,
