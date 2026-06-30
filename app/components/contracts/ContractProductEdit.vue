@@ -119,13 +119,8 @@ defineExpose({ openModal })
       nested
       :open="showSelectModal"
       @update:open="showSelectModal = $event"
-      @select="(p: any) => { selectedProductInfo = p; showSelectModal = false; // 在已有产品行空位填入
-            const emptyRow = editProducts.find((ep: any) => !ep.productId)
-            if (emptyRow) { emptyRow.productId = p.id; emptyRow._name = p.name; emptyRow.unitPrice = p.price || 0 }
-            else { editProducts.push({ productId: p.id, _name: p.name, quantity: 1, unitPrice: p.price || 0, discount: 100 }) }
-          }"
-
-<｜｜DSML｜｜parameter name="replace_all" string="false">false
+      @select="(p: any) => { selectedProductInfo = p; showSelectModal = false; const emptyRow = editProducts.find((ep: any) => !ep.productId); if (emptyRow) { emptyRow.productId = p.id; emptyRow._name = p.name; emptyRow.unitPrice = p.price || 0 } else { editProducts.push({ productId: p.id, _name: p.name, quantity: 1, unitPrice: p.price || 0, discount: 100 }) } }"
     />
   </div>
 </template>
+

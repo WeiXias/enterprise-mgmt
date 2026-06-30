@@ -27,10 +27,10 @@ const ROUTE_PERMISSION_MAP: Record<string, string> = {
   '/api/users': 'user:read',
   '/api/ai': 'ai:manage',
   '/api/tags': 'tag:manage',
-  '/api/commissions': 'commission:view',
-  '/api/commission-rules': 'commission:view',
-  '/api/commission-payouts': 'commission:view',
-  '/api/finance': 'finance:view',
+  '/api/commissions': 'commission:read',
+  '/api/commission-rules': 'commission:read',
+  '/api/commission-payouts': 'commission:read',
+  '/api/finance': 'finance:read',
   '/api/product-categories': 'product-category:edit',
 }
 

@@ -9,6 +9,7 @@ import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   supplierId: z.string().min(1),
+  contractId: z.string().optional(),
   expectedDate: z.string().optional(),
   remark: z.string().optional(),
   items: z.array(z.object({
@@ -42,6 +43,7 @@ export default defineEventHandler(async (event) => {
     code,
     name: code,
     supplierId: parsed.data.supplierId,
+    contractId: parsed.data.contractId || null,
     expectedDate: parsed.data.expectedDate || null,
     totalAmount,
     status: 'draft',

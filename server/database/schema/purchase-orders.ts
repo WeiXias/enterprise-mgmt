@@ -8,6 +8,7 @@ export const purchaseOrders = sqliteTable('purchase_orders', {
   code: text('code').notNull(),
   name: text('name').notNull(),
   supplierId: text('supplier_id').references(() => suppliers.id),
+  contractId: text('contract_id'),
   expectedDate: text('expected_date'),
   totalAmount: integer('total_amount').notNull().default(0),
   status: text('status').notNull().default('draft'),

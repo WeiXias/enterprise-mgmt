@@ -146,8 +146,8 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
         { label: '产品', icon: 'i-lucide-tag', to: '/dashboard/products', sort: configSort('products') !== 99 ? configSort('products') : 0 },
         { label: '采购', icon: 'i-lucide-shopping-cart', to: '/dashboard/purchases', sort: configSort('purchases') !== 99 ? configSort('purchases') : 1 },
         { label: '销售', icon: 'i-lucide-trending-up', to: '/dashboard/sales', sort: configSort('sales') !== 99 ? configSort('sales') : 2 },
-        { label: '库存', icon: 'i-lucide-package', to: '/dashboard/inventory', sort: configSort('inventory') !== 99 ? configSort('inventory') : 3, hidden: !can('product:view') },
-        { label: '仓库', icon: 'i-lucide-warehouse', to: '/dashboard/warehouses', sort: configSort('warehouses') !== 99 ? configSort('warehouses') : 4, hidden: !can('product:view') },
+        { label: '库存', icon: 'i-lucide-package', to: '/dashboard/inventory', sort: configSort('inventory') !== 99 ? configSort('inventory') : 3, hidden: !can('product:read') },
+        { label: '仓库', icon: 'i-lucide-warehouse', to: '/dashboard/warehouses', sort: configSort('warehouses') !== 99 ? configSort('warehouses') : 4, hidden: !can('product:read') },
         { label: '供应商', icon: 'i-lucide-building-2', to: '/dashboard/suppliers', sort: configSort('suppliers') !== 99 ? configSort('suppliers') : 5 },
       ],
     },
@@ -157,11 +157,11 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
       items: (() => {
         const items: SidebarItem[] = [
           {
-            label: '财务', icon: 'i-lucide-dollar-sign', to: '/dashboard/finance', sort: configSort('finance') !== 99 ? configSort('finance') : 0, hidden: !can('finance:view'),
+            label: '财务', icon: 'i-lucide-dollar-sign', to: '/dashboard/finance', sort: configSort('finance') !== 99 ? configSort('finance') : 0, hidden: !can('finance:read'),
           },
           { label: '提成', icon: 'i-lucide-wallet', to: '/dashboard/commissions', sort: configSort('commissions') !== 99 ? configSort('commissions') : 1 },
-          { label: '应收总账', icon: 'i-lucide-scale', to: '/dashboard/finance/ar', sort: configSort('ar') !== 99 ? configSort('ar') : 3, hidden: !can('finance:view') },
-          { label: '客户对账', icon: 'i-lucide-file-check-2', to: '/dashboard/finance/reconciliations', sort: configSort('reconciliations') !== 99 ? configSort('reconciliations') : 4, hidden: !can('finance:view') },
+          { label: '应收总账', icon: 'i-lucide-scale', to: '/dashboard/finance/ar', sort: configSort('ar') !== 99 ? configSort('ar') : 3, hidden: !can('finance:read') },
+          { label: '客户对账', icon: 'i-lucide-file-check-2', to: '/dashboard/finance/reconciliations', sort: configSort('reconciliations') !== 99 ? configSort('reconciliations') : 4, hidden: !can('finance:read') },
         ]
         return items
       })(),
@@ -314,7 +314,7 @@ function formatTime(dateStr: string): string {
 
           <!-- 管理：同事 / 设置 / 报表 / 操作记录 -->
           <ul class="space-y-0.5">
-            <li v-if="can('user:create')">
+            <li v-if="can('user:read')">
               <NuxtLink
                 to="/dashboard/users"
                 :title="sidebarCollapsed ? '同事' : undefined"
@@ -324,7 +324,7 @@ function formatTime(dateStr: string): string {
                 <span v-show="!sidebarCollapsed" class="truncate">同事</span>
               </NuxtLink>
             </li>
-            <li v-if="can('user:create')">
+            <li v-if="can('user:read')">
               <NuxtLink
                 to="/dashboard/settings"
                 :title="sidebarCollapsed ? '设置' : undefined"
