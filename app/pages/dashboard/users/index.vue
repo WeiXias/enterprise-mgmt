@@ -3,6 +3,7 @@ definePageMeta({ layout: 'dashboard', title: '同事', middleware: ['auth'] })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
+const { can } = usePermission()
 const authStore = useAuthStore()
 const router = useRouter()
 
@@ -229,7 +230,7 @@ onMounted(() => { fetchItems(); loadOptions() })
           <template v-else>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(u)" />
             <UButton icon="i-lucide-key" variant="ghost" color="warning" size="xs" @click="resetPwdTarget = u; newPassword = ''; showPasswordModal = true" />
-            <template v-if="u.role !== 'admin'">
+            <template v-if="can('user:manage')">
               <UButton :icon="u.status === 'active' ? 'i-lucide-ban' : 'i-lucide-check-circle'" variant="ghost" :color="u.status === 'active' ? 'warning' : 'primary'" size="xs" @click="handleToggleStatus(u)" />
               <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = u; showDeleteModal = true" />
             </template>

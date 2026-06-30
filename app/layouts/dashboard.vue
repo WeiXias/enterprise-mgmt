@@ -160,8 +160,8 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
             label: '财务', icon: 'i-lucide-dollar-sign', to: '/dashboard/finance', sort: configSort('finance') !== 99 ? configSort('finance') : 0, hidden: !can('finance:read'),
           },
           { label: '提成', icon: 'i-lucide-wallet', to: '/dashboard/commissions', sort: configSort('commissions') !== 99 ? configSort('commissions') : 1 },
-          { label: '应收总账', icon: 'i-lucide-scale', to: '/dashboard/finance/ar', sort: configSort('ar') !== 99 ? configSort('ar') : 3, hidden: !can('finance:read'),
-          { label: '客户对账', icon: 'i-lucide-file-check-2', to: '/dashboard/finance/reconciliations', sort: configSort('reconciliations') !== 99 ? configSort('reconciliations') : 4, hidden: !can('reconciliation:read'),
+          { label: '应收总账', icon: 'i-lucide-scale', to: '/dashboard/finance/ar', sort: configSort('ar') !== 99 ? configSort('ar') : 3, hidden: !can('finance:read') },
+          { label: '客户对账', icon: 'i-lucide-file-check-2', to: '/dashboard/finance/reconciliations', sort: configSort('reconciliations') !== 99 ? configSort('reconciliations') : 4, hidden: !can('reconciliation:read') },
         ]
         return items
       })(),
