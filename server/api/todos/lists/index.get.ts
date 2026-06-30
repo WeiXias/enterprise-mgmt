@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { todoLists, todos } from '#schema/todos'
 import { eq, and, isNull, count, inArray } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'todo:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   // 只返回当前用户的清单，按 sortOrder 排序

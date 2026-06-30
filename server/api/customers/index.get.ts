@@ -3,9 +3,11 @@ import { db } from '#database'
 import { customers, contacts, tags, customerTags } from '#schema/customers'
 import { users } from '#schema/users'
 import { eq, like, and, isNull, count, desc, asc, inArray } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'customer:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const query = getQuery(event)

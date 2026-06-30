@@ -4,6 +4,7 @@ import { dictEntries } from '#schema'
 import { eq } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1),
@@ -12,6 +13,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
+  await requirePermission(event, 'product-category:create')
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 

@@ -4,6 +4,7 @@ import { todoTagRelations, todoTags } from '#schema/todos'
 import { eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
+import { requirePermission } from '#server-utils/permission'
 
 // 设置任务的标签（全量替换）
 const schema = z.object({
@@ -14,6 +15,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'todo:edit')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

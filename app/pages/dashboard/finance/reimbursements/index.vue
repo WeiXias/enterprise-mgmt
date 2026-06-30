@@ -3,8 +3,8 @@ definePageMeta({ layout: 'dashboard', title: '报销管理', middleware: ['auth'
 
 const toast = useToast()
 const { $api } = useNuxtApp()
-const authStore = useAuthStore()
-const isFinance = computed(() => authStore.isAdmin || authStore.isFinance)
+const { can } = usePermission()
+const isFinance = computed(() => can('reimbursement:approve'))
 
 const items = ref<any[]>([])
 const loading = ref(true)

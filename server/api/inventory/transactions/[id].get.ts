@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { inventoryTransactions, products } from '#schema'
 import { eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'inventory:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id } = getRouterParams(event)
 

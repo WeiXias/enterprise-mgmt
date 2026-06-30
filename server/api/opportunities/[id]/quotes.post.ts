@@ -4,6 +4,7 @@ import { quotes, quoteProducts } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1, '报价名称得填一下').optional().default('报价单'),
@@ -19,6 +20,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'quote:create')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: oppId } = getRouterParams(event)
   const body = await readBody(event)

@@ -2,9 +2,11 @@ import { defineEventHandler, createError } from 'h3'
 import { db } from '#database'
 import { rolePermissions, permissions, users } from '#schema'
 import { eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const u = event.context.user
+  await requirePermission(event, 'role:read')
   if (!u) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   // 管理员拥有所有权限

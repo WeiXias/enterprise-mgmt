@@ -4,6 +4,7 @@ import { quotes, quoteProducts } from '#schema'
 import { eq } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const updateSchema = z.object({
   status: z.string().optional(),
@@ -13,6 +14,7 @@ const updateSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'opportunity:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

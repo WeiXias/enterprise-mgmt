@@ -3,11 +3,13 @@ import { db } from '#database'
 import { warehouseLocations } from '#schema'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ name: z.string().min(1).max(50).optional(), code: z.string().max(50).optional(), remark: z.string().optional() })
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'warehouse:edit')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { locId } = getRouterParams(event)

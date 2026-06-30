@@ -3,6 +3,7 @@ import { db } from '#database'
 import { inventoryCountItems } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   actualQuantity: z.number().int().min(0),
@@ -10,6 +11,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'inventory:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id, itemId } = getRouterParams(event)
 

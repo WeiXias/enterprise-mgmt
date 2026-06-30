@@ -8,13 +8,8 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { $api } = useNuxtApp()
-const authStore = useAuthStore()
+const { can } = usePermission()
 const contractId = route.params.id as string
-
-function isAdminOrManager() {
-  const role = authStore.user?.role
-  return role === 'admin' || role === 'sales_manager'
-}
 
 // 合同数据
 const contract = ref<any>(null)
@@ -309,7 +304,7 @@ onMounted(() => {
             <span v-if="contract.owner?.name" class="text-xs text-brand-600">
               <UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ contract.owner.name }}
             </span>
-            <UButton v-if="isAdminOrManager()" icon="i-lucide-arrow-left-right" variant="ghost" color="warning" size="xs" class="text-xs" @click="showTransferModal = true; loadUsers()">转交</UButton>
+            <UButton v-if="can('contract:transfer')" icon="i-lucide-arrow-left-right" variant="ghost" color="warning" size="xs" class="text-xs" @click="showTransferModal = true; loadUsers()">转交</UButton>
           </div>
 
           <!-- 回款进度 -->

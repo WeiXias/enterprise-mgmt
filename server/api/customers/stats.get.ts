@@ -2,9 +2,11 @@ import { defineEventHandler, createError } from 'h3'
 import { db } from '#database'
 import { customers, users } from '#schema'
 import { eq, and, isNull, count, ne } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'customer:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const where: any[] = [isNull(customers.deletedAt)]

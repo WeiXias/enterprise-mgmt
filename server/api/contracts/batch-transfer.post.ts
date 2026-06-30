@@ -4,6 +4,7 @@ import { contracts } from '#schema'
 import { eq, and, isNull, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   contractIds: z.array(z.string()).min(1).max(100),
@@ -13,6 +14,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'contract:transfer')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   if (user.role === 'sales_member') throw createError({ statusCode: 403, statusMessage: '这个需要管理员或销售负责人才能操作' })
 

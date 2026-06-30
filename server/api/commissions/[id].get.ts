@@ -3,9 +3,11 @@ import { db } from '#database'
 import { commissions, users, contracts, commissionRules, commissionPayoutItems } from '#schema'
 import { eq } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'commission:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const id = getRouterParam(event, 'id')

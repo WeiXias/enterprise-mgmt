@@ -2,6 +2,7 @@ import { defineEventHandler, createError, getHeader } from 'h3'
 import { db } from '#database'
 import { systemConfig } from '#schema/system'
 import { verifyAccessToken } from '#server-utils/auth'
+import { requirePermission } from '#server-utils/permission'
 
 const SENSITIVE_KEYS = ['smtp_password', 'api_key', 'jwt_secret', 'encryption_key', 'ai_api_key']
 
@@ -10,6 +11,7 @@ const PUBLIC_KEYS = ['app_name', 'system_name', 'company_name', 'company_logo', 
 
 export default defineEventHandler(async (event) => {
   // 先尝试读取 token
+  await requirePermission(event, 'system:read')
   const authHeader = getHeader(event, 'authorization')
   const isPublicRequest = !authHeader?.startsWith('Bearer ')
 

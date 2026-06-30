@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { opportunities, customers, users } from '#schema'
 import { and, isNull, like, count, desc, eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'opportunity:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const query = getQuery(event)
   const pageSize = 1000 // 导出时一次取完

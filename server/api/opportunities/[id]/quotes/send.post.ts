@@ -9,6 +9,7 @@ import path from 'path'
 import fs from 'fs'
 import { logOperation } from '#server-utils/log'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const bodySchema = z.object({
   to: z.string().email('请输入正确的邮箱'),
@@ -17,6 +18,7 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'quote:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

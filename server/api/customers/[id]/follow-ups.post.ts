@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import dayjs from 'dayjs'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   type: z.enum(['phone', 'visit', 'wechat', 'email', 'other']),
@@ -14,6 +15,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'follow-up:create')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: customerId } = getRouterParams(event)
   const body = await readBody(event)

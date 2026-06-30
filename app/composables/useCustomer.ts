@@ -2,13 +2,8 @@
  * 客户模块共享工具
  */
 export function useCustomer() {
-  const authStore = useAuthStore()
-
-  function isAdminOrManager() {
-    const role = authStore.user?.role
-    return role === 'admin' || role === 'sales_manager'
-  }
-
+  const { canAny } = usePermission()
+  const isAdminOrManager = () => canAny(['customer:transfer', 'customer:edit', 'customer:delete'])
   return { isAdminOrManager }
 }
 

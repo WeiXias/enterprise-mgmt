@@ -4,9 +4,11 @@ import { tags } from '#schema/customers'
 import { dictEntries } from '#schema'
 import { eq, isNull, and } from 'drizzle-orm'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'tag:delete')
   const existing = await db.select({ id: tags.id, name: tags.name }).from(tags).where(and(eq(tags.id, id), isNull(tags.deletedAt))).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '标签不存在' })
 

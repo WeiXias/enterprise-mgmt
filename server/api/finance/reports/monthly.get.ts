@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
 import { financeTransactions } from '#schema'
 import { and, isNull, sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
+  await requirePermission(event, 'finance:read')
   const year = (query.year as string) || new Date().toISOString().slice(0, 4)
 
   const rows = await db.all(

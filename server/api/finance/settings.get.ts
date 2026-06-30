@@ -1,9 +1,11 @@
 import { defineEventHandler } from 'h3'
 import { db } from '#database'
 import { financeSettings } from '#schema'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async () => {
   const rows = await db.select().from(financeSettings)
+  await requirePermission(event, 'finance:read')
   const result: Record<string, any> = {}
   for (const row of rows) {
     // Try to parse JSON values

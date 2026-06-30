@@ -4,11 +4,13 @@ import { customerTags, tags } from '#schema/customers'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ tagIds: z.array(z.string()) })
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'customer:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: customerId } = getRouterParams(event)
   const body = await readBody(event)

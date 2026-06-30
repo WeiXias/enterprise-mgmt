@@ -3,6 +3,7 @@ import { db } from '#database'
 import { todoSubtasks } from '#schema/todos'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   title: z.string().min(1).max(200).optional(),
@@ -12,6 +13,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'todo:edit')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { subtaskId } = getRouterParams(event)

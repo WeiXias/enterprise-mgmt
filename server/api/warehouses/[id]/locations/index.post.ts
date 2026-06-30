@@ -3,11 +3,13 @@ import { db } from '#database'
 import { warehouseLocations } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ name: z.string().min(1).max(50), code: z.string().min(1).max(50), remark: z.string().optional().default('') })
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'warehouse:create')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

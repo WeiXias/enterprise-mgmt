@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import dayjs from 'dayjs'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1, '客户名称不能为空').max(200),
@@ -24,6 +25,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'customer:create')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

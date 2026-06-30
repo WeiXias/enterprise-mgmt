@@ -18,49 +18,76 @@ const PUBLIC_API_PREFIXES = [
   '/api/_nuxt_icon',  // Nuxt 图标 API
 ]
 
-// 按路由前缀限制角色：仅管理员可访问
-const ADMIN_ONLY_PREFIXES = [
-  '/api/roles',
-  '/api/permissions',
-  '/api/departments',
-  '/api/system',
-  '/api/users',
-  '/api/ai',
-  '/api/tags',
-]
+// 按路由前缀限制角色：需要对应权限码
+const ROUTE_PERMISSION_MAP: Record<string, string> = {
+  '/api/roles': 'role:manage',
+  '/api/permissions': 'role:manage',
+  '/api/departments': 'department:manage',
+  '/api/system': 'system:manage',
+  '/api/users': 'user:read',
+  '/api/ai': 'ai:manage',
+  '/api/tags': 'tag:manage',
+  '/api/commissions': 'commission:read',
+  '/api/commission-rules': 'commission-rule:read',
+  '/api/commission-payouts': 'commission-payout:read',
+  '/api/finance': 'finance:read',
+  '/api/product-categories': 'product-category:edit',
+}
 
-// 仅管理员和财务可访问
-const ADMIN_FINANCE_PREFIXES = [
-  '/api/commissions',
-  '/api/commission-rules',
-  '/api/commission-payouts',
-  '/api/finance',
-]
+async function checkRoutePermission(url: string, payload: any): Promise<void> {
+  // 如果没有 roleId，回退到旧的硬编码 role 判断
+  if (!payload?.roleId) {
+    checkRolePrefixFallback(url, payload)
+    return
+  }
 
-// 以下路由仅管理员和销售负责人可访问
-const ADMIN_MANAGER_PREFIXES = [
-  '/api/product-categories',
-]
+  const match = Object.entries(ROUTE_PERMISSION_MAP).find(([prefix]) => url.startsWith(prefix))
+  if (!match) return
 
-function checkRolePrefix(url: string, payload: any): void {
+  const requiredCode = match[1]
+  try {
+    const { db: permDb } = await import('#database')
+    const { users: permUsers, rolePermissions: permRolePerms, permissions: permPerms, roles: permRoles } = await import('#schema')
+    const { eq: permEq } = await import('drizzle-orm')
+
+    // 系统 admin 角色直接放行
+    const roleRows = await permDb.select({ code: permRoles.code, isSystem: permRoles.isSystem })
+      .from(permRoles).where(permEq(permRoles.id, payload.roleId)).limit(1)
+    if (roleRows[0]?.code === 'admin' && roleRows[0]?.isSystem) return
+
+    // 查用户角色权限
+    const result = await permDb.select({ code: permPerms.code })
+      .from(permRolePerms)
+      .innerJoin(permPerms, permEq(permRolePerms.permissionId, permPerms.id))
+      .where(permEq(permRolePerms.roleId, payload.roleId))
+
+    const codes = result.map((r: any) => r.code)
+    if (!codes.includes(requiredCode)) {
+      throw createError({ statusCode: 403, statusMessage: '这个需要权限才能操作' })
+    }
+  } catch (e: any) {
+    if (e.statusCode) throw e
+    throw createError({ statusCode: 403, statusMessage: '这个需要权限才能操作' })
+  }
+}
+
+// 旧版硬编码角色判断（无 roleId 时的后备）
+function checkRolePrefixFallback(url: string, payload: any): void {
   const role = payload?.role
-
-  // 管理员拥有所有权限
   if (role === 'admin') return
 
-  // 管理员专属
+  const ADMIN_ONLY_PREFIXES = ['/api/roles', '/api/permissions', '/api/departments', '/api/system', '/api/users', '/api/ai', '/api/tags']
+  const ADMIN_FINANCE_PREFIXES = ['/api/commissions', '/api/commission-rules', '/api/commission-payouts', '/api/finance']
+  const ADMIN_MANAGER_PREFIXES = ['/api/product-categories']
+
   if (ADMIN_ONLY_PREFIXES.some(p => url.startsWith(p))) {
     throw createError({ statusCode: 403, statusMessage: '这个需要管理员才能操作' })
   }
-
-  // 管理员 + 财务
   if (ADMIN_FINANCE_PREFIXES.some(p => url.startsWith(p))) {
     if (role !== 'finance') {
       throw createError({ statusCode: 403, statusMessage: '这个需要财务或管理员才能操作' })
     }
   }
-
-  // 管理员 + 销售负责人
   if (ADMIN_MANAGER_PREFIXES.some(p => url.startsWith(p))) {
     if (role !== 'sales_manager') {
       throw createError({ statusCode: 403, statusMessage: '这个需要销售负责人或管理员才能操作' })
@@ -108,7 +135,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 角色权限检查
-    checkRolePrefix(url, payload)
+    await checkRoutePermission(url, payload)
   } catch (err: any) {
     // 如果已经抛出了 h3 错误（401/403），直接重新抛出
     if (err?.statusCode) throw err

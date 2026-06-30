@@ -5,6 +5,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import dayjs from 'dayjs'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1, '客户名称不能为空').max(200).optional(),
@@ -20,6 +21,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'customer:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

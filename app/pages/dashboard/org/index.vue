@@ -233,7 +233,7 @@ onMounted(fetchTree)
                 <span class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center text-brand-700 text-[10px]">{{ m.name?.charAt(0) }}</span>
                 <span class="text-sm text-content-secondary">{{ m.name }}</span>
                 <span class="text-xs text-content-muted">{{ m.username }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted ml-auto">{{ m.role === 'admin' ? '管理员' : m.role === 'sales_manager' ? '销售负责人' : m.role === 'sales_member' ? '销售成员' : '财务' }}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-muted ml-auto">{{ authStore.roleLabel }}</span>
               </div>
             </div>
           </div>

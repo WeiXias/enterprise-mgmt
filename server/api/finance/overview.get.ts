@@ -2,9 +2,11 @@ import { defineEventHandler, createError } from 'h3'
 import { db } from '#database'
 import { contracts, paymentPlans, payments, commissions, reimbursements, commissionPayouts, financeTransactions } from '#schema'
 import { and, isNull, sql, eq, desc, gte, lte } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'finance:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')

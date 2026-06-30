@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
 import { projects, contracts, financeTransactions } from '#schema'
 import { eq, and, isNull, sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
+  await requirePermission(event, 'finance:read')
   const projectId = query.projectId as string | undefined
 
   const whereP: ReturnType<typeof isNull>[] = [isNull(projects.deletedAt)]

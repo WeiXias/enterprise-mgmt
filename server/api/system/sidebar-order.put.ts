@@ -2,9 +2,11 @@ import { defineEventHandler, readBody, createError } from 'h3'
 import { db } from '#database'
 import { codeRules } from '#schema/system'
 import { eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'system:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

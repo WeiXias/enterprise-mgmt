@@ -4,11 +4,13 @@ import { todos } from '#schema/todos'
 import { inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ todoIds: z.array(z.string()).min(1).max(50) })
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'todo:delete')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

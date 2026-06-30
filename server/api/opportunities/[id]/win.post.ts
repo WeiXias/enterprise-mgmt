@@ -5,6 +5,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
 import { createContractFromOpportunity } from '#server-utils/contract-from-opportunity'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   generateContract: z.boolean().optional().default(true),
@@ -12,6 +13,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'opportunity:edit')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id } = getRouterParams(event)
   const body = await readBody(event)

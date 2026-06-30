@@ -6,6 +6,7 @@ import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { z } from 'zod'
 import { isNull } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   code: z.string().max(100).optional(),
@@ -16,6 +17,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'inventory:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

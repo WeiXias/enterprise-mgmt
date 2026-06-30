@@ -8,6 +8,7 @@ import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { createProvider, decryptApiKey } from '#ai-utils'
 import type { AIReviewResult } from '#ai-utils'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   aiEmployeeId: z.string().optional(),
@@ -52,6 +53,7 @@ const REVIEW_SYSTEM_PROMPT_ADDON = `
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'contract:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id: contractId } = getRouterParams(event)

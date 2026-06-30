@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
 import { users, roles, departments } from '#schema'
 import { and, like, eq, desc, sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
+  await requirePermission(event, 'user:read')
   const page = Number(query.page) || 1
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
   const keyword = query.keyword as string | undefined

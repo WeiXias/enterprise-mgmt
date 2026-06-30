@@ -3,9 +3,11 @@ import { db } from '#database'
 import { followUps, customers } from '#schema/customers'
 import { users } from '#schema/users'
 import { eq, and, asc, desc, count, isNull } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'follow-up:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: customerId } = getRouterParams(event)
 

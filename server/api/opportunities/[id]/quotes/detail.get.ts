@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { quotes, quoteProducts, products } from '#schema'
 import { eq } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
+  await requirePermission(event, 'quote:read')
   const result = await db.select().from(quotes).where(eq(quotes.id, id)).limit(1)
   if (result.length === 0) throw createError({ statusCode: 404, statusMessage: '报价不存在' })
   const q = result[0]

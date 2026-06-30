@@ -3,9 +3,11 @@ import { db } from '#database'
 import { dictEntries } from '#schema'
 import { eq } from 'drizzle-orm'
 import dayjs from 'dayjs'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'product-category:delete')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const { id } = getRouterParams(event)

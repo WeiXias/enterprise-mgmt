@@ -3,9 +3,11 @@ import { db } from '#database'
 import { inventoryTransactions, products } from '#schema'
 import { generateId } from '#server-utils/id'
 import { eq, and, sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'inventory:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

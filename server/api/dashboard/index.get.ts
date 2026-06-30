@@ -7,9 +7,11 @@ import { users } from '#schema/users'
 import { followUps } from '#schema/customers'
 import { tasks } from '#schema/projects'
 import { eq, and, isNull, sql, gte, lte, isNotNull, ne, desc } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'dashboard:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   // 构建角色隔离条件

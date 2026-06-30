@@ -2,9 +2,11 @@ import { defineEventHandler } from 'h3'
 import { db } from '#database'
 import { dictEntries } from '#schema'
 import { eq, asc } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const incomeRows = await db.select({
+  await requirePermission(event, 'finance:read')
     id: dictEntries.id,
     name: dictEntries.label,
     sort: dictEntries.sort,

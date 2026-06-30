@@ -4,11 +4,13 @@ import { systemConfig } from '#schema'
 import { eq } from 'drizzle-orm'
 import { saveUploadedFile } from '#server-utils/upload'
 import path from 'path'
+import { requirePermission } from '#server-utils/permission'
 
 const IMAGE_MIME = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'system:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const saved = await saveUploadedFile({

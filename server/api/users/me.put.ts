@@ -3,6 +3,7 @@ import { db } from '#database'
 import { users } from '#schema'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -13,6 +14,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'user:read')
   if (!user) {
     throw createError({ statusCode: 401, statusMessage: '请先登录' })
   }

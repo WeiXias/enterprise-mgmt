@@ -3,9 +3,11 @@ import { db } from '#database'
 import { contracts, projects, projectMembers } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { generateId } from '#server-utils/id'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'project:create')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id: contractId } = getRouterParams(event)
   const contract = await db.select().from(contracts).where(and(eq(contracts.id, contractId), isNull(contracts.deletedAt))).limit(1)

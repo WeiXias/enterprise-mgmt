@@ -4,6 +4,7 @@ import { reimbursements } from '#schema'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   type: z.string().min(1),
@@ -15,6 +16,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'reimbursement:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const body = await readBody(event)
   const parsed = schema.safeParse(body)

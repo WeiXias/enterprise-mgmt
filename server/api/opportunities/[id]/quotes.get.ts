@@ -2,9 +2,11 @@ import { defineEventHandler, getRouterParams } from 'h3'
 import { db } from '#database'
 import { quotes, quoteProducts, products } from '#schema'
 import { eq, desc } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id: oppId } = getRouterParams(event)
+  await requirePermission(event, 'quote:read')
 
   const quoteList = await db.select({
     id: quotes.id,

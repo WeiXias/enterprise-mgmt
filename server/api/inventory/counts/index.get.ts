@@ -3,9 +3,11 @@ import { db } from '#database'
 import { inventoryCounts, inventoryCountItems } from '#schema'
 import { warehouses } from '#schema/warehouses'
 import { eq, and, isNull, like, count, asc, desc } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'inventory:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const query = getQuery(event)

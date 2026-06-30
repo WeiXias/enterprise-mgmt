@@ -2,9 +2,11 @@ import { defineEventHandler, createError } from 'h3'
 import { db } from '#database'
 import { commissions, users } from '#schema'
 import { sql, isNull } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'commission:read')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const stats = await db.select({

@@ -2,9 +2,11 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { warehouses } from '#schema'
 import { isNull, asc, and, like, sql } from 'drizzle-orm'
+import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'warehouse:read')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const query = getQuery(event)

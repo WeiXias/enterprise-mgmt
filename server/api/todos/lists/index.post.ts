@@ -4,6 +4,7 @@ import { todoLists } from '#schema/todos'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1, '清单名称不能为空').max(100),
@@ -13,6 +14,7 @@ const schema = z.object({
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'todo:create')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const body = await readBody(event)

@@ -13,10 +13,7 @@ watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 
 const toast = useToast()
 const { $api } = useNuxtApp()
-const authStore = useAuthStore()
-
-function isAdmin() { return authStore.user?.role === 'admin' }
-function isAdminOrManager() { const role = authStore.user?.role; return role === 'admin' || role === 'sales_manager' }
+const { can } = usePermission()
 
 // 批量选择
 const selectedIds = ref<Set<string>>(new Set())
@@ -263,8 +260,8 @@ onMounted(() => {
     <PageHeader title="合同" description="管理合同、收款和审批">
       <template #actions>
         <div class="flex items-center gap-2">
-          <UButton v-if="isAdminOrManager()" icon="i-lucide-layout-template" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/contracts/templates')">模板</UButton>
-          <UButton v-if="selectedIds.size > 0 && isAdminOrManager()" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
+          <UButton v-if="can('contract:transfer')" icon="i-lucide-layout-template" variant="ghost" color="neutral" size="sm" @click="$router.push('/dashboard/contracts/templates')">模板</UButton>
+          <UButton v-if="selectedIds.size > 0 && can('contract:transfer')" icon="i-lucide-arrow-left-right" color="warning" variant="soft" size="sm" @click="openTransferModal([...selectedIds])">批量转交 ({{ selectedIds.size }})</UButton>
           <UButton icon="i-lucide-download" variant="ghost" color="neutral" size="sm" @click="handleExport" />
           <UButton icon="i-lucide-plus" color="primary" @click="showCreateModal = true; resetCreateForm()">
             添加合同
@@ -291,7 +288,7 @@ onMounted(() => {
         placeholder="全部状态"
       />
       <span class="text-xs text-content-muted">共 {{ total }} 个合同</span>
-      <label v-if="isAdminOrManager()" class="flex items-center gap-1 text-xs text-content-muted cursor-pointer select-none ml-auto">
+      <label v-if="can('contract:transfer')" class="flex items-center gap-1 text-xs text-content-muted cursor-pointer select-none ml-auto">
         <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500 focus:ring-brand-400" :checked="selectedIds.size === contractsList.length && contractsList.length > 0" @change="toggleSelectAll" />
         全选
       </label>
@@ -308,7 +305,7 @@ onMounted(() => {
         @click="$router.push(`/dashboard/contracts/${ct.id}`)"
       >
         <!-- 复选框 -->
-        <div v-if="isAdminOrManager()" class="flex-shrink-0" @click.stop>
+        <div v-if="can('contract:transfer')" class="flex-shrink-0" @click.stop>
           <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500 focus:ring-brand-400" :checked="selectedIds.has(ct.id)" @change="toggleSelect(ct.id)" />
         </div>
 
@@ -363,7 +360,7 @@ onMounted(() => {
         <div class="flex items-center gap-1" @click.stop>
           <!-- 草稿：审批（管理员可审批任意状态） -->
           <UButton
-            v-if="ct.status === 'draft' || (ct.status !== 'terminated' && ct.status !== 'completed' && isAdmin())"
+            v-if="ct.status === 'draft' || (ct.status !== 'terminated' && ct.status !== 'completed' && can('contract:manage'))"
             icon="i-lucide-check-circle"
             color="primary"
             variant="ghost"
@@ -386,7 +383,7 @@ onMounted(() => {
 
           <!-- 编辑（草稿直接编辑，管理员可编辑任意状态） -->
           <UButton
-            v-if="isAdminOrManager()"
+            v-if="can('contract:transfer')"
             icon="i-lucide-arrow-left-right"
             variant="ghost"
             color="warning"
@@ -394,7 +391,7 @@ onMounted(() => {
             @click="openSingleTransfer(ct)"
           />
           <UButton
-            v-if="ct.status === 'draft' || isAdmin()"
+            v-if="ct.status === 'draft' || can('contract:manage')"
             icon="i-lucide-pen-line"
             variant="ghost"
             color="neutral"
@@ -404,7 +401,7 @@ onMounted(() => {
 
           <!-- 删除（草稿直接删，管理员可删任意状态） -->
           <UButton
-            v-if="ct.status === 'draft' || isAdmin()"
+            v-if="ct.status === 'draft' || can('contract:manage')"
             icon="i-lucide-trash-2"
             variant="ghost"
             color="error"

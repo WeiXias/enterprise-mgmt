@@ -4,11 +4,13 @@ import { opportunities } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { logOperation } from '#server-utils/log'
+import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({ lostReason: z.string().min(1, '输单原因还没填呢') })
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
+  await requirePermission(event, 'opportunity:delete')
   if (!user?.userId) throw createError({ statusCode: 401, statusMessage: '请先登录' })
   const { id } = getRouterParams(event)
   const body = await readBody(event)
