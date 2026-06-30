@@ -270,12 +270,15 @@ async function loadMenuItems() {
       { key: 'customers', label: '客户', sort: 5 },
       { key: 'opportunities', label: '商机', sort: 6 },
       { key: 'products', label: '产品', sort: 7 },
-      { key: 'contracts', label: '合同', sort: 8 },
-      { key: 'projects', label: '项目', sort: 9 },
-      { key: 'finance', label: '财务', sort: 10 },
-      { key: 'inventory', label: '进销存', sort: 11 },
-      { key: 'purchases', label: '采购', sort: 12 },
-      { key: 'suppliers', label: '供应商', sort: 13 },
+      { key: 'contract_center', label: '合同中心', sort: 8 },
+      { key: 'contracts', label: '合同列表', sort: 9 },
+      { key: 'contract_ledger', label: '合同台账', sort: 10 },
+      { key: 'contract_templates', label: '模板管理', sort: 11 },
+      { key: 'projects', label: '项目', sort: 12 },
+      { key: 'finance', label: '财务', sort: 13 },
+      { key: 'inventory', label: '进销存', sort: 14 },
+      { key: 'purchases', label: '采购', sort: 15 },
+      { key: 'suppliers', label: '供应商', sort: 16 },
     ]
     menuItems.value = defaultMenus
   } catch { }

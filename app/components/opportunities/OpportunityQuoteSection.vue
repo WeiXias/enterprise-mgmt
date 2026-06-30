@@ -296,6 +296,7 @@ defineExpose({ openQuoteModal })
                   class="w-full pl-6 pr-5 py-1 text-xs rounded border border-line bg-surface-card cursor-pointer"
                   @click="showSelectModal = true; editingQuoteIdx = i"
                 />
+              </div>
               <span class="w-16 text-center text-content-muted">{{ item.listPrice != null ? '¥' + item.listPrice.toLocaleString() : '-' }}</span>
               <input v-model.number="item.discount" type="number" min="0" max="100" class="w-12 px-1 py-1.5 text-center rounded border border-line text-xs" />
               <span class="w-16 text-right text-brand-700 font-medium">{{ '¥' + ((item.listPrice || 0) * ((item.discount ?? 100) / 100)).toLocaleString() }}</span>

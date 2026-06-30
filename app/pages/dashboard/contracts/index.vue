@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '合同', middleware: ['auth'], watermark: true })
+definePageMeta({ layout: 'dashboard', title: '合同列表', middleware: ['auth'], watermark: true })
 
 // 列表数据（useTable）
 const { loading, list: contractsList, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchContracts } = useTable<any>({ apiUrl: '/api/contracts' })

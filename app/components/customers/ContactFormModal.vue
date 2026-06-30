@@ -32,7 +32,7 @@ async function handleAdd() {
 </script>
 
 <template>
-  <FormModal v-if="modelValue" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" title="添加联系人" size="compact" :loading="loading" @confirm="handleAdd" @cancel="emit('update:modelValue', false)">
+  <FormModal v-if="modelValue" :open="modelValue" @update:open="emit('update:modelValue', $event)" title="添加联系人" size="compact" :loading="loading" @confirm="handleAdd" @cancel="emit('update:modelValue', false)">
     <form class="space-y-3" @submit.prevent="handleAdd">
       <div class="grid grid-cols-2 gap-3">
         <div>

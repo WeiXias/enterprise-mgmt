@@ -260,7 +260,9 @@ onMounted(() => {
     <!-- 顶部面包屑 + 操作 -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2 text-sm">
-        <NuxtLink to="/dashboard/contracts" class="text-content-muted hover:text-brand-600 transition-colors">合同</NuxtLink>
+        <NuxtLink to="/dashboard/contracts/center" class="text-content-muted hover:text-brand-600 transition-colors">合同中心</NuxtLink>
+        <span class="text-content-muted">/</span>
+        <NuxtLink to="/dashboard/contracts" class="text-content-muted hover:text-brand-600 transition-colors">合同列表</NuxtLink>
         <span class="text-content-muted">/</span>
         <span class="text-content-primary">{{ contract.name }}</span>
       </div>
@@ -334,12 +336,53 @@ onMounted(() => {
       <p v-if="contract.remark" class="text-sm text-content-muted mt-3 pt-3 border-t border-line-light">{{ contract.remark }}</p>
     </div>
 
+    <!-- 子模块快捷入口 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <NuxtLink :to="`/dashboard/contracts/${contractId}/products`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
+        <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
+          <UIcon name="i-lucide-tag" class="w-4 h-4 text-brand-600" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm text-content-primary">{{ contract.products?.length || 0 }}</div>
+          <div class="text-xs text-content-muted">产品明细</div>
+        </div>
+        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+      </NuxtLink>
+      <NuxtLink :to="`/dashboard/contracts/${contractId}/plans`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
+        <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+          <UIcon name="i-lucide-calendar-check" class="w-4 h-4 text-amber-600" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm text-content-primary">{{ contract.paymentPlans?.length || 0 }}</div>
+          <div class="text-xs text-content-muted">收款计划</div>
+        </div>
+        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+      </NuxtLink>
+      <NuxtLink :to="`/dashboard/contracts/${contractId}/payments`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
+        <div class="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
+          <UIcon name="i-lucide-dollar-sign" class="w-4 h-4 text-teal-600" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm text-content-primary">{{ contract.payments?.length || 0 }}</div>
+          <div class="text-xs text-content-muted">收款记录</div>
+        </div>
+        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+      </NuxtLink>
+      <NuxtLink :to="`/dashboard/contracts/${contractId}/invoices`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
+        <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+          <UIcon name="i-lucide-receipt" class="w-4 h-4 text-violet-600" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm text-content-primary">{{ contract.invoices?.length || 0 }}</div>
+          <div class="text-xs text-content-muted">发票</div>
+        </div>
+        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+      </NuxtLink>
+    </div>
+
     <!-- Tab 区域 -->
     <UTabs :items="[
       { label: '合同正文', slot: 'content' },
-      { label: '产品明细', slot: 'products' },
-      { label: '收款计划', slot: 'plans' },
-      { label: '收款记录', slot: 'payments' },
       { label: '附件', slot: 'attachments' },
       { label: '合同审阅', slot: 'ai-review' },
     ]" v-model="activeTab" :unmount-on-hide="false">
@@ -358,18 +401,6 @@ onMounted(() => {
           </div>
           <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="renderContractContent(contract.content)" />
         </div>
-      </template>
-
-      <template #products>
-        <ContractProductEdit :contract-id="contractId" @save="fetchContract()" />
-      </template>
-
-      <template #plans>
-        <ContractPaymentPlans :contract-id="contractId" @save="fetchContract()" />
-      </template>
-
-      <template #payments>
-        <ContractPayments :contract-id="contractId" @save="fetchContract()" />
       </template>
 
       <template #attachments>

@@ -96,6 +96,7 @@ defineExpose({ open })
                 class="w-full pl-6 pr-5 py-1 text-xs rounded border border-line bg-surface-card cursor-pointer"
                 @click="showSelectModal = true; editingRowIndex = i"
               />
+            </div>
             <input v-model.number="sp.quantity" type="number" min="1" class="w-14 px-1 py-1 text-center rounded border border-line text-xs" />
             <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeRow(i)" />
           </div>

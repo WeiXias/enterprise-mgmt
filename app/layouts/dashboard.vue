@@ -117,9 +117,16 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
       items: [
         { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 0 },
         { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 1 },
-        {
-          label: '合同', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 3,
-        },
+      ],
+    },
+    {
+      key: 'contracts',
+      label: '合同中心',
+      items: [
+        { label: '合同中心', icon: 'i-lucide-layout-dashboard', to: '/dashboard/contracts/center', sort: configSort('contract_center') !== 99 ? configSort('contract_center') : 0 },
+        { label: '合同列表', icon: 'i-lucide-file-text', to: '/dashboard/contracts', sort: configSort('contracts') !== 99 ? configSort('contracts') : 1 },
+        { label: '合同台账', icon: 'i-lucide-table', to: '/dashboard/contracts/ledger', sort: configSort('contract_ledger') !== 99 ? configSort('contract_ledger') : 2 },
+        { label: '模板管理', icon: 'i-lucide-layers', to: '/dashboard/contracts/templates', sort: configSort('contract_templates') !== 99 ? configSort('contract_templates') : 3 },
       ],
     },
     {

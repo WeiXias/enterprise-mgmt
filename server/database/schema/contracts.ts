@@ -92,3 +92,17 @@ export const contractContentVersions = sqliteTable('contract_content_versions', 
   createdBy: text('created_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
 })
+
+export const contractTemplates = sqliteTable('contract_templates', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  category: text('category').notNull(),
+  content: text('content'),
+  placeholders: text('placeholders'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdBy: text('created_by').notNull().references(() => users.id),
+  createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
+})

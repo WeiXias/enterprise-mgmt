@@ -42,7 +42,7 @@ async function handleSave() {
 </script>
 
 <template>
-  <FormModal v-if="modelValue" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" title="管理标签" size="compact" :loading="loading" @confirm="handleSave" @cancel="emit('update:modelValue', false)">
+  <FormModal v-if="modelValue" :open="modelValue" @update:open="emit('update:modelValue', $event)" title="管理标签" size="compact" :loading="loading" @confirm="handleSave" @cancel="emit('update:modelValue', false)">
     <div class="space-y-2 max-h-64 overflow-y-auto">
       <label v-for="tag in allTags" :key="tag.id" class="flex items-center gap-3 p-2 rounded-md hover:bg-surface-hover cursor-pointer">
         <input type="checkbox" :checked="selectedTagIds.includes(tag.id)" class="rounded border-line text-brand-500 focus:ring-brand-400" @change="selectedTagIds.includes(tag.id) ? selectedTagIds = selectedTagIds.filter((id) => id !== tag.id) : selectedTagIds.push(tag.id)" />
