@@ -207,9 +207,9 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
 
         <!-- 应付概览 -->
         <div v-if="payable" class="em-card !py-2 flex items-center gap-6 text-sm">
-          <div><span class="text-content-muted text-xs">应付总额</span><p class="font-medium text-content-primary">¥{{ formatAmount(payable.totalAmount) }}</p></div>
-          <div><span class="text-content-muted text-xs">已付</span><p class="font-medium text-teal-600">¥{{ formatAmount(payable.paidAmount) }}</p></div>
-          <div><span class="text-content-muted text-xs">已开票</span><p class="font-medium text-brand-600">¥{{ formatAmount(payable.invoiceAmount) }}</p></div>
+          <div><span class="text-content-muted text-xs">应付总额</span><p class="font-medium text-content-primary">{{ formatAmount(payable.totalAmount) }}</p></div>
+          <div><span class="text-content-muted text-xs">已付</span><p class="font-medium text-teal-600">{{ formatAmount(payable.paidAmount) }}</p></div>
+          <div><span class="text-content-muted text-xs">已开票</span><p class="font-medium text-brand-600">{{ formatAmount(payable.invoiceAmount) }}</p></div>
           <div><span class="text-content-muted text-xs">状态</span><p :class="payable.status === 'paid' ? 'text-teal-600' : payable.status === 'invoiced' ? 'text-brand-600' : 'text-content-secondary'">{{ ({ pending: '待开票', invoiced: '已开票', partially_paid: '部分付款', paid: '已付清' } as Record<string, string>)[payable.status] || payable.status }}</p></div>
         </div>
 
@@ -225,9 +225,9 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
             <tbody>
               <tr v-for="inv in invoices" :key="inv.id" class="border-b border-line-light">
                 <td class="py-2 text-content-secondary">{{ inv.invoiceNo }}</td>
-                <td class="py-2 text-right text-content-secondary">¥{{ formatAmount(inv.amount) }}</td>
+                <td class="py-2 text-right text-content-secondary">{{ formatAmount(inv.amount) }}</td>
                 <td class="py-2 text-right text-content-muted">{{ (inv.taxRate * 100).toFixed(0) }}%</td>
-                <td class="py-2 text-right text-content-muted">¥{{ formatAmount(inv.taxAmount) }}</td>
+                <td class="py-2 text-right text-content-muted">{{ formatAmount(inv.taxAmount) }}</td>
                 <td class="py-2"><span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'confirmed' ? 'bg-teal-50 text-teal-700' : 'bg-brand-50 text-brand-700']">{{ ({ submitted: '已提交', confirmed: '已确认', rejected: '已退回' })[inv.status] }}</span></td>
                 <td class="py-2 text-xs text-content-muted max-w-[120px] truncate">{{ inv.remark || '-' }}</td>
               </tr>
@@ -246,7 +246,7 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
             <thead><tr class="border-b border-line-light text-left text-xs text-content-muted"><th class="py-2 text-right">金额</th><th class="py-2">付款日期</th><th class="py-2">方式</th><th class="py-2">备注</th></tr></thead>
             <tbody>
               <tr v-for="pm in payments" :key="pm.id" class="border-b border-line-light">
-                <td class="py-2 text-right text-content-secondary">¥{{ formatAmount(pm.amount) }}</td>
+                <td class="py-2 text-right text-content-secondary">{{ formatAmount(pm.amount) }}</td>
                 <td class="py-2 text-content-secondary">{{ formatDate(pm.paymentDate) }}</td>
                 <td class="py-2 text-xs text-content-muted">{{ ({ bank_transfer: '银行转账', check: '支票', cash: '现金', alipay: '支付宝', wechat_pay: '微信', other: '其他' })[pm.paymentMethod] || pm.paymentMethod }}</td>
                 <td class="py-2 text-xs text-content-muted max-w-[150px] truncate">{{ pm.remark || '-' }}</td>
