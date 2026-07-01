@@ -15,6 +15,7 @@ const createSchema = z.object({
   issuedAt: z.string().optional(),
   dueDate: z.string().optional(),
   remark: z.string().optional(),
+  filePath: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -26,7 +27,7 @@ export default defineEventHandler(async (event) => {
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
-  const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark } = parsed.data
+  const { invoiceNo, type, contractId, customerId, amount, taxRate, issuedAt, dueDate, remark, filePath } = parsed.data
   if (!invoiceNo || !amount) throw createError({ statusCode: 422, statusMessage: '发票号和金额不能为空' })
 
   // 税额 = 价税合计 - 不含税金额 = amount - amount/(1 + taxRate/100)
@@ -42,6 +43,7 @@ export default defineEventHandler(async (event) => {
     taxRate: taxRate || 0,
     taxAmount,
     issuedAt, dueDate, remark,
+    filePath,
     createdBy: user.userId,
   }).returning()
 

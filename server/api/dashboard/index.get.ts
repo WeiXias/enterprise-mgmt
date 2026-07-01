@@ -101,9 +101,10 @@ export default defineEventHandler(async (event) => {
 
   const funnelTotal = funnelRows.reduce((sum: number, r: any) => sum + Number(r.count), 0)
 
-  const [totalInvoicedAmount, contractTotalAmount] = await Promise.all([
+  const [totalInvoicedAmount, contractTotalAmount, planPendingAmount] = await Promise.all([
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(invoices).where(eq(invoices.status, 'issued')),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(isNull(contracts.deletedAt)),
+    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(paymentPlans).where(and(eq(paymentPlans.status, 'pending'), isNull(paymentPlans.deletedAt))),
   ])
 
   // 合同数据
@@ -178,7 +179,8 @@ export default defineEventHandler(async (event) => {
         contractTotal: Number(contractTotalAmount[0]?.total || 0),
         invoicedTotal: Number(totalInvoicedAmount[0]?.total || 0),
         receivedTotal: totalReceived,
-        unpaidTotal: totalInvoiced > totalReceived ? totalInvoiced - totalReceived : 0,
+        planPendingTotal: Number(planPendingAmount[0]?.total || 0),
+        invoicedUnpaidTotal: totalInvoiced > totalReceived ? totalInvoiced - totalReceived : 0,
       },
 
       financeStats: {

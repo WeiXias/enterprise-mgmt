@@ -14,6 +14,7 @@ const schema = z.object({
   taxAmount: z.number().min(0).optional().default(0),
   totalAmount: z.number().min(0).optional().default(0),
   remark: z.string().optional(),
+  filePath: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -49,6 +50,7 @@ export default defineEventHandler(async (event) => {
     totalAmount,
     status: 'submitted',
     remark: parsed.data.remark || null,
+    filePath: parsed.data.filePath || null,
     createdBy: user.userId,
     createdAt: now,
   })

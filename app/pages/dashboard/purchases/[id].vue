@@ -62,7 +62,7 @@ async function fetchPayments() {
 
 // 登记发票弹窗
 const showInvoiceModal = ref(false)
-const invoiceForm = ref({ invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '' })
+const invoiceForm = ref({ invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' })
 const invoiceSaving = ref(false)
 async function handleInvoiceSave() {
   if (!invoiceForm.value.invoiceNo || !invoiceForm.value.amount) {
@@ -75,7 +75,7 @@ async function handleInvoiceSave() {
     if (res?.code === 0) {
       toast.add({ title: '发票已登记', color: 'success' })
       showInvoiceModal.value = false
-      invoiceForm.value = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '' }
+      invoiceForm.value = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' }
       fetchPayable(); fetchInvoices()
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '登记失败', color: 'error' }) }
@@ -217,7 +217,7 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
         <div v-show="activeTab === 'invoices'" class="em-card">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-medium text-content-secondary">供应商发票</h3>
-            <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="showInvoiceModal = true; invoiceForm = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '' }">登记发票</UButton>
+            <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="showInvoiceModal = true; invoiceForm = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' }">登记发票</UButton>
           </div>
           <div v-if="invoices.length === 0" class="text-xs text-content-muted py-4 text-center">还没有发票</div>
           <table v-else class="w-full text-sm">
@@ -316,6 +316,14 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
           <div><label class="block text-sm text-content-secondary mb-1">价税合计（留空自动算）</label><input v-model.number="invoiceForm.totalAmount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="invoiceForm.remark" type="text" class="w-full input-base focus-ring" /></div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">发票文件（PDF / 图片）</label>
+          <FileUpload
+            upload-url="/api/purchase-orders/invoices/upload"
+            accept=".pdf,.png,.jpg,.jpeg"
+            @uploaded="(f: any) => { invoiceForm.filePath = f.filePath || f.path || '' }"
+          />
+        </div>
       </div>
     </FormModal>
 

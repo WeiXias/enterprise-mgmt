@@ -90,7 +90,7 @@ onMounted(() => loadShortcuts())
     </div>
 
     <!-- 总额概览 -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
       <div class="em-card flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-indigo-50 flex items-center justify-center"><UIcon name="i-lucide-flag" class="w-5 h-5 text-indigo-500" /></div>
         <div><p class="text-lg font-medium text-content-primary">{{ formatMoney(data.summaryAmounts?.oppTotal) }}</p><p class="text-xs text-content-secondary">商机总额</p></div>
@@ -109,7 +109,11 @@ onMounted(() => loadShortcuts())
       </div>
       <div class="em-card flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-amber-50 flex items-center justify-center"><UIcon name="i-lucide-clock" class="w-5 h-5 text-amber-500" /></div>
-        <div><p class="text-lg font-medium text-amber-600">{{ formatMoney(data.summaryAmounts?.unpaidTotal) }}</p><p class="text-xs text-content-secondary">待回款总额</p></div>
+        <div><p class="text-lg font-medium text-amber-600">{{ formatMoney(data.summaryAmounts?.planPendingTotal) }}</p><p class="text-xs text-content-secondary">收款计划待回款</p></div>
+      </div>
+      <div class="em-card flex items-center gap-3">
+        <div class="w-10 h-10 rounded-md bg-rose-50 flex items-center justify-center"><UIcon name="i-lucide-file-warning" class="w-5 h-5 text-rose-500" /></div>
+        <div><p class="text-lg font-medium text-rose-600">{{ formatMoney(data.summaryAmounts?.invoicedUnpaidTotal) }}</p><p class="text-xs text-content-secondary">已开票未回款</p></div>
       </div>
     </div>
 

@@ -16,7 +16,7 @@ const invoiceNoFilter = ref('')
 const showModal = ref(false)
 const saving = ref(false)
 const editTarget = ref<any>(null)
-const form = ref({ invoiceNo: '', type: 'vat_normal', contractId: '', customerId: '', amount: 0, taxRate: 0, issuedAt: '', dueDate: '', remark: '' })
+const form = ref({ invoiceNo: '', type: 'vat_normal', contractId: '', customerId: '', amount: 0, taxRate: 0, issuedAt: '', dueDate: '', remark: '', filePath: '' })
 
 // 批量作废
 const selectedForVoid = ref<Set<string>>(new Set())
@@ -52,7 +52,7 @@ async function fetchOptions() {
 
 function openCreate() {
   editTarget.value = null
-  form.value = { invoiceNo: `FP-${Date.now()}`, type: 'vat_normal', contractId: '', customerId: '', amount: 0, taxRate: 0, issuedAt: '', dueDate: '', remark: '' }
+  form.value = { invoiceNo: `FP-${Date.now()}`, type: 'vat_normal', contractId: '', customerId: '', amount: 0, taxRate: 0, issuedAt: '', dueDate: '', remark: '', filePath: '' }
   showModal.value = true
 }
 
@@ -60,7 +60,7 @@ function openEdit(inv: any) {
   editTarget.value = inv
   form.value = {
     invoiceNo: inv.invoiceNo, type: inv.type, contractId: inv.contractId || '', customerId: inv.customerId || '',
-    amount: inv.amount, taxRate: inv.taxRate, issuedAt: inv.issuedAt?.slice(0, 10) || '', dueDate: inv.dueDate?.slice(0, 10) || '', remark: inv.remark || '',
+    amount: inv.amount, taxRate: inv.taxRate, issuedAt: inv.issuedAt?.slice(0, 10) || '', dueDate: inv.dueDate?.slice(0, 10) || '', remark: inv.remark || '', filePath: inv.filePath || '',
   }
   showModal.value = true
 }
@@ -164,9 +164,9 @@ onMounted(() => { fetchItems(); fetchOptions() })
     <div v-else class="space-y-2">
       <div v-for="inv in items" :key="inv.id" class="em-card flex items-center gap-4">
         <input v-if="inv.status !== 'voided'" type="checkbox" :checked="selectedForVoid.has(inv.id)" class="w-3.5 h-3.5 rounded border-line text-brand-500" @change="toggleVoidSelect(inv.id)" />
-        <div class="flex-1">
+        <NuxtLink :to="`/dashboard/finance/invoices/${inv.id}`" class="flex-1 hover:bg-surface-hover/50 rounded-md transition-colors -m-1 p-1">
           <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-content-primary">{{ inv.invoiceNo }}</span>
+            <span class="text-sm font-medium text-brand-600 hover:underline">{{ inv.invoiceNo }}</span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'issued' ? 'bg-teal-50 text-teal-700' : inv.status === 'voided' ? 'bg-danger-50 text-danger-600' : 'bg-brand-50 text-brand-700']">
               {{ getLabel('InvoiceStatus', inv.status) || inv.status }}
             </span>
@@ -179,7 +179,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
             <span v-if="inv.taxAmount" class="text-brand-600">税额 {{ formatMoney(inv.taxAmount) }}</span>
             <span v-if="inv.issuedAt">{{ inv.issuedAt }}</span>
           </div>
-        </div>
+        </NuxtLink>
         <div class="flex gap-1">
           <UButton v-if="inv.status === 'pending'" icon="i-lucide-check-circle" variant="ghost" color="primary" size="xs" @click="handleIssue(inv)" title="推进到已开票" />
           <UButton v-if="inv.status === 'pending'" icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(inv)" />
@@ -245,7 +245,7 @@ onMounted(() => { fetchItems(); fetchOptions() })
         <div>
           <label class="block text-sm text-content-secondary mb-1">电子发票（PDF / 图片）</label>
           <FileUpload
-            :upload-url="`/api/attachments?source=invoice${editTarget ? '&targetId=' + editTarget.id : ''}`"
+            upload-url="/api/invoices/upload"
             accept=".pdf,.png,.jpg,.jpeg"
             @uploaded="(f: any) => { form.filePath = f.filePath || f.path || '' }"
           />
