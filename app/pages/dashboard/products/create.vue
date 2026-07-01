@@ -7,7 +7,7 @@ const { $api } = useNuxtApp()
 const saving = ref(false)
 const categories = ref<any[]>([])
 
-const form = ref({ name: '', code: '', categoryId: '', standardPrice: 0, costPrice: 0, description: '' })
+const form = ref({ name: '', code: '', categoryId: '', model: '', manufacturer: '', unit: '', standardPrice: 0, costPrice: 0, description: '' })
 
 // 图片
 const images = ref<{ id?: string; fileName: string; filePath: string; fileSize: number; _file?: File }[]>([])
@@ -108,6 +108,9 @@ onMounted(fetchCategories)
           <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" placeholder="产品名称" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">编码 <span class="text-xs text-content-muted">(留空时帮你填好)</span></label><input v-model="form.code" type="text" placeholder="留空时帮你填好" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="无分类" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">型号</label><EnumSelect dict="product_model" v-model="form.model" placeholder="选择型号" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">生产厂家</label><EnumSelect dict="product_manufacturer" v-model="form.manufacturer" placeholder="选择厂家" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">单位</label><EnumSelect dict="product_unit" v-model="form.unit" placeholder="选择单位" /></div>
         </div>
       </div>
 

@@ -109,7 +109,32 @@ export default defineNitroPlugin(async () => {
     console.log(`[dict-seed] 报销类型初始化 (${reimbSeeds.length} 条)`)
   }
 
-  // 6. 产品规格模板
+  // 6. 产品单位/厂家（业务字典扩展）
+  const unitSeeds = ['台', '件', '套', '箱', '个', '米', '千克', '升', '卷', '张']
+  const existingUnit = await db.select().from(dictEntries).where(eq(dictEntries.dict_type, 'product_unit')).limit(1)
+  if (existingUnit.length === 0) {
+    for (let i = 0; i < unitSeeds.length; i++) {
+      await db.insert(dictEntries).values({
+        id: generateId(), dict_type: 'product_unit', value: unitSeeds[i], label: unitSeeds[i],
+        sort: String(i), is_active: '1', createdAt: now, updatedAt: now,
+      }).catch(() => {})
+    }
+    console.log(`[dict-seed] 产品单位初始化 (${unitSeeds.length} 条)`)
+  }
+
+  const mfrSeeds = ['华为', '联想', '戴尔', '惠普', '西门子', '施耐德', 'ABB', '海康威视', '大华', '小米', '三星', '索尼']
+  const existingMfr = await db.select().from(dictEntries).where(eq(dictEntries.dict_type, 'product_manufacturer')).limit(1)
+  if (existingMfr.length === 0) {
+    for (let i = 0; i < mfrSeeds.length; i++) {
+      await db.insert(dictEntries).values({
+        id: generateId(), dict_type: 'product_manufacturer', value: mfrSeeds[i], label: mfrSeeds[i],
+        sort: String(i), is_active: '1', createdAt: now, updatedAt: now,
+      }).catch(() => {})
+    }
+    console.log(`[dict-seed] 生产厂家初始化 (${mfrSeeds.length} 条)`)
+  }
+
+  // 7. 产品规格模板
   const specSeeds: { dict_type: string; items: string[] }[] = [
     { dict_type: 'spec_template_hardware', items: ['CPU', '内存', '硬盘', '显卡', '主板', '电源', '机箱', '散热器'] },
     { dict_type: 'spec_template_software', items: ['版本号', '授权方式', '支持系统', '语言', '位数'] },

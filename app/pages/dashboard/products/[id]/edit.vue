@@ -10,12 +10,12 @@ const loading = ref(true)
 const saving = ref(false)
 const categories = ref<any[]>([])
 
-const form = ref<any>({ name: '', code: '', categoryId: '', standardPrice: 0, costPrice: 0, description: '' })
+const form = ref<any>({ name: '', code: '', categoryId: '', model: '', manufacturer: '', unit: '', standardPrice: 0, costPrice: 0, description: '' })
 
 async function fetchData() {
   try {
     const [prodRes, catRes] = await Promise.all([$api(`/api/products/${productId}`) as any, $api('/api/product-categories') as any])
-    if (prodRes?.code === 0) { const p = prodRes.data; form.value = { name: p.name, code: p.code, categoryId: p.categoryId || '', standardPrice: p.standardPrice || 0, costPrice: p.costPrice || 0, description: p.description || '' } }
+    if (prodRes?.code === 0) { const p = prodRes.data; form.value = { name: p.name, code: p.code, categoryId: p.categoryId || '', model: p.model || '', manufacturer: p.manufacturer || '', unit: p.unit || '', standardPrice: p.standardPrice || 0, costPrice: p.costPrice || 0, description: p.description || '' } }
     if (catRes?.code === 0) categories.value = catRes.data || []
   } catch { router.push('/dashboard/products') }
   finally { loading.value = false }
@@ -43,6 +43,9 @@ onMounted(fetchData)
         <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">编码</label><input v-model="form.code" type="text" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="无分类" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">型号</label><EnumSelect dict="product_model" v-model="form.model" placeholder="选择型号" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">生产厂家</label><EnumSelect dict="product_manufacturer" v-model="form.manufacturer" placeholder="选择厂家" /></div>
+        <div><label class="block text-sm text-content-secondary mb-1">单位</label><EnumSelect dict="product_unit" v-model="form.unit" placeholder="选择单位" /></div>
         <div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-content-secondary mb-1">标准售价</label><input v-model.number="form.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div><div><label class="block text-sm text-content-secondary mb-1">成本价</label><input v-model.number="form.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div></div>
         <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="form.description" rows="2" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
       </form>

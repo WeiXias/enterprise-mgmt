@@ -64,7 +64,7 @@ async function fetchCategories() {
 }
 
 function openEditModal() {
-  editForm.value = { name: product.value.name, code: product.value.code, categoryId: product.value.category?.id || product.value.categoryId || '', standardPrice: product.value.standardPrice || 0, costPrice: product.value.costPrice || 0, description: product.value.description || '', status: product.value.status }
+  editForm.value = { name: product.value.name, code: product.value.code, categoryId: product.value.category?.id || product.value.categoryId || '', model: product.value.model || '', manufacturer: product.value.manufacturer || '', unit: product.value.unit || '', standardPrice: product.value.standardPrice || 0, costPrice: product.value.costPrice || 0, description: product.value.description || '', status: product.value.status }
   fetchCategories()
   showEditModal.value = true
 }

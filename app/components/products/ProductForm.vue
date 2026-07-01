@@ -4,6 +4,9 @@ interface Props {
     name: string
     code?: string
     categoryId?: string
+    model?: string
+    manufacturer?: string
+    unit?: string
     standardPrice?: number
     costPrice?: number
     description?: string
@@ -37,11 +40,23 @@ const emit = defineEmits<{ 'update:modelValue': [value: any]; submit: [] }>()
           <label class="block text-sm text-content-secondary mb-1">产品编码</label>
           <input :value="modelValue.code" type="text" class="w-full input-base focus-ring" @input="$emit('update:modelValue', { ...modelValue, code: ($event.target as HTMLInputElement).value })" />
         </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">型号</label>
+          <EnumSelect dict="product_model" :model-value="modelValue.model" placeholder="选择型号" @update:model-value="$emit('update:modelValue', { ...modelValue, model: $event })" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">生产厂家</label>
+          <EnumSelect dict="product_manufacturer" :model-value="modelValue.manufacturer" placeholder="选择厂家" @update:model-value="$emit('update:modelValue', { ...modelValue, manufacturer: $event })" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">单位</label>
+          <EnumSelect dict="product_unit" :model-value="modelValue.unit" placeholder="选择单位" @update:model-value="$emit('update:modelValue', { ...modelValue, unit: $event })" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">产品分类</label>
+          <slot name="category-select" />
+        </div>
       </div>
-    </div>
-    <div>
-      <label class="block text-sm text-content-secondary mb-1">产品分类</label>
-      <slot name="category-select" />
     </div>
     <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
       <div class="flex items-center gap-1.5 mb-3">
