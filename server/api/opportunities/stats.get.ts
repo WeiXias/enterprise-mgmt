@@ -23,11 +23,22 @@ export default defineEventHandler(async (event) => {
   )).groupBy(opportunities.status)
 
   // 总览
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  const thirtyDaysLater = new Date(now.getTime() + 30 * 86400000).toISOString().slice(0, 10)
+  const today = now.toISOString().slice(0, 10)
+
   const total = await db.select({
     count: sql<number>`count(*)`,
     wonCount: sql<number>`sum(case when ${opportunities.status} = 'closed_won' then 1 else 0 end)`,
+    lostCount: sql<number>`sum(case when ${opportunities.status} = 'closed_lost' then 1 else 0 end)`,
+    inProgressCount: sql<number>`sum(case when ${opportunities.status} not in ('closed_won','closed_lost') then 1 else 0 end)`,
     totalAmount: sql<number>`sum(${opportunities.estimatedAmount})`,
     wonAmount: sql<number>`sum(case when ${opportunities.status} = 'closed_won' then ${opportunities.estimatedAmount} else 0 end)`,
+    lostAmount: sql<number>`sum(case when ${opportunities.status} = 'closed_lost' then ${opportunities.estimatedAmount} else 0 end)`,
+    inProgressAmount: sql<number>`sum(case when ${opportunities.status} not in ('closed_won','closed_lost') then ${opportunities.estimatedAmount} else 0 end)`,
+    newThisMonth: sql<number>`sum(case when ${opportunities.createdAt} >= ${monthStart} then 1 else 0 end)`,
+    expiringSoon: sql<number>`sum(case when ${opportunities.status} not in ('closed_won','closed_lost') and ${opportunities.estimatedCloseDate} is not null and ${opportunities.estimatedCloseDate} >= ${today} and ${opportunities.estimatedCloseDate} <= ${thirtyDaysLater} then 1 else 0 end)`,
   }).from(opportunities).where(and(
     isNull(opportunities.deletedAt),
     ownerWhere,
@@ -42,9 +53,15 @@ export default defineEventHandler(async (event) => {
     data: {
       total: totalCount,
       wonCount,
+      lostCount: Number(t?.lostCount || 0),
+      inProgressCount: Number(t?.inProgressCount || 0),
       winRate: totalCount > 0 ? Math.round(wonCount / totalCount * 100) : 0,
       totalAmount: Number(t?.totalAmount || 0),
       wonAmount: Number(t?.wonAmount || 0),
+      lostAmount: Number(t?.lostAmount || 0),
+      inProgressAmount: Number(t?.inProgressAmount || 0),
+      newThisMonth: Number(t?.newThisMonth || 0),
+      expiringSoon: Number(t?.expiringSoon || 0),
       byStatus: byStatus.map((r: any) => ({
         status: r.status,
         count: Number(r.count),

@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "dev",
-      "command": "cd enterprise-mgmt && pnpm dev",
+      "command": "cd /Users/xiawei/WorkBuddy/2026-06-09-12-05-42/enterprise-mgmt && pnpm dev",
       "port": 3000,
       "timeout": 30000
     }

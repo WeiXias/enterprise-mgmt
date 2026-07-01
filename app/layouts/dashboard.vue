@@ -117,7 +117,7 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
       label: '客户经营',
       items: [
         { label: '客户', icon: 'i-lucide-users', to: '/dashboard/customers', sort: configSort('customers') !== 99 ? configSort('customers') : 0 },
-        { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 1 },
+        { label: '商机', icon: 'i-lucide-flag', to: '/dashboard/opportunities', sort: configSort('opportunities') !== 99 ? configSort('opportunities') : 2 },
       ],
     },
     {
