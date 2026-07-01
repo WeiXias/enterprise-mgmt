@@ -2,6 +2,7 @@
 definePageMeta({ layout: 'dashboard', title: '发票管理', middleware: ['auth'], watermark: true })
 
 const toast = useToast()
+const route = useRoute()
 const { $api } = useNuxtApp()
 
 const items = ref<any[]>([])
@@ -137,7 +138,16 @@ async function handleIssue(inv: any) {
   } catch (err: any) { toast.add({ title: err?.data?.message || '操作失败', color: 'error' }) }
 }
 
-onMounted(() => { fetchItems(); fetchOptions() })
+onMounted(async () => {
+  await fetchItems()
+  fetchOptions()
+  // 从明细页跳过来编辑时，自动打开编辑弹窗
+  const editId = route.query.edit as string
+  if (editId) {
+    const inv = items.value.find((i: any) => i.id === editId)
+    if (inv) openEdit(inv)
+  }
+})
 </script>
 
 <template>
