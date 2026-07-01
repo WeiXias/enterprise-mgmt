@@ -14,15 +14,17 @@ export default defineEventHandler(async (event) => {
   const monthStart = today.slice(0, 8) + '01'
 
   // Stats
-  const [incomeResult, expenseResult, overdueResult, pendingReimbursementResult] = await Promise.all([
+  const [incomePayments, incomeManual, expensePayouts, expenseManual, overdueResult, pendingReimbursementResult] = await Promise.all([
     db.select({ total: sql<number>`coalesce(sum(${payments.amount}), 0)` }).from(payments),
+    db.select({ total: sql<number>`coalesce(sum(${financeTransactions.amount}), 0)` }).from(financeTransactions).where(and(isNull(financeTransactions.deletedAt), eq(financeTransactions.type, 'income'))),
     db.select({ total: sql<number>`coalesce(sum(${commissionPayouts.totalAmount}), 0)` }).from(commissionPayouts).where(eq(commissionPayouts.status, 'confirmed')),
+    db.select({ total: sql<number>`coalesce(sum(${financeTransactions.amount}), 0)` }).from(financeTransactions).where(and(isNull(financeTransactions.deletedAt), eq(financeTransactions.type, 'expense'))),
     db.select({ overdue: sql<number>`count(*)` }).from(paymentPlans).where(and(eq(paymentPlans.status, 'pending'), sql`${paymentPlans.planDate} < ${today}`)),
     db.select({ count: sql<number>`count(*)` }).from(reimbursements).where(eq(reimbursements.status, 'pending')),
   ])
 
-  const totalIncome = Number(incomeResult[0]?.total || 0)
-  const totalExpenseRaw = Number(expenseResult[0]?.total || 0)
+  const totalIncome = Number(incomePayments[0]?.total || 0) + Number(incomeManual[0]?.total || 0)
+  const totalExpenseRaw = Number(expensePayouts[0]?.total || 0) + Number(expenseManual[0]?.total || 0)
 
   // Recent transactions: payments + commission payouts + manual finance_transactions
   const [recentPayments, recentPayouts, recentManual] = await Promise.all([
