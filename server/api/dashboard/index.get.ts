@@ -101,10 +101,12 @@ export default defineEventHandler(async (event) => {
 
   const funnelTotal = funnelRows.reduce((sum: number, r: any) => sum + Number(r.count), 0)
 
-  const [totalInvoicedAmount, contractTotalAmount, planPendingAmount] = await Promise.all([
+  const [totalInvoicedAmount, contractTotalAmount, planPendingAmount, planPaidAmount, oppWonCount] = await Promise.all([
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(invoices).where(eq(invoices.status, 'issued')),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(isNull(contracts.deletedAt)),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(paymentPlans).where(and(eq(paymentPlans.status, 'pending'), isNull(paymentPlans.deletedAt))),
+    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(paymentPlans).where(and(eq(paymentPlans.status, 'paid'), isNull(paymentPlans.deletedAt))),
+    db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), eq(opportunities.status, 'closed_won'), oppOwnerWhere)),
   ])
 
   // 合同数据
@@ -180,7 +182,9 @@ export default defineEventHandler(async (event) => {
         invoicedTotal: Number(totalInvoicedAmount[0]?.total || 0),
         receivedTotal: totalReceived,
         planPendingTotal: Number(planPendingAmount[0]?.total || 0),
+        planPaidTotal: Number(planPaidAmount[0]?.total || 0),
         invoicedUnpaidTotal: totalInvoiced > totalReceived ? totalInvoiced - totalReceived : 0,
+        oppWonCount: Number(oppWonCount[0]?.count || 0),
       },
 
       financeStats: {
