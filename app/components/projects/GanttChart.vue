@@ -1,7 +1,5 @@
 <script setup lang="ts">
-/**
- * 甘特图组件 — 项目任务时间线 + 里程碑标记 + 依赖连线
- */
+import { computed } from 'vue'
 
 interface GanttTask {
   id: string; title: string; assignee?: string | null; assigneeName?: string | null
@@ -38,13 +36,24 @@ function formatDate(v: string | null | undefined) {
   return v.slice(5, 10)
 }
 
-function computeRange(tasks: GanttTask[]) {
-  let minDate = ''
-  let maxDate = ''
+const rangeData = computed(() => {
+  const tasks = props.tasks
+  const milestones = props.milestones || []
 
-  tasks.forEach(t => {
-    if (t.startDate && (!minDate || t.startDate < minDate)) minDate = t.startDate
-    if (t.endDate && (!maxDate || t.endDate > maxDate)) maxDate = t.endDate
+  // 优先用项目日期，次用任务日期，最后用默认值
+  let minDate = props.projectStart || ''
+  let maxDate = props.projectEnd || ''
+
+  if (!minDate || !maxDate) {
+    tasks.forEach(t => {
+      if (t.startDate && (!minDate || t.startDate < minDate)) minDate = t.startDate
+      if (t.endDate && (!maxDate || t.endDate > maxDate)) maxDate = t.endDate
+    })
+  }
+
+  milestones.forEach(m => {
+    if (!minDate || m.targetDate < minDate) minDate = m.targetDate
+    if (!maxDate || m.targetDate > maxDate) maxDate = m.targetDate
   })
 
   if (!minDate || !maxDate) {
@@ -52,10 +61,9 @@ function computeRange(tasks: GanttTask[]) {
     maxDate = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10)
   }
 
-  // 确保 range > 0
   const min = new Date(minDate).getTime()
   const max = new Date(maxDate).getTime()
-  const range = Math.max(max - min, 864e5) // at least 1 day
+  const range = Math.max(max - min, 864e5)
 
   function taskPosition(task: GanttTask): { left: number; width: number } | null {
     if (!task.startDate || !task.endDate) return null
@@ -72,8 +80,8 @@ function computeRange(tasks: GanttTask[]) {
     return ((new Date(m.targetDate).getTime() - min) / range) * 100
   }
 
-  return { taskPosition, milestonePosition, range, min }
-}
+  return { taskPosition, milestonePosition }
+})
 </script>
 
 <template>
@@ -95,9 +103,9 @@ function computeRange(tasks: GanttTask[]) {
             <div class="relative h-7 bg-surface-hover rounded-full overflow-visible mb-1 flex items-center">
               <template v-for="m in milestones" :key="m.id">
                 <div
-                  v-if="computeRange(tasks).milestonePosition(m) !== null"
+                  v-if="rangeData.milestonePosition(m) !== null"
                   class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center"
-                  :style="{ left: computeRange(tasks).milestonePosition(m)! + '%' }"
+                  :style="{ left: rangeData.milestonePosition(m)! + '%' }"
                 >
                   <div :class="['w-3 h-3 rotate-45 rounded-sm flex-shrink-0', m.completedAt ? 'bg-teal-400' : 'bg-brand-400']" />
                   <span class="text-[9px] mt-1 whitespace-nowrap" :class="m.completedAt ? 'text-teal-600' : 'text-brand-600'">{{ m.name }}</span>
@@ -121,12 +129,12 @@ function computeRange(tasks: GanttTask[]) {
 
             <!-- 甘特条 -->
             <div class="flex-1 h-7 bg-surface-hover rounded-full overflow-hidden relative">
-              <template v-if="computeRange(tasks).taskPosition(task)">
+              <template v-if="rangeData.taskPosition(task)">
                 <div
                   :class="[getColor(task.status), 'h-full rounded-full flex items-center px-2']"
                   :style="{
-                    marginLeft: computeRange(tasks).taskPosition(task)!.left + '%',
-                    width: computeRange(tasks).taskPosition(task)!.width + '%'
+                    marginLeft: rangeData.taskPosition(task)!.left + '%',
+                    width: rangeData.taskPosition(task)!.width + '%'
                   }"
                 >
                   <div

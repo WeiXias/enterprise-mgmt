@@ -19,9 +19,9 @@ export default defineEventHandler(async (event) => {
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
   // Check if already a member
-  const existing = await db.select({ id: projectMembers.id }).from(projectMembers)
+  const existing = await db.select({ userId: projectMembers.userId }).from(projectMembers)
     .where(eq(projectMembers.projectId, projectId))
-  const already = existing.find((m: any) => m.id === parsed.data.userId)
+  const already = existing.find((m: any) => m.userId === parsed.data.userId)
   if (already) throw createError({ statusCode: 409, statusMessage: '已经是项目成员了' })
 
   await db.insert(projectMembers).values({

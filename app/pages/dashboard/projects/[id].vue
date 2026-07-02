@@ -74,7 +74,7 @@ async function fetchMilestones() {
   milestoneLoading.value = true
   try {
     const res = await $api(`/api/projects/${projectId}/milestones`) as any
-    if (res?.code === 0) milestones.value = res.data
+    if (res?.code === 0) milestones.value = res.data.items || res.data
   } catch { /* ignore */ }
   finally { milestoneLoading.value = false }
 }
@@ -117,7 +117,7 @@ async function handleToggleMilestone(mId: string, complete: boolean) {
 
 async function handleDeleteMilestone(mId: string) {
   try {
-    await $api(`/api/projects/${projectId}/milestones/${mId}`, { method: 'PUT', body: { deletedAt: new Date().toISOString() } })
+    await $api(`/api/projects/${projectId}/milestones/${mId}`, { method: 'DELETE' })
     fetchMilestones()
   } catch { /* ignore */ }
 }
@@ -240,8 +240,10 @@ onMounted(() => { fetchProject(); fetchUsers(); fetchMilestones() })
           <template #gantt>
             <div class="mt-4 em-card">
               <ProjectsGanttChart
-                :tasks="tasks.map((t: any) => ({ id: t.id, title: t.name || t.title, assigneeName: members.find((m: any) => m.userId === t.assigneeId)?.name, startDate: t.startDate, endDate: t.endDate, parentId: t.parentId, progress: t.progress || (t.status === 'completed' ? 100 : t.status === 'in_progress' ? 50 : 0), status: t.status }))"
+                :tasks="tasks.map((t: any) => ({ id: t.id, title: t.name, assigneeName: members.find((m: any) => m.userId === t.assigneeId)?.name, startDate: t.startDate, endDate: t.endDate, parentId: t.parentId, progress: t.progress || (t.status === 'completed' ? 100 : t.status === 'in_progress' ? 50 : 0), status: t.status }))"
                 :milestones="milestones"
+                :project-start="project.startDate"
+                :project-end="project.endDate"
               />
             </div>
           </template>

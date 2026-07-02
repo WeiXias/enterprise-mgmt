@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '评论不存在' })
 
   // 校验所有权：只能删除自己的评论
-  if (existing[0].userId !== user.id && user.role !== 'admin') {
+  if (existing[0].userId !== user.userId && user.role !== 'admin') {
     throw createError({ statusCode: 403, statusMessage: '只能删除自己的评论' })
   }
 

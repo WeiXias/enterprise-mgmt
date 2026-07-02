@@ -81,6 +81,13 @@ async function handlePostComment() {
   } catch (err: any) { toast.add({ title: '发表失败', color: 'error' }) }
 }
 
+async function handleDeleteComment(commentId: string) {
+  try {
+    const res = await $api(`/api/comments/${commentId}`, { method: 'DELETE' }) as any
+    if (res?.code === 0) { toast.add({ title: '已删除', color: 'success' }); fetchComments() }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+}
+
 onMounted(() => { fetchComments() })
 
 defineExpose({ fetchComments })
@@ -93,11 +100,13 @@ defineExpose({ fetchComments })
       <div v-if="commentLoading" class="text-center py-4 text-content-muted text-xs">加载中...</div>
       <div v-else-if="comments.length === 0" class="text-center py-6 text-content-muted text-xs">暂无讨论，来说点什么吧</div>
       <div v-else class="space-y-3 mb-4">
-        <div v-for="c in comments" :key="c.id" class="p-3 rounded-md bg-surface-hover">
+        <div v-for="c in comments" :key="c.id" class="p-3 rounded-md bg-surface-hover group">
           <div class="flex items-center gap-2 mb-1">
             <div class="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center"><span class="text-brand-700 text-xs">{{ (c.userName || '?').charAt(0) }}</span></div>
             <span class="text-sm text-content-secondary">{{ c.userName }}</span>
             <span class="text-xs text-content-muted">{{ c.createdAt?.slice(0, 10) }}</span>
+            <div class="flex-1" />
+            <UButton icon="i-lucide-trash-2" variant="ghost" color="neutral" size="xs" class="opacity-0 group-hover:opacity-100 transition-opacity" @click="handleDeleteComment(c.id)" />
           </div>
           <p class="text-sm text-content-secondary ml-8">{{ c.content }}</p>
         </div>

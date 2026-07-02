@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     db.select({ userId: projectMembers.userId, role: projectMembers.role, name: users.name })
       .from(projectMembers).leftJoin(users, eq(projectMembers.userId, users.id)).where(eq(projectMembers.projectId, id)),
     db.select().from(tasks).where(eq(tasks.projectId, id)),
-    db.select().from(deliverables).where(eq(deliverables.projectId, id)),
+    db.select().from(deliverables).where(and(eq(deliverables.projectId, id), isNull(deliverables.deletedAt))),
   ])
 
   return {
