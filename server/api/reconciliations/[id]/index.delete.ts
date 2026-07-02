@@ -6,7 +6,7 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'reconciliation:view')
+  await requirePermission(event, 'reconciliation:delete')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const id = getRouterParam(event, 'id')

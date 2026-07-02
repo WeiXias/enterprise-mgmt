@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { contracts, customers, payments, paymentPlans } from '#schema'
-import { eq, like, and, isNull, count, desc, sum, lte, inArray, sql } from 'drizzle-orm'
+import { eq, like, and, isNull, count, desc, sum, lte, inArray, sql, or } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const pageSize = Math.min(Number(query.pageSize) || 20, 100)
 
   const where: any[] = [isNull(contracts.deletedAt)]
-  if (query.keyword) where.push(like(contracts.name, `%${query.keyword}%`))
+  if (query.keyword) where.push(or(like(contracts.name, `%${query.keyword}%`), like(customers.name, `%${query.keyword}%`)))
   if (query.status) where.push(eq(contracts.status, query.status as string))
 
   const [list, totalResult] = await Promise.all([
@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
       id: contracts.id, code: contracts.code, name: contracts.name,
       customerName: customers.name,
       totalAmount: contracts.totalAmount,
+      startDate: contracts.startDate, endDate: contracts.endDate,
+      signedAt: contracts.signedAt,
       status: contracts.status,
     }).from(contracts).leftJoin(customers, eq(contracts.customerId, customers.id))
       .where(and(...where)).limit(pageSize).offset((page - 1) * pageSize).orderBy(desc(contracts.updatedAt)),
@@ -73,6 +75,8 @@ export default defineEventHandler(async (event) => {
       id: c.id, code: c.code, name: c.name,
       customer: { name: c.customerName },
       totalAmount: totalAmt,
+      startDate: c.startDate, endDate: c.endDate,
+      signedAt: c.signedAt,
       receivedAmount,
       unreceivedAmount: totalAmt - receivedAmount,
       paymentProgress: totalAmt > 0 ? Math.round((receivedAmount / totalAmt) * 10000) / 100 : 0,

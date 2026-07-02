@@ -13,6 +13,7 @@ interface Props {
     paymentMethod?: string
     startDate?: string
     endDate?: string
+    signedAt?: string
     remark?: string
   }
   customerOptions?: { id: string; name: string }[]
@@ -136,6 +137,16 @@ function setQuickDate(years: number) {
           @input="$emit('update:modelValue', { ...modelValue, endDate: ($event.target as HTMLInputElement).value })"
         />
       </div>
+    </div>
+
+    <div>
+      <label class="block text-sm text-content-secondary mb-1">签署时间</label>
+      <input
+        :value="modelValue.signedAt"
+        type="date"
+        class="w-full input-base focus-ring max-w-[200px]"
+        @input="$emit('update:modelValue', { ...modelValue, signedAt: ($event.target as HTMLInputElement).value })"
+      />
     </div>
 
     <div>

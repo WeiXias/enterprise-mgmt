@@ -14,7 +14,7 @@ const customerOptions = ref<any[]>([])
 const form = ref({
   name: '', customerId: '', totalAmount: 0,
   partyA: '', partyB: '', paymentMethod: '',
-  startDate: '', endDate: '', remark: '',
+  startDate: '', endDate: '', remark: '', signedAt: '',
 })
 
 // 合同正文 — ProseMirror Document JSON

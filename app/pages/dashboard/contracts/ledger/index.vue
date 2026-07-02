@@ -108,10 +108,12 @@ onMounted(() => fetchItems())
         <div class="flex-1 min-w-0 text-right">未收</div>
         <div class="w-20 text-center">回款进度</div>
         <div class="flex-1 min-w-0">下次收款</div>
+        <div class="flex-1 min-w-0">签署时间</div>
+        <div class="flex-1 min-w-0 text-right">到期时间</div>
         <div class="w-20 text-center">状态</div>
       </div>
 
-      <div v-for="item in items" :key="item.contractNo" class="em-card flex items-center gap-3 !py-3 !px-4 hover:bg-surface-hover transition-colors">
+      <div v-for="item in items" :key="item.id" class="em-card flex items-center gap-3 !py-3 !px-4 hover:bg-surface-hover transition-colors">
         <!-- 逾期标记 -->
         <div :class="[
           'w-1 h-9 rounded-full flex-shrink-0',
@@ -119,11 +121,11 @@ onMounted(() => fetchItems())
         ]" />
 
         <div class="flex-[2] min-w-0">
-          <p class="text-xs text-content-muted truncate">{{ item.contractNo }}</p>
+          <p class="text-xs text-content-muted truncate">{{ item.code }}</p>
           <p class="text-sm text-content-primary truncate">{{ item.name }}</p>
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm text-content-secondary truncate">{{ item.customer }}</p>
+          <p class="text-sm text-content-secondary truncate">{{ item.customer?.name }}</p>
         </div>
         <div class="flex-1 min-w-0 text-right">
           <p class="text-sm text-content-secondary">{{ formatMoney(item.totalAmount) }}</p>
@@ -149,6 +151,12 @@ onMounted(() => fetchItems())
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-xs text-content-muted">{{ item.nextPaymentDate ? formatDate(item.nextPaymentDate) : '-' }}</p>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-content-muted">{{ formatDate(item.signedAt) }}</p>
+        </div>
+        <div class="flex-1 min-w-0 text-right">
+          <p class="text-xs text-content-muted">{{ formatDate(item.endDate) }}</p>
         </div>
         <div class="w-20 text-center">
           <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', getStatusColor(item.status)]">

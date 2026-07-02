@@ -84,7 +84,8 @@ function handleExport() {
     const rows = res?.data?.items || []
     const columns = [
       { key: 'productName', label: '产品' },
-      { key: 'type', label: '类型' },
+      { key: 'productType', label: '产品类型' },
+      { key: 'type', label: '操作' },
       { key: 'quantity', label: '数量' },
       { key: 'unitPrice', label: '单价', format: (v: unknown) => v ? '¥' + v : '-' },
       { key: 'batchNo', label: '批次' },
@@ -216,6 +217,7 @@ onMounted(() => { fetchItems(); fetchProducts() })
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary">{{ t.productName || t.productId }}</span>
+            <span v-if="t.productType" class="text-[10px] px-1.5 py-0.5 rounded-full" :class="t.productType === 'hardware' ? 'bg-brand-50 text-brand-600' : t.productType === 'software' ? 'bg-teal-50 text-teal-700' : 'bg-surface-hover text-content-secondary'">{{ t.productType === 'hardware' ? '硬件' : t.productType === 'software' ? '软件' : '服务' }}</span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', typeColors[t.type] || '']">
               {{ typeLabels[t.type] || t.type }}
             </span>

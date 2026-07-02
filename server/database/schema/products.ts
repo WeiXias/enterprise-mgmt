@@ -17,6 +17,7 @@ export const products = sqliteTable('products', {
   model: text('model'),
   manufacturer: text('manufacturer'),
   unit: text('unit'),
+  type: text('type', { enum: ['hardware', 'software', 'service'] }),
   standardPrice: integer('standard_price').notNull().default(0),
   costPrice: integer('cost_price').notNull().default(0),
   stockQuantity: integer('stock_quantity').notNull().default(0),

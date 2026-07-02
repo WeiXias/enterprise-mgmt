@@ -394,7 +394,7 @@ export default defineNitroPlugin(async () => {
     'invoice:read', 'invoice:create', 'invoice:edit', 'invoice:void',
     'payment:read', 'payment:create', 'payment:edit',
     'payment-plan:read', 'payment-plan:create',
-    'reconciliation:read', 'reconciliation:create', 'reconciliation:edit', 'reconciliation:confirm',
+    'reconciliation:read', 'reconciliation:create', 'reconciliation:edit', 'reconciliation:confirm', 'reconciliation:delete',
     // 业务只读
     'customer:read',
     'opportunity:read',

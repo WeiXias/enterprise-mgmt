@@ -165,6 +165,7 @@ onMounted(() => { fetchProducts(); fetchCategories() })
           <div class="flex-1 min-w-0">
             <h3 class="text-sm font-medium text-content-primary truncate leading-snug">{{ product.name }}</h3>
             <p class="text-[11px] text-content-muted mt-0.5 truncate">{{ product.code }}</p>
+            <p v-if="product.type" class="text-[10px] inline-block mt-0.5 px-1.5 py-px rounded-full" :class="product.type === 'hardware' ? 'bg-brand-50 text-brand-600' : product.type === 'software' ? 'bg-teal-50 text-teal-700' : 'bg-surface-hover text-content-secondary'">{{ product.type === 'hardware' ? '硬件' : product.type === 'software' ? '软件' : '服务' }}</p>
             <p v-if="product.category?.name" class="text-[11px] text-content-muted truncate">{{ product.category.name }}</p>
           </div>
         </div>
@@ -215,6 +216,7 @@ onMounted(() => { fetchProducts(); fetchCategories() })
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary truncate">{{ product.name }}</span>
             <span class="text-xs text-content-muted">{{ product.code }}</span>
+            <span v-if="product.type" class="text-[10px] px-1.5 py-px rounded-full" :class="product.type === 'hardware' ? 'bg-brand-50 text-brand-600' : product.type === 'software' ? 'bg-teal-50 text-teal-700' : 'bg-surface-hover text-content-secondary'">{{ product.type === 'hardware' ? '硬件' : product.type === 'software' ? '软件' : '服务' }}</span>
             <StatusBadge :value="product.status" enum-type="productStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-content-muted">

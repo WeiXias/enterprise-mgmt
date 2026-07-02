@@ -83,7 +83,7 @@ async function handleDelete() {
   if (!deleteTarget.value) return
   deleteLoading.value = true
   try {
-    const res = await $api(`/api/reconciliations/${deleteTarget.value.id}/delete`, { method: 'DELETE' }) as any
+    const res = await $api(`/api/reconciliations/${deleteTarget.value.id}`, { method: 'DELETE' }) as any
     if (res?.code === 0) { toast.add({ title: '已删除', color: 'success' }); showDelete.value = false; deleteTarget.value = null; fetchList() }
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
   finally { deleteLoading.value = false }

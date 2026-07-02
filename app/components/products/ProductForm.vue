@@ -4,6 +4,7 @@ interface Props {
     name: string
     code?: string
     categoryId?: string
+    type?: string
     model?: string
     manufacturer?: string
     unit?: string
@@ -56,6 +57,19 @@ const emit = defineEmits<{ 'update:modelValue': [value: any]; submit: [] }>()
         <div>
           <label class="block text-sm text-content-secondary mb-1">产品分类</label>
           <slot name="category-select" />
+        </div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">产品类型</label>
+          <select
+            :value="modelValue.type || ''"
+            class="w-full input-base focus-ring"
+            @change="$emit('update:modelValue', { ...modelValue, type: ($event.target as HTMLSelectElement).value })"
+          >
+            <option value="">不指定</option>
+            <option value="hardware">硬件</option>
+            <option value="software">软件</option>
+            <option value="service">服务</option>
+          </select>
         </div>
       </div>
     </div>

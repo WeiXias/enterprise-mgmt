@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
       model: products.model,
       manufacturer: products.manufacturer,
       unit: products.unit,
+      type: products.type,
       standardPrice: products.standardPrice,
       costPrice: products.costPrice,
       stockQuantity: sql<number>`COALESCE(${products.stockQuantity}, 0)`,

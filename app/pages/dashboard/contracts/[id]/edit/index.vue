@@ -14,7 +14,7 @@ const loading = ref(true)
 const saving = ref(false)
 const customerOptions = ref<any[]>([])
 
-const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', remark: '' })
+const form = ref<any>({ name: '', totalAmount: 0, partyA: '', partyB: '', paymentMethod: '', startDate: '', endDate: '', signedAt: '', remark: '' })
 const contractStatus = ref('')
 const documentModel = ref<object | null>(null)
 const contractEditorRef = ref<InstanceType<typeof ContractEditor> | null>(null)
@@ -34,6 +34,7 @@ async function fetchData() {
         partyA: c.partyA || '', partyB: c.partyB || '',
         paymentMethod: c.paymentMethod || '',
         startDate: c.startDate || '', endDate: c.endDate || '',
+        signedAt: c.signedAt || '',
         remark: c.remark || '',
       }
       contractStatus.value = c.status

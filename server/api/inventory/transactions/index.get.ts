@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
       id: inventoryTransactions.id,
       productId: inventoryTransactions.productId,
       productName: products.name,
+      productType: products.type,
       type: inventoryTransactions.type,
       quantity: inventoryTransactions.quantity,
       unitPrice: inventoryTransactions.unitPrice,

@@ -26,6 +26,7 @@ export default defineConfig({
       '#enums': fileURLToPath(new URL('./server/database/schema/enums', import.meta.url)),
       '#server-utils': fileURLToPath(new URL('./server/utils', import.meta.url)),
       '#ai-utils': fileURLToPath(new URL('./server/utils/ai', import.meta.url)),
+      'h3': fileURLToPath(new URL('./node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs', import.meta.url)),
     },
   },
 })

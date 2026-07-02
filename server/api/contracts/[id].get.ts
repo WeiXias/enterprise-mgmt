@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const [customerResult, productList, planList, paymentList, attachmentList, projectList, approverResult, creatorResult, ownerResult, invoiceList, relatedPurchaseOrders, relatedContracts] = await Promise.all([
-    db.select({ id: customers.id, name: customers.name }).from(customers).where(eq(customers.id, c!.customerId)).limit(1),
+    db.select({ id: customers.id, name: customers.name }).from(customers).where(eq(customers.id, c!.customerId)).limit(1).catch(() => []),
     db.select({
       id: contractProducts.id, productId: contractProducts.productId,
       quantity: contractProducts.quantity, unitPrice: contractProducts.unitPrice,
@@ -36,21 +36,21 @@ export default defineEventHandler(async (event) => {
     }).from(contractProducts)
       .leftJoin(products, eq(contractProducts.productId, products.id))
       .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
-      .where(eq(contractProducts.contractId, id)),
-    db.select().from(paymentPlans).where(eq(paymentPlans.contractId, id)),
-    db.select().from(payments).where(eq(payments.contractId, id)),
-    db.select().from(contractAttachments).where(eq(contractAttachments.contractId, id)),
+      .where(eq(contractProducts.contractId, id)).catch(() => []),
+    db.select().from(paymentPlans).where(eq(paymentPlans.contractId, id)).catch(() => []),
+    db.select().from(payments).where(eq(payments.contractId, id)).catch(() => []),
+    db.select().from(contractAttachments).where(eq(contractAttachments.contractId, id)).catch(() => []),
     db.select({ id: projects.id, name: projects.name, status: projects.status }).from(projects)
-      .where(and(eq(projects.contractId, id), isNull(projects.deletedAt))),
-    c!.approvedBy ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.approvedBy)).limit(1) : Promise.resolve([]),
-    c!.createdBy ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.createdBy)).limit(1) : Promise.resolve([]),
-    c!.ownerUserId ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.ownerUserId)).limit(1) : Promise.resolve([]),
+      .where(and(eq(projects.contractId, id), isNull(projects.deletedAt))).catch(() => []),
+    c!.approvedBy ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.approvedBy)).limit(1).catch(() => []) : Promise.resolve([]),
+    c!.createdBy ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.createdBy)).limit(1).catch(() => []) : Promise.resolve([]),
+    c!.ownerUserId ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.ownerUserId)).limit(1).catch(() => []) : Promise.resolve([]),
     // 关联发票
     db.select({
       id: invoices.id, invoiceNo: invoices.invoiceNo, type: invoices.type,
       amount: invoices.amount, taxRate: invoices.taxRate, taxAmount: invoices.taxAmount,
       status: invoices.status, issuedAt: invoices.issuedAt,
-    }).from(invoices).where(eq(invoices.contractId, id)),
+    }).from(invoices).where(eq(invoices.contractId, id)).catch(() => []),
     // 关联采购订单（通过 contractId 匹配）
     db.select({
       id: purchaseOrders.id, code: purchaseOrders.code,
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
     }).from(purchaseOrders)
       .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
       .where(and(eq(purchaseOrders.contractId, id), isNull(purchaseOrders.deletedAt)))
-      .limit(10),
+      .limit(10).catch(() => []),
     // 关联销售合同（同客户，排除自身）
     c!.customerId ? db.select({
       id: contracts.id, name: contracts.name, code: contracts.code,
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
     }).from(contracts)
       .leftJoin(customers, eq(contracts.customerId, customers.id))
       .where(and(eq(contracts.customerId, c!.customerId), ne(contracts.id, id), isNull(contracts.deletedAt)))
-      .limit(10) : Promise.resolve([]),
+      .limit(10).catch(() => []) : Promise.resolve([]),
   ])
 
   // Calculate received amount from payments
@@ -86,6 +86,7 @@ export default defineEventHandler(async (event) => {
       partyA: c!.partyA, partyB: c.partyB,
       paymentMethod: c!.paymentMethod,
       startDate: c!.startDate, endDate: c.endDate,
+      signedAt: c!.signedAt,
       status: c!.status, remark: c.remark,
       rejectReason: c!.rejectReason,
       approvedBy: approverResult[0] || null,
