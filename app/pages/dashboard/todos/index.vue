@@ -326,7 +326,7 @@ onMounted(() => refreshTodoData())
                 <button @click.stop="deleteSubtask(todo.id, sub.id)" class="opacity-0 group-hover/sub:opacity-100 text-line hover:text-danger-600"><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
               </div>
               <div class="flex items-center gap-1.5 pt-1">
-                <input v-model="newSubtaskTitle[todo.id]" placeholder="子任务..." class="flex-1 text-xs rounded px-2 py-1 border border-line bg-surface-card focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/15" @keydown.enter="addSubtask(todo.id)" />
+                <input v-model="newSubtaskTitle[todo.id]" placeholder="子任务..." class="flex-1 text-xs rounded px-2 py-1 border border-line bg-surface-card focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/15" @click.stop @keydown.enter="addSubtask(todo.id)" />
               </div>
             </div>
           </div>
@@ -362,7 +362,7 @@ onMounted(() => refreshTodoData())
             </div>
           </div>
           <div class="flex items-center gap-1.5">
-            <input v-model="newSubtaskTitle[todo.id]" placeholder="子任务..." class="flex-1 text-xs rounded px-2 py-1 border border-line bg-surface-card focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/15" @keydown.enter="addSubtask(todo.id)" />
+            <input v-model="newSubtaskTitle[todo.id]" placeholder="子任务..." class="flex-1 text-xs rounded px-2 py-1 border border-line bg-surface-card focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/15" @click.stop @keydown.enter="addSubtask(todo.id)" />
           </div>
         </div>
       </div>
