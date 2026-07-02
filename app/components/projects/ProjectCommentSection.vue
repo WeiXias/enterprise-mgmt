@@ -64,7 +64,7 @@ async function fetchComments() {
   commentLoading.value = true
   try {
     const res = await $api(`/api/projects/${props.projectId}/comments`) as any
-    if (res?.code === 0) comments.value = res.data
+    if (res?.code === 0) comments.value = res.data.items || res.data
   } catch { /* ignore */ }
   finally { commentLoading.value = false }
 }
