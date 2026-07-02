@@ -1,15 +1,18 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { saveUploadedFile } from '#server-utils/upload'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
-  await requirePermission(event, 'purchase-order:create')
+  await requirePermission(event, 'purchase-order:edit')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
+
+  const { id: orderId } = getRouterParams(event)
 
   const saved = await saveUploadedFile({
     event,
-    subDir: 'purchase-invoices',
+    subDir: 'purchase-contracts',
+    entityId: orderId,
     maxSize: 20 * 1024 * 1024,
   })
 

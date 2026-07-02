@@ -490,7 +490,61 @@ async function seed() {
   }
   console.log('3 system configs created.')
 
-  console.log('\n✅ Seed complete!')
+  // 12. Suppliers
+  const supplierData = [
+    { id: generateId(), name: '神州数码有限公司', code: 'SUP-001', contactPerson: '赵云', phone: '13800001001', email: 'zhaoyun@digitalchina.com', address: '北京市海淀区', bankName: '工商银行北京分行', bankAccount: '6222020200001234567', taxId: '91110108MA0012345X', status: 'active' as const },
+    { id: generateId(), name: '浪潮电子信息有限公司', code: 'SUP-002', contactPerson: '孙尚香', phone: '13800001002', email: 'sunshangxiang@inspur.com', address: '山东省济南市', bankName: '建设银行济南分行', bankAccount: '6227002200007654321', taxId: '91370100MA0067890Y', status: 'active' as const },
+    { id: generateId(), name: '中软国际科技服务有限公司', code: 'SUP-003', contactPerson: '关羽', phone: '13800001003', email: 'guanyu@chinasofti.com', address: '北京市海淀区', bankName: '招商银行北京分行', bankAccount: '6214830100009876543', taxId: '91110108MA0098765Z', status: 'active' as const },
+  ]
+  for (const s of supplierData) await db.insert(schema.suppliers).values(s)
+  console.log('3 suppliers created.')
+
+  // 13. Purchase order (received status, ready for finance testing)
+  const poId = generateId()
+  const poCode = 'PO-20260701-0001'
+  const poNow = now().slice(0, 19).replace('T', ' ')
+  await db.insert(schema.purchaseOrders).values({
+    id: poId,
+    code: poCode,
+    name: poCode,
+    supplierId: supplierData[0]!.id,
+    expectedDate: '2026-07-10',
+    totalAmount: 199100,
+    status: 'received',
+    remark: '企业管理系统实施项目硬件采购',
+    createdAt: poNow,
+    updatedAt: poNow,
+  })
+  // Purchase order items with different tax rates
+  const poItemData = [
+    { id: generateId(), orderId: poId, productId: productData[3]!.id, quantity: 2, unitPrice: 36000, amount: 72000, taxRate: 0.13 }, // 硬件 - 13%
+    { id: generateId(), orderId: poId, productId: productData[4]!.id, quantity: 1, unitPrice: 85000, amount: 85000, taxRate: 0.13 }, // 硬件 - 13%
+    { id: generateId(), orderId: poId, productId: productData[0]!.id, quantity: 1, unitPrice: 42100, amount: 42100, taxRate: 0.06 }, // 软件 - 6%
+  ]
+  for (const item of poItemData) await db.insert(schema.purchaseOrderItems).values(item)
+  // 计算税额
+  const poTaxAmount = poItemData.reduce((sum, i) => {
+    if (!i.taxRate) return sum
+    return sum + Math.round(i.amount - i.amount / (1 + i.taxRate))
+  }, 0)
+  // 生成应付
+  if (schema.purchasePayables) {
+    await db.insert(schema.purchasePayables).values({
+      id: generateId(),
+      orderId: poId,
+      supplierId: supplierData[0]!.id,
+      totalAmount: 199100,
+      paidAmount: 0,
+      invoiceAmount: 0,
+      taxAmount: poTaxAmount,
+      status: 'pending',
+      dueDate: '2026-08-01',
+      createdBy: userIds.admin,
+      createdAt: poNow,
+      updatedAt: poNow,
+    })
+  }
+  console.log(`1 purchase order (${poCode}) + 3 items + payable created (taxAmount=${poTaxAmount}).`)
   console.log('Login credentials:')
   console.log('  admin   / admin123   (管理员)')
   console.log('  manager / manager123 (销售负责人)')

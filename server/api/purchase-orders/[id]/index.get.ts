@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
     totalAmount: purchaseOrders.totalAmount,
     status: purchaseOrders.status,
     remark: purchaseOrders.remark,
+    contractFilePath: purchaseOrders.contractFilePath,
     createdAt: purchaseOrders.createdAt,
     updatedAt: purchaseOrders.updatedAt,
   }).from(purchaseOrders)
@@ -40,6 +41,7 @@ export default defineEventHandler(async (event) => {
     unitPrice: purchaseOrderItems.unitPrice,
     discount: purchaseOrderItems.discount,
     amount: purchaseOrderItems.amount,
+    taxRate: purchaseOrderItems.taxRate,
   }).from(purchaseOrderItems)
     .leftJoin(products, eq(purchaseOrderItems.productId, products.id))
     .where(eq(purchaseOrderItems.orderId, id))

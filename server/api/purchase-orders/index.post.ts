@@ -12,11 +12,13 @@ const schema = z.object({
   contractId: z.string().optional(),
   expectedDate: z.string().optional(),
   remark: z.string().optional(),
+  contractFilePath: z.string().optional(),
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().min(1),
     unitPrice: z.number().min(0),
     discount: z.number().min(0).max(1).optional(),
+    taxRate: z.number().min(0).max(1).optional().default(0),
   })).optional(),
 })
 
@@ -48,6 +50,7 @@ export default defineEventHandler(async (event) => {
     totalAmount,
     status: 'draft',
     remark: parsed.data.remark || '',
+    contractFilePath: parsed.data.contractFilePath || null,
     createdAt: now,
     updatedAt: now,
   })
@@ -62,6 +65,7 @@ export default defineEventHandler(async (event) => {
         unitPrice: item.unitPrice,
         discount: item.discount ?? 1,
         amount: Math.round(item.quantity * item.unitPrice * (item.discount ?? 1) * 100) / 100,
+        taxRate: item.taxRate ?? 0,
       }))
     )
   }

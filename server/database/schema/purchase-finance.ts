@@ -12,6 +12,7 @@ export const purchasePayables = sqliteTable('purchase_payables', {
   totalAmount: integer('total_amount').notNull().default(0),
   paidAmount: integer('paid_amount').notNull().default(0),
   invoiceAmount: integer('invoice_amount').notNull().default(0),
+  taxAmount: integer('tax_amount').notNull().default(0),
   status: text('status', { enum: ['pending', 'invoiced', 'partially_paid', 'paid'] }).notNull().default('pending'),
   dueDate: text('due_date'),
   remark: text('remark'),

@@ -22,7 +22,7 @@ const form = ref({
   remark: '',
 })
 
-const items = ref<any[]>([{ productId: '', quantity: 1, unitPrice: 0, discount: 1, amount: 0 }])
+const items = ref<any[]>([{ productId: '', quantity: 1, unitPrice: 0, discount: 1, amount: 0, taxRate: 0 }])
 
 const contractOptions = ref<any[]>([])
 
@@ -49,7 +49,7 @@ function onProductSelected(product: any) {
     items.value[emptyIdx].unitPrice = product.price || 0
     updateItemAmount(emptyIdx)
   } else {
-    items.value.push({ productId: product.id, _name: product.name, quantity: 1, unitPrice: product.price || 0, discount: 1, amount: 0 })
+    items.value.push({ productId: product.id, _name: product.name, quantity: 1, unitPrice: product.price || 0, discount: 1, amount: 0, taxRate: 0 })
     updateItemAmount(items.value.length - 1)
   }
   showProductModal.value = false
@@ -129,7 +129,7 @@ onMounted(() => { fetchSuppliers(); fetchContracts() })
           </div>
           <div class="space-y-2">
             <div v-for="(item, idx) in items" :key="idx" class="grid grid-cols-12 gap-2 items-end">
-              <div class="col-span-4">
+              <div class="col-span-3">
                 <div class="relative">
                   <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
                   <input
@@ -162,9 +162,16 @@ onMounted(() => { fetchSuppliers(); fetchContracts() })
                 <input v-model.number="item.unitPrice" type="number" min="0" step="0.01" placeholder="单价" class="w-full px-2 py-1.5 text-sm rounded border border-line focus-ring" @input="updateItemAmount(idx)" />
               </div>
               <div class="col-span-2">
-                <input v-model.number="item.amount" type="number" min="0" step="0.01" placeholder="金额" class="w-full px-2 py-1.5 text-sm rounded border border-line-light bg-surface-hover text-content-secondary" readonly />
+                <select v-model.number="item.taxRate" class="w-full px-1.5 py-1.5 text-sm rounded border border-line focus-ring" @change="updateItemAmount(idx)">
+                  <option :value="0">0%</option>
+                  <option :value="0.06">6%</option>
+                  <option :value="0.13">13%</option>
+                </select>
               </div>
-              <div class="col-span-2 flex justify-end">
+              <div class="col-span-1.5">
+                <input v-model.number="item.amount" type="number" min="0" step="0.01" placeholder="金额" class="w-full px-1 py-1.5 text-xs rounded border border-line-light bg-surface-hover text-content-secondary" readonly />
+              </div>
+              <div class="col-span-1.5 flex justify-end">
                 <UButton icon="i-lucide-x" variant="ghost" color="error" size="xs" @click="removeItem(idx)" :disabled="items.length <= 1" />
               </div>
             </div>

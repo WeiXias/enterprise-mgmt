@@ -3,7 +3,9 @@
   "configurations": [
     {
       "name": "dev",
-      "command": "cd /Users/xiawei/WorkBuddy/2026-06-09-12-05-42/enterprise-mgmt && pnpm dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "cwd": "/Users/xiawei/WorkBuddy/2026-06-09-12-05-42/.claude/worktrees/angry-kowalevski-ad0d1c/enterprise-mgmt",
       "port": 3000,
       "timeout": 30000
     }

@@ -13,6 +13,7 @@ export const purchaseOrders = sqliteTable('purchase_orders', {
   totalAmount: integer('total_amount').notNull().default(0),
   status: text('status').notNull().default('draft'),
   remark: text('remark'),
+  contractFilePath: text('contract_file_path'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   deletedAt: text('deleted_at'),
@@ -26,4 +27,5 @@ export const purchaseOrderItems = sqliteTable('purchase_order_items', {
   unitPrice: integer('unit_price').notNull().default(0),
   discount: real('discount').notNull().default(1),
   amount: integer('amount').notNull().default(0),
+  taxRate: real('tax_rate').notNull().default(0),
 })

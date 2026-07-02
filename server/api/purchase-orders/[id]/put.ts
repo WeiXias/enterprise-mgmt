@@ -12,11 +12,13 @@ const schema = z.object({
   supplierId: z.string().optional(),
   expectedDate: z.string().optional().nullable(),
   remark: z.string().optional(),
+  contractFilePath: z.string().optional(),
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().min(1),
     unitPrice: z.number().min(0),
     discount: z.number().min(0).max(1).optional(),
+    taxRate: z.number().min(0).max(1).optional().default(0),
   })).optional(),
 })
 
@@ -41,6 +43,7 @@ export default defineEventHandler(async (event) => {
       ...(parsed.data.supplierId !== undefined && { supplierId: parsed.data.supplierId }),
       ...(parsed.data.expectedDate !== undefined && { expectedDate: parsed.data.expectedDate || null }),
       ...(parsed.data.remark !== undefined && { remark: parsed.data.remark }),
+      ...(parsed.data.contractFilePath !== undefined && { contractFilePath: parsed.data.contractFilePath || null }),
       totalAmount,
       updatedAt: now,
     }).where(eq(purchaseOrders.id, id))
@@ -57,6 +60,7 @@ export default defineEventHandler(async (event) => {
           unitPrice: item.unitPrice,
           discount: item.discount ?? 1,
           amount: Math.round(item.quantity * item.unitPrice * (item.discount ?? 1) * 100) / 100,
+          taxRate: item.taxRate ?? 0,
         }))
       )
     }
@@ -66,6 +70,7 @@ export default defineEventHandler(async (event) => {
       ...(parsed.data.supplierId !== undefined && { supplierId: parsed.data.supplierId }),
       ...(parsed.data.expectedDate !== undefined && { expectedDate: parsed.data.expectedDate || null }),
       ...(parsed.data.remark !== undefined && { remark: parsed.data.remark }),
+      ...(parsed.data.contractFilePath !== undefined && { contractFilePath: parsed.data.contractFilePath || null }),
       updatedAt: now,
     }).where(eq(purchaseOrders.id, id))
   }

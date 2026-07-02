@@ -13,7 +13,6 @@ const actionLoading = ref(false)
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
 
-// 收货时选择仓库
 const showReceiveModal = ref(false)
 const warehouseOptions = ref<any[]>([])
 const receiveForm = ref({ warehouseId: '', locationId: '' })
@@ -60,10 +59,32 @@ async function fetchPayments() {
   } catch { }
 }
 
-// 登记发票弹窗
+// 登记/编辑发票弹窗
 const showInvoiceModal = ref(false)
+const editingInvoiceId = ref<string | null>(null)
 const invoiceForm = ref({ invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' })
 const invoiceSaving = ref(false)
+
+function openInvoiceCreate() {
+  editingInvoiceId.value = null
+  invoiceForm.value = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' }
+  showInvoiceModal.value = true
+}
+
+function openInvoiceEdit(inv: any) {
+  editingInvoiceId.value = inv.id
+  invoiceForm.value = {
+    invoiceNo: inv.invoiceNo,
+    amount: inv.amount,
+    taxRate: inv.taxRate,
+    taxAmount: inv.taxAmount,
+    totalAmount: inv.totalAmount,
+    remark: inv.remark || '',
+    filePath: inv.filePath || '',
+  }
+  showInvoiceModal.value = true
+}
+
 async function handleInvoiceSave() {
   if (!invoiceForm.value.invoiceNo || !invoiceForm.value.amount) {
     toast.add({ title: '发票号和金额都得填', color: 'warning' }); return
@@ -71,32 +92,58 @@ async function handleInvoiceSave() {
   invoiceSaving.value = true
   try {
     const body = { ...invoiceForm.value, totalAmount: invoiceForm.value.totalAmount || invoiceForm.value.amount }
-    const res = await $api(`/api/purchase-orders/${route.params.id}/invoices`, { method: 'POST', body }) as any
+    const url = editingInvoiceId.value
+      ? `/api/purchase-orders/${route.params.id}/invoices/${editingInvoiceId.value}`
+      : `/api/purchase-orders/${route.params.id}/invoices`
+    const method = editingInvoiceId.value ? 'PUT' : 'POST'
+    const res = await $api(url, { method, body }) as any
     if (res?.code === 0) {
-      toast.add({ title: '发票已登记', color: 'success' })
+      toast.add({ title: editingInvoiceId.value ? '发票已更新' : '发票已登记', color: 'success' })
       showInvoiceModal.value = false
-      invoiceForm.value = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' }
       fetchPayable(); fetchInvoices()
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '登记失败', color: 'error' }) }
   finally { invoiceSaving.value = false }
 }
 
-// 登记付款弹窗
+// 登记/编辑付款弹窗
 const showPaymentModal = ref(false)
-const paymentForm = ref({ amount: 0, paymentDate: '', paymentMethod: 'bank_transfer', remark: '' })
+const editingPaymentId = ref<string | null>(null)
+const paymentForm = ref({ amount: 0, paymentDate: '', paymentMethod: 'bank_transfer', remark: '', attachmentPath: '' })
 const paymentSaving = ref(false)
+
+function openPaymentCreate() {
+  editingPaymentId.value = null
+  paymentForm.value = { amount: 0, paymentDate: '', paymentMethod: 'bank_transfer', remark: '', attachmentPath: '' }
+  showPaymentModal.value = true
+}
+
+function openPaymentEdit(pm: any) {
+  editingPaymentId.value = pm.id
+  paymentForm.value = {
+    amount: pm.amount,
+    paymentDate: pm.paymentDate?.slice(0, 10) || '',
+    paymentMethod: pm.paymentMethod || 'bank_transfer',
+    remark: pm.remark || '',
+    attachmentPath: pm.attachmentPath || '',
+  }
+  showPaymentModal.value = true
+}
+
 async function handlePaymentSave() {
   if (!paymentForm.value.amount || !paymentForm.value.paymentDate) {
     toast.add({ title: '金额和付款日期都得填', color: 'warning' }); return
   }
   paymentSaving.value = true
   try {
-    const res = await $api(`/api/purchase-orders/${route.params.id}/payments`, { method: 'POST', body: paymentForm.value }) as any
+    const url = editingPaymentId.value
+      ? `/api/purchase-orders/${route.params.id}/payments/${editingPaymentId.value}`
+      : `/api/purchase-orders/${route.params.id}/payments`
+    const method = editingPaymentId.value ? 'PUT' : 'POST'
+    const res = await $api(url, { method, body: paymentForm.value }) as any
     if (res?.code === 0) {
-      toast.add({ title: '付款已登记', color: 'success' })
+      toast.add({ title: editingPaymentId.value ? '付款已更新' : '付款已登记', color: 'success' })
       showPaymentModal.value = false
-      paymentForm.value = { amount: 0, paymentDate: '', paymentMethod: 'bank_transfer', remark: '' }
       fetchPayable(); fetchPayments()
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '登记失败', color: 'error' }) }
@@ -127,10 +174,51 @@ async function handleDelete() {
   finally { deleteLoading.value = false }
 }
 
+// 采购合同上传
+async function onContractUploaded(f: any) {
+  const filePath = f.filePath || f.path || ''
+  try {
+    const res = await $api(`/api/purchase-orders/${route.params.id}`, {
+      method: 'PUT',
+      body: { contractFilePath: filePath },
+    }) as any
+    if (res?.code === 0) {
+      toast.add({ title: '采购合同已上传', color: 'success' })
+      fetchOrder()
+    }
+  } catch { /* 静默 */ }
+}
+
 function formatAmount(v: number) { return '¥' + Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2 }) }
 function formatDate(d: string) { return (d || '').slice(0, 10) }
 
-onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices(); fetchPayments() })
+function calcTaxAmount(amount: number, taxRate: number): number {
+  if (!taxRate || taxRate <= 0) return 0
+  return Math.round(amount - amount / (1 + taxRate))
+}
+
+// 文件预览
+const authStore = useAuthStore()
+const previewUrl = ref('')
+const showFilePreview = ref(false)
+const previewFileName = ref('')
+
+function openFilePreview(filePath: string, fileName?: string) {
+  if (!filePath) return
+  const token = authStore.accessToken
+  previewUrl.value = `/api/files/preview?path=${encodeURIComponent(filePath)}&token=${encodeURIComponent(token || '')}`
+  previewFileName.value = fileName || filePath.split('/').pop() || '文件预览'
+  showFilePreview.value = true
+}
+
+function getFileTypeGroup(fileName: string): 'image' | 'pdf' | 'office' | 'spreadsheet' | 'other' {
+  const ext = fileName.split('.').pop()?.toLowerCase() || ''
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return 'image'
+  if (ext === 'pdf') return 'pdf'
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return 'spreadsheet'
+  if (['doc', 'docx', 'ppt', 'pptx'].includes(ext)) return 'office'
+  return 'other'
+}
 </script>
 
 <template>
@@ -160,6 +248,24 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
           <span class="text-sm text-content-muted">备注</span>
           <p class="text-sm text-content-secondary mt-1">{{ order.remark }}</p>
         </div>
+        <!-- 采购合同上传 -->
+        <div class="mt-4 pt-4 border-t border-line-light">
+          <span class="text-sm text-content-muted">采购合同</span>
+          <div class="mt-2">
+            <div v-if="order.contractFilePath" class="flex items-center gap-2">
+              <UIcon name="i-lucide-file-text" class="w-4 h-4 text-brand-600" />
+              <button class="text-sm text-brand-600 hover:text-brand-700 hover:underline text-left" @click="openFilePreview(order.contractFilePath)">{{ order.contractFilePath.split('/').pop() }}</button>
+              <UButton icon="i-lucide-x" variant="ghost" color="error" size="2xs" @click="order.contractFilePath = null" />
+            </div>
+            <div v-else class="max-w-xs">
+              <FileUpload
+                :upload-url="`/api/purchase-orders/${route.params.id}/contract-upload`"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                @uploaded="onContractUploaded"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 产品明细 -->
@@ -172,6 +278,8 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
               <th class="text-left py-2 font-normal">产品</th>
               <th class="text-right py-2 font-normal">数量</th>
               <th class="text-right py-2 font-normal">单价</th>
+              <th class="text-right py-2 font-normal">税率</th>
+              <th class="text-right py-2 font-normal">税额</th>
               <th class="text-right py-2 font-normal">金额</th>
             </tr>
           </thead>
@@ -183,6 +291,8 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
               </td>
               <td class="text-right py-2 text-content-secondary">{{ item.quantity }}</td>
               <td class="text-right py-2 text-content-secondary">{{ formatAmount(item.unitPrice) }}</td>
+              <td class="text-right py-2 text-content-muted">{{ item.taxRate ? (item.taxRate * 100).toFixed(0) + '%' : '-' }}</td>
+              <td class="text-right py-2 text-content-muted">{{ item.taxRate ? formatAmount(calcTaxAmount(item.amount, item.taxRate)) : '-' }}</td>
               <td class="text-right py-2 text-content-secondary">{{ formatAmount(item.amount) }}</td>
             </tr>
           </tbody>
@@ -210,6 +320,7 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
           <div><span class="text-content-muted text-xs">应付总额</span><p class="font-medium text-content-primary">{{ formatAmount(payable.totalAmount) }}</p></div>
           <div><span class="text-content-muted text-xs">已付</span><p class="font-medium text-teal-600">{{ formatAmount(payable.paidAmount) }}</p></div>
           <div><span class="text-content-muted text-xs">已开票</span><p class="font-medium text-brand-600">{{ formatAmount(payable.invoiceAmount) }}</p></div>
+          <div><span class="text-content-muted text-xs">税额</span><p class="font-medium text-amber-600">{{ formatAmount(payable.taxAmount || 0) }}</p></div>
           <div><span class="text-content-muted text-xs">状态</span><p :class="payable.status === 'paid' ? 'text-teal-600' : payable.status === 'invoiced' ? 'text-brand-600' : 'text-content-secondary'">{{ ({ pending: '待开票', invoiced: '已开票', partially_paid: '部分付款', paid: '已付清' } as Record<string, string>)[payable.status] || payable.status }}</p></div>
         </div>
 
@@ -217,11 +328,11 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
         <div v-show="activeTab === 'invoices'" class="em-card">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-medium text-content-secondary">供应商发票</h3>
-            <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="showInvoiceModal = true; invoiceForm = { invoiceNo: '', amount: 0, taxRate: 0, taxAmount: 0, totalAmount: 0, remark: '', filePath: '' }">登记发票</UButton>
+            <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="openInvoiceCreate">登记发票</UButton>
           </div>
           <div v-if="invoices.length === 0" class="text-xs text-content-muted py-4 text-center">还没有发票</div>
           <table v-else class="w-full text-sm">
-            <thead><tr class="border-b border-line-light text-left text-xs text-content-muted"><th class="py-2">发票号</th><th class="py-2 text-right">金额</th><th class="py-2 text-right">税率</th><th class="py-2 text-right">税额</th><th class="py-2">状态</th><th class="py-2">备注</th></tr></thead>
+            <thead><tr class="border-b border-line-light text-left text-xs text-content-muted"><th class="py-2">发票号</th><th class="py-2 text-right">金额</th><th class="py-2 text-right">税率</th><th class="py-2 text-right">税额</th><th class="py-2">状态</th><th class="py-2">文件</th><th class="py-2">备注</th><th class="py-2 w-10"></th></tr></thead>
             <tbody>
               <tr v-for="inv in invoices" :key="inv.id" class="border-b border-line-light">
                 <td class="py-2 text-content-secondary">{{ inv.invoiceNo }}</td>
@@ -229,7 +340,14 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
                 <td class="py-2 text-right text-content-muted">{{ (inv.taxRate * 100).toFixed(0) }}%</td>
                 <td class="py-2 text-right text-content-muted">{{ formatAmount(inv.taxAmount) }}</td>
                 <td class="py-2"><span :class="['text-[10px] px-1.5 py-0.5 rounded-full', inv.status === 'confirmed' ? 'bg-teal-50 text-teal-700' : 'bg-brand-50 text-brand-700']">{{ ({ submitted: '已提交', confirmed: '已确认', rejected: '已退回' })[inv.status] }}</span></td>
-                <td class="py-2 text-xs text-content-muted max-w-[120px] truncate">{{ inv.remark || '-' }}</td>
+                <td class="py-2">
+                  <button v-if="inv.filePath" class="text-xs text-brand-600 hover:underline" @click="openFilePreview(inv.filePath, inv.filePath.split('/').pop())">查看</button>
+                  <span v-else class="text-xs text-content-muted">-</span>
+                </td>
+                <td class="py-2 text-xs text-content-muted max-w-[100px] truncate">{{ inv.remark || '-' }}</td>
+                <td class="py-2">
+                  <UButton icon="i-lucide-pencil" variant="ghost" color="neutral" size="2xs" @click="openInvoiceEdit(inv)" />
+                </td>
               </tr>
             </tbody>
           </table>
@@ -239,17 +357,24 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
         <div v-show="activeTab === 'payments'" class="em-card">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-medium text-content-secondary">付款记录</h3>
-            <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="showPaymentModal = true; paymentForm = { amount: 0, paymentDate: '', paymentMethod: 'bank_transfer', remark: '' }">登记付款</UButton>
+            <UButton size="xs" variant="ghost" color="primary" icon="i-lucide-plus" @click="openPaymentCreate">登记付款</UButton>
           </div>
           <div v-if="payments.length === 0" class="text-xs text-content-muted py-4 text-center">还没有付款记录</div>
           <table v-else class="w-full text-sm">
-            <thead><tr class="border-b border-line-light text-left text-xs text-content-muted"><th class="py-2 text-right">金额</th><th class="py-2">付款日期</th><th class="py-2">方式</th><th class="py-2">备注</th></tr></thead>
+            <thead><tr class="border-b border-line-light text-left text-xs text-content-muted"><th class="py-2 text-right pr-4">金额</th><th class="py-2">付款日期</th><th class="py-2">方式</th><th class="py-2">凭证</th><th class="py-2">备注</th><th class="py-2 w-10"></th></tr></thead>
             <tbody>
               <tr v-for="pm in payments" :key="pm.id" class="border-b border-line-light">
-                <td class="py-2 text-right text-content-secondary">{{ formatAmount(pm.amount) }}</td>
+                <td class="py-2 text-right pr-4 text-content-secondary">{{ formatAmount(pm.amount) }}</td>
                 <td class="py-2 text-content-secondary">{{ formatDate(pm.paymentDate) }}</td>
                 <td class="py-2 text-xs text-content-muted">{{ ({ bank_transfer: '银行转账', check: '支票', cash: '现金', alipay: '支付宝', wechat_pay: '微信', other: '其他' })[pm.paymentMethod] || pm.paymentMethod }}</td>
-                <td class="py-2 text-xs text-content-muted max-w-[150px] truncate">{{ pm.remark || '-' }}</td>
+                <td class="py-2">
+                  <button v-if="pm.attachmentPath" class="text-xs text-brand-600 hover:underline" @click="openFilePreview(pm.attachmentPath, pm.attachmentPath.split('/').pop())">查看</button>
+                  <span v-else class="text-xs text-content-muted">-</span>
+                </td>
+                <td class="py-2 text-xs text-content-muted max-w-[120px] truncate">{{ pm.remark || '-' }}</td>
+                <td class="py-2">
+                  <UButton icon="i-lucide-pencil" variant="ghost" color="neutral" size="2xs" @click="openPaymentEdit(pm)" />
+                </td>
               </tr>
             </tbody>
           </table>
@@ -297,8 +422,29 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
       @confirm="handleDelete"
     />
 
-    <!-- 登记发票弹窗 -->
-    <FormModal v-if="showInvoiceModal" v-model:open="showInvoiceModal" title="登记供应商发票" size="compact" :loading="invoiceSaving" @confirm="handleInvoiceSave">
+    <!-- 文件预览弹窗 -->
+    <UModal v-model:open="showFilePreview" :ui="{ content: 'w-screen h-screen !max-w-none !max-h-none rounded-none' }">
+      <template #header>
+        <div class="flex items-center justify-between w-full">
+          <span class="text-sm font-medium truncate text-content-secondary">{{ previewFileName }}</span>
+          <UButton icon="i-lucide-x" variant="solid" color="neutral" size="sm" class="rounded-full" @click="showFilePreview = false">关闭</UButton>
+        </div>
+      </template>
+      <template #body>
+        <div v-if="getFileTypeGroup(previewFileName) === 'image'" class="flex items-center justify-center p-4">
+          <img :src="previewUrl" :alt="previewFileName" class="max-w-full max-h-[calc(100vh-180px)] object-contain rounded-md" />
+        </div>
+        <iframe v-else-if="getFileTypeGroup(previewFileName) !== 'other'" :src="previewUrl" class="w-full h-full border-0" style="height: calc(100vh - 180px)" />
+        <div v-else class="flex flex-col items-center justify-center" style="height: calc(100vh - 180px)">
+          <UIcon name="i-lucide-file" class="w-16 h-16 mx-auto mb-4 text-content-muted" />
+          <p class="text-sm text-content-muted">暂不支持预览此文件类型</p>
+          <UButton color="primary" size="sm" class="mt-4" @click="window.open(previewUrl, '_blank')">下载文件</UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- 登记/编辑发票弹窗 -->
+    <FormModal v-if="showInvoiceModal" v-model:open="showInvoiceModal" :title="editingInvoiceId ? '修改供应商发票' : '登记供应商发票'" size="compact" :loading="invoiceSaving" @confirm="handleInvoiceSave">
       <div class="space-y-3">
         <div><label class="block text-sm text-content-secondary mb-1">发票号 <span class="text-danger-500">*</span></label><input v-model="invoiceForm.invoiceNo" type="text" placeholder="供应商发票号" class="w-full input-base focus-ring" /></div>
         <div class="grid grid-cols-2 gap-3">
@@ -319,16 +465,20 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
         <div>
           <label class="block text-sm text-content-secondary mb-1">发票文件（PDF / 图片）</label>
           <FileUpload
-            upload-url="/api/purchase-orders/invoices/upload"
+            :upload-url="`/api/purchase-orders/${route.params.id}/invoices/upload`"
             accept=".pdf,.png,.jpg,.jpeg"
             @uploaded="(f: any) => { invoiceForm.filePath = f.filePath || f.path || '' }"
           />
         </div>
+        <div v-if="invoiceForm.filePath" class="flex items-center gap-2 text-xs text-content-muted">
+          <UIcon name="i-lucide-paperclip" class="w-3.5 h-3.5" />
+          <span>已上传：{{ invoiceForm.filePath.split('/').pop() }}</span>
+        </div>
       </div>
     </FormModal>
 
-    <!-- 登记付款弹窗 -->
-    <FormModal v-if="showPaymentModal" v-model:open="showPaymentModal" title="登记付款" size="compact" :loading="paymentSaving" @confirm="handlePaymentSave">
+    <!-- 登记/编辑付款弹窗 -->
+    <FormModal v-if="showPaymentModal" v-model:open="showPaymentModal" :title="editingPaymentId ? '修改付款记录' : '登记付款'" size="compact" :loading="paymentSaving" @confirm="handlePaymentSave">
       <div class="space-y-3">
         <div><label class="block text-sm text-content-secondary mb-1">金额 <span class="text-danger-500">*</span></label><input v-model.number="paymentForm.amount" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
         <div><label class="block text-sm text-content-secondary mb-1">付款日期 <span class="text-danger-500">*</span></label><input v-model="paymentForm.paymentDate" type="date" class="w-full input-base focus-ring" /></div>
@@ -344,6 +494,18 @@ onMounted(() => { fetchOrder(); fetchWarehouses(); fetchPayable(); fetchInvoices
           </select>
         </div>
         <div><label class="block text-sm text-content-secondary mb-1">备注</label><input v-model="paymentForm.remark" type="text" placeholder="转账凭证号等" class="w-full input-base focus-ring" /></div>
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">付款凭证（截图 / PDF）</label>
+          <FileUpload
+            :upload-url="`/api/purchase-orders/${route.params.id}/payments/upload`"
+            accept=".pdf,.png,.jpg,.jpeg"
+            @uploaded="(f: any) => { paymentForm.attachmentPath = f.filePath || f.path || '' }"
+          />
+        </div>
+        <div v-if="paymentForm.attachmentPath" class="flex items-center gap-2 text-xs text-content-muted">
+          <UIcon name="i-lucide-paperclip" class="w-3.5 h-3.5" />
+          <span>已上传：{{ paymentForm.attachmentPath.split('/').pop() }}</span>
+        </div>
       </div>
     </FormModal>
   </div>

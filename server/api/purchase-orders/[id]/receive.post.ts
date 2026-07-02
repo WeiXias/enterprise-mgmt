@@ -60,6 +60,17 @@ export default defineEventHandler(async (event) => {
   await logOperation(event, { action: 'UPDATE', module: 'purchase_order', targetId: id, detail: `确认收货了采购订单「${existing[0].code}」` })
 
   // 3. 生成应付记录
+  // 计算税额合计
+  const totalTaxAmount = items.reduce((sum, item) => {
+    const taxRate = (item as any).taxRate || 0
+    if (taxRate <= 0) return sum
+    const amount = (item as any).amount || (item.quantity * item.unitPrice)
+    return sum + Math.round(amount - amount / (1 + taxRate))
+  }, 0)
+
+  // 默认账期 30 天
+  const dueDate = dayjs().add(30, 'day').format('YYYY-MM-DD')
+
   await db.insert(purchasePayables).values({
     id: generateId(),
     orderId: id,
@@ -67,7 +78,9 @@ export default defineEventHandler(async (event) => {
     totalAmount: existing[0].totalAmount || 0,
     paidAmount: 0,
     invoiceAmount: 0,
+    taxAmount: totalTaxAmount,
     status: 'pending',
+    dueDate,
     createdBy: user.userId,
     createdAt: now,
     updatedAt: now,
