@@ -33,7 +33,42 @@ async function handleDelete() {
 
 function formatAmount(v: number) { return '¥' + Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2 }) }
 
-onMounted(() => { fetchOrders() })
+// 统计
+const stats = ref({ total: 0, totalAmount: 0, pendingCount: 0, newThisMonth: 0 })
+
+async function fetchStats() {
+  try {
+    const res = await $api('/api/purchase-orders/stats') as any
+    if (res?.code === 0) stats.value = res.data
+  } catch { /* ignore */ }
+}
+
+const statCards = [
+  { key: 'total', label: '采购单总数', icon: 'i-lucide-clipboard-list', color: 'border-brand-400', bg: 'bg-brand-50', val: () => stats.value.total },
+  { key: 'amount', label: '采购总金额', icon: 'i-lucide-coins', color: 'border-teal-400', bg: 'bg-teal-50', val: () => formatAmount(stats.value.totalAmount) },
+  { key: 'pending', label: '待完成', icon: 'i-lucide-clock', color: 'border-brand-400', bg: 'bg-brand-50', val: () => stats.value.pendingCount },
+  { key: 'newMonth', label: '本月新增', icon: 'i-lucide-plus-circle', color: 'border-teal-400', bg: 'bg-teal-50', val: () => stats.value.newThisMonth },
+]
+
+// 排序
+const sortType = ref('created-desc')
+const sortOptions = [
+  { value: 'created-desc', label: '最近创建' },
+  { value: 'created-asc', label: '最早创建' },
+  { value: 'amount-desc', label: '金额从高到低' },
+  { value: 'amount-asc', label: '金额从低到高' },
+]
+
+const sortedList = computed(() => {
+  const arr = [...orderList.value]
+  if (sortType.value === 'created-desc') arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  else if (sortType.value === 'created-asc') arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  else if (sortType.value === 'amount-desc') arr.sort((a, b) => (Number(b.totalAmount) || 0) - (Number(a.totalAmount) || 0))
+  else if (sortType.value === 'amount-asc') arr.sort((a, b) => (Number(a.totalAmount) || 0) - (Number(b.totalAmount) || 0))
+  return arr
+})
+
+onMounted(() => { fetchOrders(); fetchStats() })
 </script>
 
 <template>
@@ -44,10 +79,24 @@ onMounted(() => { fetchOrders() })
       </template>
     </PageHeader>
 
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div v-for="card in statCards" :key="card.key" :class="['em-card !p-3 border-l-2', card.color]">
+        <div class="flex items-center gap-2 mb-1">
+          <div :class="['w-7 h-7 rounded-md flex items-center justify-center', card.bg]">
+            <UIcon :name="card.icon" class="w-4 h-4 text-content-secondary" />
+          </div>
+          <span class="text-xs text-content-muted">{{ card.label }}</span>
+        </div>
+        <p class="text-lg font-medium text-content-primary ml-9">{{ card.val() }}</p>
+      </div>
+    </div>
+
+    <!-- 搜索筛选排序栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
         <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
-        <input v-model="keyword" type="text" placeholder="搜采购订单编号..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
+        <input v-model="keyword" type="text" placeholder="搜采购单..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
       </div>
       <EnumSelect
         v-model="statusFilter"
@@ -60,6 +109,9 @@ onMounted(() => { fetchOrders() })
         ]"
         placeholder="全部状态"
       />
+      <select v-model="sortType" class="input-base focus-ring text-sm min-w-[120px]">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
@@ -69,24 +121,24 @@ onMounted(() => { fetchOrders() })
       <p class="text-sm">还没有采购订单</p>
       <UButton class="mt-3" size="sm" color="primary" @click="$router.push('/dashboard/purchases/create')">新建采购订单</UButton>
     </div>
-    <div v-else class="space-y-2">
-      <div v-for="order in orderList" :key="order.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
+    <div v-else class="space-y-1">
+      <div v-for="order in sortedList" :key="order.id" class="em-card !p-2.5 flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/purchases/${order.id}`)">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0',
           order.status === 'draft' ? 'bg-neutral-300' :
           order.status === 'submitted' ? 'bg-brand-400' :
           order.status === 'received' ? 'bg-teal-400' : 'bg-danger-300']" />
-        <div class="flex-1 min-w-0 cursor-pointer" @click="$router.push(`/dashboard/purchases/${order.id}`)">
+        <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary">{{ order.code }}</span>
             <StatusBadge :value="order.status" enum-type="purchaseOrderStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-content-muted">
             <span v-if="order.supplierName"><UIcon name="i-lucide-building-2" class="w-3 h-3 inline-block mr-0.5" />{{ order.supplierName }}</span>
-            <span><UIcon name="i-lucide-coins" class="w-3 h-3 inline-block mr-0.5" />{{ formatAmount(order.totalAmount) }}</span>
             <span v-if="order.expectedDate">预计 {{ order.expectedDate }}</span>
           </div>
         </div>
-        <div class="flex items-center gap-1" @click.stop>
+        <span class="text-sm font-medium text-brand-600 whitespace-nowrap">{{ formatAmount(order.totalAmount) }}</span>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
           <UButton v-if="order.status === 'draft'" icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="$router.push(`/dashboard/purchases/${order.id}`)" />
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = order; showDeleteModal = true" />
         </div>

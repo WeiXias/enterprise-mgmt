@@ -11,7 +11,7 @@ import { requirePermission } from '#server-utils/permission'
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
   await requirePermission(event, 'attachment:view')
-  const { source } = getQuery(event) as { source?: string }
+  const { source, raw } = getQuery(event) as { source?: string; raw?: string }
 
   let record: { id: string; fileName?: string; filePath?: string } | undefined
   if (source === 'deliverable') {
@@ -35,12 +35,35 @@ export default defineEventHandler(async (event) => {
   const ext = path.extname(fileName).toLowerCase()
   const buffer = fs.readFileSync(filePath)
 
+  // raw=true — 直接返回原始文件（给 Univer Docs 等在线编辑器用）
+  if (raw === 'true') {
+    const contentType = getContentType(fileName)
+    setHeader(event, 'Content-Type', contentType)
+    setHeader(event, 'Content-Disposition', `inline; filename="${encodeURIComponent(fileName)}"`)
+    setHeader(event, 'Cache-Control', 'public, max-age=3600')
+    return fs.createReadStream(filePath)
+  }
+
   // Office 文档转换为 HTML
   if (['.docx', '.dotx'].includes(ext)) {
     const mammoth = await import('mammoth')
     const result = await mammoth.convertToHtml({ buffer })
     setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,'PingFang SC',sans-serif;color:#333;max-width:900px;margin:40px auto;padding:0 20px;line-height:1.8}img{max-width:100%}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:6px 10px}</style></head><body>${(result as { value: string }).value}</body></html>`
+  }
+
+  // .doc 旧格式 — 用 officeparser 尝试解析
+  if (ext === '.doc') {
+    try {
+      const { parseOffice } = await import('officeparser')
+      const result = await parseOffice(buffer, { fileType: 'doc', outputFormat: 'html' })
+      const html = typeof result === 'string' ? result : JSON.stringify(result)
+      setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
+      return typeof html === 'string' ? html : String(html)
+    } catch {
+      setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:-apple-system,'PingFang SC',sans-serif;color:#333;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f5f5}.box{text-align:center;background:#fff;padding:40px 60px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08)}h2{font-size:18px;color:#333;margin:0 0 8px}p{font-size:14px;color:#888;margin:0 0 20px}a{display:inline-block;padding:8px 20px;background:#EF9F27;color:#fff;border-radius:6px;text-decoration:none;font-size:14px}</style></head><body><div class="box"><h2>暂不支持预览 .doc 文件</h2><p>请将文件转换为 .docx 格式后重新上传，或下载到本地查看</p><a href="/api/attachments/${encodeURIComponent(id)}/preview?source=attachment&download=1" download="${encodeURIComponent(fileName)}">下载文件</a></div></body></html>`
+    }
   }
 
   if (['.xlsx', '.xls', '.xlsm', '.csv'].includes(ext)) {

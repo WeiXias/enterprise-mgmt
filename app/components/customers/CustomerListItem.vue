@@ -22,7 +22,7 @@ const _statusColors: Record<string, string> = {
 
 <template>
   <div
-    class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group"
+    class="em-card !p-2.5 flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group"
     @click="$router.push(`/dashboard/customers/${customer.id}`)"
   >
     <!-- 复选框 -->

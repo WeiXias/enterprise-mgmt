@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'dashboard', title: '合同列表', middleware: ['auth'], watermark: true })
+definePageMeta({ layout: 'dashboard', title: '合同', middleware: ['auth'], watermark: true })
 
 // 列表数据（useTable）
 const { loading, list: contractsList, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchContracts } = useTable<any>({ apiUrl: '/api/contracts' })
@@ -10,6 +10,20 @@ const { exportCsv } = useExportCsv()
 // 状态筛选（独立 ref，通过 watch 联动 useTable）
 const statusFilter = ref('')
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
+
+// 排序
+const sortValue = ref('')
+watch(sortValue, (v) => {
+  if (!v) {
+    setFilter('sortBy', '')
+    setFilter('sortOrder', '')
+  } else {
+    const idx = v.lastIndexOf('_')
+    setFilter('sortBy', v.slice(0, idx))
+    setFilter('sortOrder', v.slice(idx + 1))
+  }
+  onFilterChange()
+})
 
 const toast = useToast()
 const { $api } = useNuxtApp()
@@ -248,8 +262,23 @@ function formatMoney(v: any) {
   return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 }
 
+// 统计快筛
+const quickFilter = ref('')
+const stats = ref({ inProgressCount: 0, newThisMonth: 0, expiringSoon: 0, totalAmount: 0 })
+function setQuickFilter(key: string) {
+  quickFilter.value = quickFilter.value === key ? '' : key
+  setFilter('inProgress', quickFilter.value === 'inProgress' ? '1' : undefined)
+  setFilter('newThisMonth', quickFilter.value === 'newThisMonth' ? '1' : undefined)
+  setFilter('expiringSoon', quickFilter.value === 'expiringSoon' ? '1' : undefined)
+  onFilterChange()
+}
+async function fetchStats() {
+  try { const res = await $fetch('/api/contracts/stats', { headers: useAuthHeaders() }) as any; if (res?.code === 0) stats.value = res.data } catch {}
+}
+
 onMounted(() => {
   fetchContracts()
+  fetchStats()
   fetchCustomers()
 })
 </script>
@@ -270,6 +299,30 @@ onMounted(() => {
       </template>
     </PageHeader>
 
+    <!-- 统计快筛卡片 -->
+    <div class="grid grid-cols-4 gap-2.5 mb-4">
+      <button class="em-card !p-3 text-left cursor-pointer transition-colors hover:border-brand-400" :class="quickFilter === 'inProgress' ? '!border-brand-400 ring-1 ring-brand-400/30' : ''" @click="setQuickFilter('inProgress')">
+        <div class="w-6 h-6 rounded-md bg-brand-50 flex items-center justify-center mb-1"><UIcon name="i-lucide-play" class="w-3.5 h-3.5 text-brand-500" /></div>
+        <div class="text-xl font-medium text-content-primary leading-none">{{ stats.inProgressCount }}</div>
+        <div class="text-xs text-content-muted mt-1">执行中</div>
+      </button>
+      <button class="em-card !p-3 text-left cursor-pointer transition-colors hover:border-teal-400" :class="quickFilter === 'newThisMonth' ? '!border-teal-400 ring-1 ring-teal-400/30' : ''" @click="setQuickFilter('newThisMonth')">
+        <div class="w-6 h-6 rounded-md bg-teal-50 flex items-center justify-center mb-1"><UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-teal-500" /></div>
+        <div class="text-xl font-medium text-content-primary leading-none">{{ stats.newThisMonth }}</div>
+        <div class="text-xs text-content-muted mt-1">本月新增</div>
+      </button>
+      <button class="em-card !p-3 text-left cursor-pointer transition-colors hover:border-danger-400" :class="quickFilter === 'expiringSoon' ? '!border-danger-400 ring-1 ring-danger-400/30' : ''" @click="setQuickFilter('expiringSoon')">
+        <div class="w-6 h-6 rounded-md bg-danger-50 flex items-center justify-center mb-1"><UIcon name="i-lucide-alert-circle" class="w-3.5 h-3.5 text-danger-500" /></div>
+        <div class="text-xl font-medium text-content-primary leading-none">{{ stats.expiringSoon }}</div>
+        <div class="text-xs text-content-muted mt-1">即将到期</div>
+      </button>
+      <div class="em-card !p-3 text-left">
+        <div class="w-6 h-6 rounded-md bg-surface-hover flex items-center justify-center mb-1"><UIcon name="i-lucide-coins" class="w-3.5 h-3.5 text-content-muted" /></div>
+        <div class="text-lg font-medium text-content-primary leading-none">{{ formatMoney(stats.totalAmount) }}</div>
+        <div class="text-xs text-content-muted mt-1">合同总额</div>
+      </div>
+    </div>
+
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
@@ -287,6 +340,14 @@ onMounted(() => {
         :options="[{value:'draft',label:'草稿'},{value:'approved',label:'已审批'},{value:'in_progress',label:'执行中'},{value:'completed',label:'已完成'},{value:'terminated',label:'已终止'}]"
         placeholder="全部状态"
       />
+      <select v-model="sortValue" class="input-base focus-ring min-w-[140px]">
+        <option value="">默认排序</option>
+        <option value="totalAmount_desc">金额从高到低</option>
+        <option value="totalAmount_asc">金额从低到高</option>
+        <option value="endDate_asc">截止日期从近到远</option>
+        <option value="endDate_desc">截止日期从远到近</option>
+        <option value="updatedAt_desc">最近更新</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 个合同</span>
       <label v-if="can('contract:transfer')" class="flex items-center gap-1 text-xs text-content-muted cursor-pointer select-none ml-auto">
         <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500 focus:ring-brand-400" :checked="selectedIds.size === contractsList.length && contractsList.length > 0" @change="toggleSelectAll" />
@@ -301,7 +362,7 @@ onMounted(() => {
       <div
         v-for="ct in contractsList"
         :key="ct.id"
-        class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group"
+        class="em-card !p-2.5 flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer group"
         @click="$router.push(`/dashboard/contracts/${ct.id}`)"
       >
         <!-- 复选框 -->
@@ -331,7 +392,6 @@ onMounted(() => {
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline mr-0.5" />
               {{ ct.customer.name }}
             </span>
-            <span class="font-medium">{{ formatMoney(ct.totalAmount) }}</span>
             <span v-if="ct.owner?.name" class="text-brand-600">
               <UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ ct.owner.name }}
             </span>
@@ -341,6 +401,9 @@ onMounted(() => {
             </span>
           </div>
         </div>
+
+        <!-- 金额（右对齐） -->
+        <span class="text-brand-500 text-sm font-medium whitespace-nowrap">{{ formatMoney(ct.totalAmount) }}</span>
 
         <!-- 进度条（执行中/已完成显示） -->
         <div v-if="ct.status === 'in_progress' || ct.status === 'completed'" class="w-24">
@@ -356,8 +419,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 操作下拉菜单 -->
-        <div class="flex items-center gap-1" @click.stop>
+        <!-- 操作按钮（hover 显示） -->
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
           <!-- 草稿：审批（管理员可审批任意状态） -->
           <UButton
             v-if="ct.status === 'draft' || (ct.status !== 'terminated' && ct.status !== 'completed' && can('contract:manage'))"

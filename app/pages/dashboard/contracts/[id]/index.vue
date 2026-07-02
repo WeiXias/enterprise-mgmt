@@ -57,25 +57,16 @@ async function handleTransfer() {
   finally { transferLoading.value = false }
 }
 
-// Tab
-const activeTab = ref('0')
-
-// PDF 导出
+// 附件
 const pdfLoading = ref(false)
 async function handleExportPdf() {
   pdfLoading.value = true
   try {
     const res = await $api(`/api/contracts/${contractId}/export-pdf`, { method: 'POST' }) as any
-    if (res?.code === 0 && res.data?.pdfUrl) {
-      window.open(res.data.pdfUrl, '_blank')
-    } else {
-      toast.add({ title: '导出出了点问题', color: 'error' })
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '导出失败', color: 'error' })
-  } finally {
-    pdfLoading.value = false
-  }
+    if (res?.code === 0 && res.data?.pdfUrl) { window.open(res.data.pdfUrl, '_blank') }
+    else { toast.add({ title: '导出出了点问题', color: 'error' }) }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '导出失败', color: 'error' }) }
+  finally { pdfLoading.value = false }
 }
 
 // 编辑合同
@@ -93,6 +84,17 @@ const rejectReason = ref('')
 // 删除
 const showDeleteModal = ref(false)
 const deleteLoading = ref(false)
+
+// 收款计划展开
+const showPlans = ref(false)
+// 收款记录展开
+const showPayments = ref(false)
+// 发票展开
+const showInvoices = ref(false)
+// 关联合同展开
+const showRelatedContracts = ref(false)
+// 关联采购单展开
+const showRelatedPOs = ref(false)
 
 // 状态配置
 const statusConfig: Record<string, { label: string; color: string }> = {
@@ -118,9 +120,7 @@ async function fetchContract() {
   loading.value = true
   try {
     const res = await $api(`/api/contracts/${contractId}`) as any
-    if (res?.code === 0) {
-      contract.value = res.data
-    }
+    if (res?.code === 0) { contract.value = res.data }
   } catch (err: any) {
     if (err?.statusCode === 404) {
       toast.add({ title: '合同不存在', color: 'error' })
@@ -128,9 +128,7 @@ async function fetchContract() {
     } else {
       toast.add({ title: '加载出了点问题', color: 'error' })
     }
-  } finally {
-    loading.value = false
-  }
+  } finally { loading.value = false }
 }
 
 function openEditModal() {
@@ -152,70 +150,40 @@ async function handleEdit() {
   try {
     const res = await $api(`/api/contracts/${contractId}`, { method: 'PUT', body: editForm.value }) as any
     if (res?.code === 0) {
-      toast.add({ title: '已保存', color: 'success' })
+      toast.add({ title: contract.value.status !== 'draft' ? '合同已审批，修改信息已保存' : '已保存', color: 'success' })
       showEditModal.value = false
       fetchContract()
     }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '保存失败', color: 'error' })
-  } finally {
-    editLoading.value = false
-  }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '保存失败', color: 'error' }) }
+  finally { editLoading.value = false }
 }
 
 async function handleDelete() {
   deleteLoading.value = true
   try {
     const res = await $api(`/api/contracts/${contractId}`, { method: 'DELETE' }) as any
-    if (res?.code === 0) {
-      toast.add({ title: '合同已删除', color: 'success' })
-      router.push('/dashboard/contracts')
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '删除失败', color: 'error' })
-  } finally {
-    deleteLoading.value = false
-  }
+    if (res?.code === 0) { toast.add({ title: '合同已删除', color: 'success' }); router.push('/dashboard/contracts') }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { deleteLoading.value = false }
 }
 
 async function handleApprove() {
   approveLoading.value = true
   try {
     const res = await $api(`/api/contracts/${contractId}/approve`, { method: 'POST' }) as any
-    if (res?.code === 0) {
-      toast.add({ title: '审批通过了！', color: 'success' })
-      showApproveModal.value = false
-      fetchContract()
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '审批失败', color: 'error' })
-  } finally {
-    approveLoading.value = false
-  }
+    if (res?.code === 0) { toast.add({ title: '审批通过了！', color: 'success' }); showApproveModal.value = false; fetchContract() }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '审批失败', color: 'error' }) }
+  finally { approveLoading.value = false }
 }
 
 async function handleReject() {
-  if (!rejectReason.value) {
-    toast.add({ title: '驳回原因还没填呢', color: 'warning' })
-    return
-  }
+  if (!rejectReason.value) { toast.add({ title: '驳回原因还没填呢', color: 'warning' }); return }
   rejectLoading.value = true
   try {
-    const res = await $api(`/api/contracts/${contractId}/reject`, {
-      method: 'POST',
-      body: { reason: rejectReason.value },
-    }) as any
-    if (res?.code === 0) {
-      toast.add({ title: '已驳回', color: 'success' })
-      showRejectModal.value = false
-      rejectReason.value = ''
-      fetchContract()
-    }
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '驳回失败', color: 'error' })
-  } finally {
-    rejectLoading.value = false
-  }
+    const res = await $api(`/api/contracts/${contractId}/reject`, { method: 'POST', body: { reason: rejectReason.value } }) as any
+    if (res?.code === 0) { toast.add({ title: '已驳回', color: 'success' }); showRejectModal.value = false; rejectReason.value = ''; fetchContract() }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '驳回失败', color: 'error' }) }
+  finally { rejectLoading.value = false }
 }
 
 // 附件
@@ -237,9 +205,24 @@ async function handleDeleteAttachment(file: any) {
     await $api(`/api/attachments/${file.id}`, { method: 'DELETE' })
     toast.add({ title: '已删除', color: 'success' })
     fetchAttachments()
-  } catch (err: any) {
-    toast.add({ title: err?.data?.message || '删除失败', color: 'error' })
-  }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+}
+
+// 生命周期阶段
+const lifecycleStages = computed(() => {
+  if (!contract.value) return []
+  const stages = [
+    { label: '创建', date: contract.value.createdAt, active: true },
+    { label: '审批', date: contract.value.approvedAt, active: !!contract.value.approvedAt },
+    { label: '执行中', date: null, active: contract.value.status === 'in_progress' || contract.value.status === 'completed' },
+    { label: contract.value.status === 'completed' ? '已完成' : contract.value.status === 'terminated' ? '已终止' : '进行中', date: contract.value.status === 'completed' || contract.value.status === 'terminated' ? contract.value.updatedAt : null, active: contract.value.status === 'completed' || contract.value.status === 'terminated' },
+  ]
+  return stages
+})
+
+function stageClass(stage: any, index: number) {
+  if (stage.active) return index === lifecycleStages.value.length - 1 && contract.value.status === 'terminated' ? 'bg-danger-400' : 'bg-teal-400'
+  return 'bg-surface-muted'
 }
 
 onMounted(() => {
@@ -255,19 +238,17 @@ onMounted(() => {
     <!-- 顶部面包屑 + 操作 -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-2 text-sm">
-        <NuxtLink to="/dashboard/contracts/center" class="text-content-muted hover:text-brand-600 transition-colors">合同中心</NuxtLink>
+        <NuxtLink to="/dashboard/contracts" class="text-content-muted hover:text-brand-600 transition-colors">合同</NuxtLink>
         <span class="text-content-muted">/</span>
-        <NuxtLink to="/dashboard/contracts" class="text-content-muted hover:text-brand-600 transition-colors">合同列表</NuxtLink>
-        <span class="text-content-muted">/</span>
-        <span class="text-content-primary">{{ contract.name }}</span>
+        <span class="text-content-primary font-medium">{{ contract.name }}</span>
       </div>
       <div class="flex gap-2">
         <UButton v-if="contract.status === 'draft'" icon="i-lucide-check-circle" color="primary" size="sm" @click="showApproveModal = true">审批通过</UButton>
         <UButton v-if="contract.status === 'approved'" icon="i-lucide-x-circle" color="warning" size="sm" @click="rejectReason = ''; showRejectModal = true">驳回</UButton>
-        <UButton v-if="contract.status === 'draft'" icon="i-lucide-pen-line" variant="ghost" color="neutral" size="sm" @click="openEditModal">编辑</UButton>
+        <!-- 编辑按钮：所有状态都显示 -->
+        <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="sm" @click="openEditModal">编辑</UButton>
         <UButton v-if="contract.status === 'draft'" icon="i-lucide-trash-2" variant="ghost" color="error" size="sm" @click="showDeleteModal = true" />
         <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="sm" @click="router.push('/dashboard/contracts')">返回</UButton>
-        <UButton v-if="contract.status === 'draft'" icon="i-lucide-sparkles" variant="ghost" color="warning" size="sm" @click="activeTab = 'ai-review'">合同审阅</UButton>
       </div>
     </div>
 
@@ -325,100 +306,173 @@ onMounted(() => {
         <span>审批人：{{ contract.approvedBy?.name }}</span>
         <span v-if="contract.approvedAt">审批时间：{{ formatDate(contract.approvedAt) }}</span>
       </div>
-      <div v-if="contract.rejectReason" class="mt-2 text-xs text-danger-600">
-        驳回原因：{{ contract.rejectReason }}
-      </div>
+      <div v-if="contract.rejectReason" class="mt-2 text-xs text-danger-600">驳回原因：{{ contract.rejectReason }}</div>
       <p v-if="contract.remark" class="text-sm text-content-muted mt-3 pt-3 border-t border-line-light">{{ contract.remark }}</p>
     </div>
 
-    <!-- 子模块快捷入口 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-      <NuxtLink :to="`/dashboard/contracts/${contractId}/products`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
-        <div class="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center">
-          <UIcon name="i-lucide-tag" class="w-4 h-4 text-brand-600" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm text-content-primary">{{ contract.products?.length || 0 }}</div>
-          <div class="text-xs text-content-muted">产品明细</div>
-        </div>
-        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-      </NuxtLink>
-      <NuxtLink :to="`/dashboard/contracts/${contractId}/plans`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
-        <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-          <UIcon name="i-lucide-calendar-check" class="w-4 h-4 text-amber-600" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm text-content-primary">{{ contract.paymentPlans?.length || 0 }}</div>
-          <div class="text-xs text-content-muted">收款计划</div>
-        </div>
-        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-      </NuxtLink>
-      <NuxtLink :to="`/dashboard/contracts/${contractId}/payments`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
-        <div class="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
-          <UIcon name="i-lucide-dollar-sign" class="w-4 h-4 text-teal-600" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm text-content-primary">{{ contract.payments?.length || 0 }}</div>
-          <div class="text-xs text-content-muted">收款记录</div>
-        </div>
-        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-      </NuxtLink>
-      <NuxtLink :to="`/dashboard/contracts/${contractId}/invoices`" class="em-card flex items-center gap-3 py-3 px-4 hover:shadow-sm transition-shadow group">
-        <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-          <UIcon name="i-lucide-receipt" class="w-4 h-4 text-violet-600" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-sm text-content-primary">{{ contract.invoices?.length || 0 }}</div>
-          <div class="text-xs text-content-muted">发票</div>
-        </div>
-        <UIcon name="i-lucide-chevron-right" class="w-3 h-3 text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-      </NuxtLink>
-    </div>
-
-    <!-- Tab 区域 -->
-    <UTabs :items="[
-      { label: '合同正文', slot: 'content' },
-      { label: '附件', slot: 'attachments' },
-      { label: '合同审阅', slot: 'ai-review' },
-    ]" v-model="activeTab" :unmount-on-hide="false">
-      <template #content>
-        <div class="mt-4">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-sm text-content-muted">合同正文</span>
-            <div class="flex items-center gap-2">
-              <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" :to="`/dashboard/contracts/${contract.id}/edit`">编辑正文</UButton>
-              <UButton icon="i-lucide-file-down" variant="ghost" color="primary" size="xs" :loading="pdfLoading" @click="handleExportPdf">导出 PDF</UButton>
+    <!-- 合同生命周期时间轴 -->
+    <div class="em-card mb-6">
+      <h3 class="text-sm font-medium text-content-primary mb-3">合同阶段</h3>
+      <div class="flex items-center gap-0">
+        <template v-for="(stage, idx) in lifecycleStages" :key="stage.label">
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <div :class="['w-3 h-3 rounded-full', stageClass(stage, idx)]" />
+            <div>
+              <div class="text-xs font-medium" :class="stage.active ? 'text-content-primary' : 'text-content-muted'">{{ stage.label }}</div>
+              <div v-if="stage.date" class="text-[10px] text-content-muted">{{ formatDate(stage.date) }}</div>
             </div>
           </div>
-          <div v-if="!contract.content" class="text-center py-12 text-content-muted">
-            <p>还没起草正文</p>
-            <UButton icon="i-lucide-pen-line" variant="ghost" color="primary" size="sm" class="mt-2" :to="`/dashboard/contracts/${contract.id}/edit`">点击编辑开始撰写</UButton>
+          <div v-if="idx < lifecycleStages.length - 1" :class="['flex-1 h-px mx-2', lifecycleStages[idx + 1].active ? 'bg-teal-300' : 'bg-surface-muted']" />
+        </template>
+      </div>
+    </div>
+
+    <!-- 产品明细 -->
+    <div class="em-card mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-medium text-content-primary">产品明细</h3>
+        <NuxtLink :to="`/dashboard/contracts/${contractId}/products`" class="text-xs text-brand-600 hover:underline">管理产品</NuxtLink>
+      </div>
+      <div v-if="!contract.products?.length" class="text-center py-6 text-xs text-content-muted">还没有关联产品</div>
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-line-light text-content-muted">
+              <th class="text-left py-2 pr-4 font-normal">产品</th>
+              <th class="text-left py-2 pr-4 font-normal hidden sm:table-cell">分类</th>
+              <th class="text-right py-2 pr-4 font-normal">数量</th>
+              <th class="text-right py-2 pr-4 font-normal">单价</th>
+              <th class="text-right py-2 pr-4 font-normal hidden sm:table-cell">税率</th>
+              <th class="text-right py-2 pr-4 font-normal hidden sm:table-cell">折扣</th>
+              <th class="text-right py-2 font-normal">小计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in contract.products" :key="p.id" class="border-b border-line-light/50">
+              <td class="py-2 pr-4">
+                <div class="text-content-primary">{{ p.productName }}</div>
+                <div class="text-content-muted text-[10px]">{{ p.productCode }}</div>
+              </td>
+              <td class="py-2 pr-4 text-content-muted hidden sm:table-cell">{{ p.categoryName || '-' }}</td>
+              <td class="py-2 pr-4 text-right">{{ p.quantity }}</td>
+              <td class="py-2 pr-4 text-right">{{ formatMoney(p.unitPrice) }}</td>
+              <td class="py-2 pr-4 text-right hidden sm:table-cell">{{ p.taxRate ? p.taxRate + '%' : '-' }}</td>
+              <td class="py-2 pr-4 text-right hidden sm:table-cell">{{ ((p.discount || 1) * 100).toFixed(0) }}%</td>
+              <td class="py-2 text-right font-medium text-content-primary">{{ formatMoney(p.quantity * p.unitPrice * (p.discount || 1)) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="contract.products?.length" class="mt-2 pt-2 border-t border-line-light flex justify-end">
+        <span class="text-sm font-medium text-content-primary">合计 {{ formatMoney(contract.products?.reduce((s: number, p: any) => s + p.quantity * p.unitPrice * (p.discount || 1), 0) || 0) }}</span>
+      </div>
+    </div>
+
+    <!-- 合同全景：收款计划 / 收款记录 / 发票 / 关联合同 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <!-- 收款计划 -->
+      <div class="em-card">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-content-primary">收款计划 ({{ contract.paymentPlans?.length || 0 }})</h3>
+          <button class="text-xs text-brand-600 hover:underline" @click="showPlans = !showPlans">{{ showPlans ? '收起' : '展开' }}</button>
+        </div>
+        <div v-if="showPlans && contract.paymentPlans?.length" class="space-y-1">
+          <div v-for="plan in contract.paymentPlans.slice(0, 3)" :key="plan.id" class="flex items-center justify-between text-xs py-1 border-b border-line-light/50 last:border-0">
+            <span class="text-content-muted">{{ plan.planDate?.slice(0, 10) }}</span>
+            <span class="font-medium">{{ formatMoney(plan.amount) }}</span>
+            <span :class="plan.status === 'paid' ? 'text-teal-500' : plan.status === 'overdue' ? 'text-danger-500' : 'text-content-muted'">
+              {{ plan.status === 'paid' ? '已付' : plan.status === 'overdue' ? '逾期' : '待付' }}
+            </span>
           </div>
-          <div v-else class="em-card prose prose-sm max-w-none prose-headings:text-content-inverse prose-p:text-content-secondary" v-html="renderContractContent(contract.content)" />
+          <NuxtLink v-if="contract.paymentPlans?.length > 3" :to="`/dashboard/contracts/${contractId}/plans`" class="text-xs text-brand-600 hover:underline block mt-1">查看全部 {{ contract.paymentPlans.length }} 条</NuxtLink>
         </div>
-      </template>
+        <div v-else-if="!contract.paymentPlans?.length" class="text-xs text-content-muted">还没有收款计划</div>
+      </div>
 
-      <template #attachments>
-        <div class="mt-4">
-          <FileUpload
-            source="attachment"
-            :upload-url="`/api/contracts/${contractId}/attachments`"
-            :files="attachmentFiles.map((f: any) => ({ id: f.id, fileName: f.fileName, fileSize: f.fileSize }))"
-            :loading="attachmentLoading"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip"
-            :max-size="20"
-            @uploaded="fetchAttachments()"
-            @delete="(f: any) => handleDeleteAttachment(f)"
-          />
+      <!-- 收款记录 -->
+      <div class="em-card">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-content-primary">收款记录 ({{ contract.payments?.length || 0 }})</h3>
+          <button class="text-xs text-brand-600 hover:underline" @click="showPayments = !showPayments">{{ showPayments ? '收起' : '展开' }}</button>
         </div>
-      </template>
+        <div v-if="showPayments && contract.payments?.length" class="space-y-1">
+          <div v-for="pmt in contract.payments.slice(0, 3)" :key="pmt.id" class="flex items-center justify-between text-xs py-1 border-b border-line-light/50 last:border-0">
+            <span class="text-content-muted">{{ pmt.paymentDate?.slice(0, 10) }}</span>
+            <span class="font-medium text-teal-600">{{ formatMoney(pmt.amount) }}</span>
+            <span class="text-content-muted">{{ pmt.paymentMethod }}</span>
+          </div>
+          <NuxtLink v-if="contract.payments?.length > 3" :to="`/dashboard/contracts/${contractId}/payments`" class="text-xs text-brand-600 hover:underline block mt-1">查看全部 {{ contract.payments.length }} 条</NuxtLink>
+        </div>
+        <div v-else-if="!contract.payments?.length" class="text-xs text-content-muted">还没有收款记录</div>
+        <NuxtLink v-if="contract.payments?.length" :to="`/dashboard/contracts/${contractId}/payments`" class="text-xs text-brand-600 hover:underline mt-1 inline-block">登记收款</NuxtLink>
+      </div>
 
-      <template #ai-review>
-        <div class="mt-4">
-          <ContractAIReview :contract-id="contractId" />
+      <!-- 发票 -->
+      <div class="em-card">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-content-primary">发票 ({{ contract.invoices?.length || 0 }})</h3>
+          <button class="text-xs text-brand-600 hover:underline" @click="showInvoices = !showInvoices">{{ showInvoices ? '收起' : '展开' }}</button>
         </div>
-      </template>
-    </UTabs>
+        <div v-if="showInvoices && contract.invoices?.length" class="space-y-1">
+          <div v-for="inv in contract.invoices.slice(0, 3)" :key="inv.id" class="flex items-center justify-between text-xs py-1 border-b border-line-light/50 last:border-0">
+            <NuxtLink :to="`/dashboard/finance/invoices/${inv.id}`" class="text-brand-600 hover:underline">{{ inv.invoiceNo }}</NuxtLink>
+            <span class="font-medium">{{ formatMoney(inv.amount) }}</span>
+            <span :class="inv.status === 'issued' ? 'text-teal-500' : inv.status === 'voided' ? 'text-danger-500' : 'text-content-muted'">
+              {{ inv.status === 'issued' ? '已开票' : inv.status === 'voided' ? '已作废' : '待开票' }}
+            </span>
+          </div>
+          <NuxtLink v-if="contract.invoices?.length > 3" :to="`/dashboard/contracts/${contractId}/invoices`" class="text-xs text-brand-600 hover:underline block mt-1">查看全部 {{ contract.invoices.length }} 条</NuxtLink>
+        </div>
+        <div v-else-if="!contract.invoices?.length" class="text-xs text-content-muted">还没有发票</div>
+        <NuxtLink :to="`/dashboard/finance/invoices?edit=new&contractId=${contractId}`" class="text-xs text-brand-600 hover:underline mt-1 inline-block">新增发票</NuxtLink>
+      </div>
+
+      <!-- 关联合同 -->
+      <div class="em-card col-span-full md:col-span-1" v-if="contract.relatedContracts?.length || contract.relatedPurchaseOrders?.length">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-content-primary">关联合同 ({{ (contract.relatedContracts?.length || 0) + (contract.relatedPurchaseOrders?.length || 0) }})</h3>
+          <button class="text-xs text-brand-600 hover:underline" @click="showRelatedContracts = !showRelatedContracts">{{ showRelatedContracts ? '收起' : '展开' }}</button>
+        </div>
+        <div v-if="showRelatedContracts" class="space-y-1">
+          <!-- 销售合同 -->
+          <template v-if="contract.relatedContracts?.length">
+            <div class="text-[10px] text-content-muted mb-1">关联销售合同</div>
+            <div v-for="rc in contract.relatedContracts.slice(0, 3)" :key="rc.id" class="flex items-center justify-between text-xs py-1 border-b border-line-light/50 last:border-0">
+              <NuxtLink :to="`/dashboard/contracts/${rc.id}`" class="text-brand-600 hover:underline truncate max-w-[160px]">{{ rc.name }}</NuxtLink>
+              <span class="font-medium">{{ formatMoney(rc.totalAmount) }}</span>
+              <StatusBadge :value="rc.status" enum-type="contractStatus" />
+            </div>
+          </template>
+          <!-- 采购合同 -->
+          <template v-if="contract.relatedPurchaseOrders?.length">
+            <div class="text-[10px] text-content-muted mb-1 mt-2">关联采购单</div>
+            <div v-for="po in contract.relatedPurchaseOrders.slice(0, 3)" :key="po.id" class="flex items-center justify-between text-xs py-1 border-b border-line-light/50 last:border-0">
+              <NuxtLink :to="`/dashboard/purchases/${po.id}`" class="text-brand-600 hover:underline">{{ po.code }}</NuxtLink>
+              <span class="text-content-muted">{{ po.supplierName || '-' }}</span>
+              <span class="font-medium">{{ formatMoney(po.totalAmount) }}</span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 合同电子版 -->
+    <div class="em-card mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-medium text-content-primary">合同电子版 ({{ attachmentFiles.length }})</h3>
+        <span class="text-xs text-content-muted">点击文件预览，拖拽上传</span>
+      </div>
+      <FileUpload
+        source="attachment"
+        :upload-url="`/api/contracts/${contractId}/attachments`"
+        :files="attachmentFiles.map((f: any) => ({ id: f.id, fileName: f.fileName, fileSize: f.fileSize }))"
+        :loading="attachmentLoading"
+        accept=".pdf"
+        :max-size="20"
+        @uploaded="fetchAttachments()"
+        @delete="(f: any) => handleDeleteAttachment(f)"
+      />
+    </div>
 
     <!-- 关联项目 -->
     <div v-if="contract.projects?.length" class="mt-6 em-card">
@@ -435,10 +489,7 @@ onMounted(() => {
     <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑合同" :loading="editLoading" @confirm="handleEdit">
       <form class="space-y-5" @submit.prevent="handleEdit">
         <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-0.5 h-3.5 rounded-full bg-brand-400" />
-            <span class="text-sm font-medium text-brand-700">基本信息</span>
-          </div>
+          <div class="flex items-center gap-1.5 mb-3"><span class="w-0.5 h-3.5 rounded-full bg-brand-400" /><span class="text-sm font-medium text-brand-700">基本信息</span></div>
           <div class="space-y-3">
             <div><label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-danger-500">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
             <div><label class="block text-sm text-content-secondary mb-1">合同金额</label><input v-model.number="editForm.totalAmount" type="number" step="0.01" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
@@ -473,14 +524,8 @@ onMounted(() => {
 
     <!-- 驳回弹窗 -->
     <FormModal v-if="showRejectModal" v-model:open="showRejectModal" title="驳回合同" :loading="rejectLoading" size="compact" @confirm="handleReject">
-      <div class="space-y-3">
-        <p class="text-sm text-content-secondary">请填写驳回原因：</p>
-        <textarea v-model="rejectReason" rows="3" placeholder="写明驳回原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" />
-      </div>
-      <template #footer>
-        <UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton>
-        <UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton>
-      </template>
+      <div class="space-y-3"><p class="text-sm text-content-secondary">请填写驳回原因：</p><textarea v-model="rejectReason" rows="3" placeholder="写明驳回原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" /></div>
+      <template #footer><UButton color="warning" :loading="rejectLoading" @click="handleReject">确认驳回</UButton><UButton variant="ghost" color="neutral" @click="showRejectModal = false">算了</UButton></template>
     </FormModal>
 
     <!-- 删除弹窗 -->
@@ -489,31 +534,20 @@ onMounted(() => {
     <!-- 转交弹窗 -->
     <FormModal v-if="showTransferModal" v-model:open="showTransferModal" title="转交合同" size="compact" :loading="transferLoading">
       <div class="space-y-4">
-        <div>
-          <label class="block text-sm text-content-secondary mb-2">新归属人 <span class="text-danger-500">*</span></label>
-          <div class="relative">
-            <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" />
-            <input v-model="userSearchKeyword" type="text" placeholder="搜索同事姓名..." class="w-full pl-8 input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" @input="onUserSearch" @focus="loadUsers" />
-          </div>
+        <div><label class="block text-sm text-content-secondary mb-2">新归属人 <span class="text-danger-500">*</span></label>
+          <div class="relative"><UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted pointer-events-none" /><input v-model="userSearchKeyword" type="text" placeholder="搜索同事姓名..." class="w-full pl-8 input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" @input="onUserSearch" @focus="loadUsers" /></div>
           <div v-if="userOptions.length > 0" class="mt-2 max-h-48 overflow-y-auto border border-line rounded-md divide-y divide-line-light">
             <button v-for="u in userOptions" :key="u.id" :class="['w-full text-left px-3 py-2.5 text-sm hover:bg-brand-50 transition-colors flex items-center gap-2', transferToUserId === u.id ? 'bg-brand-50' : '']" @click="transferToUserId = u.id">
               <span class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0"><span class="text-brand-700 text-[10px]">{{ u.name?.charAt(0) }}</span></span>
-              <span class="text-content-primary">{{ u.name }}</span>
-              <span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
+              <span class="text-content-primary">{{ u.name }}</span><span class="text-xs text-content-muted ml-auto">{{ u.username }}</span>
               <UIcon v-if="transferToUserId === u.id" name="i-lucide-check" class="w-4 h-4 text-brand-500 ml-1" />
             </button>
           </div>
           <div v-else-if="userSearchLoading" class="mt-2 p-2 text-xs text-content-muted">加载中...</div>
         </div>
-        <div>
-          <label class="block text-sm text-content-secondary mb-1">转交原因</label>
-          <textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" />
-        </div>
+        <div><label class="block text-sm text-content-secondary mb-1">转交原因</label><textarea v-model="transferReason" rows="2" placeholder="可选，记录转交原因..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 resize-none" /></div>
       </div>
-      <template #footer>
-        <UButton color="primary" :loading="transferLoading" :disabled="!transferToUserId" @click="handleTransfer">确认转交</UButton>
-        <UButton variant="ghost" color="neutral" @click="showTransferModal = false">算了</UButton>
-      </template>
+      <template #footer><UButton color="primary" :loading="transferLoading" :disabled="!transferToUserId" @click="handleTransfer">确认转交</UButton><UButton variant="ghost" color="neutral" @click="showTransferModal = false">算了</UButton></template>
     </FormModal>
   </div>
 </template>

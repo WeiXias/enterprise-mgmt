@@ -11,6 +11,20 @@ watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 const categoryFilter = ref('')
 watch(categoryFilter, (v) => { setFilter('categoryId', v); onFilterChange() })
 
+// 排序
+const sortValue = ref('')
+watch(sortValue, (v) => {
+  if (!v) {
+    setFilter('sortBy', '')
+    setFilter('sortOrder', '')
+  } else {
+    const idx = v.lastIndexOf('_')
+    setFilter('sortBy', v.slice(0, idx))
+    setFilter('sortOrder', v.slice(idx + 1))
+  }
+  onFilterChange()
+})
+
 const categories = ref<any[]>([])
 
 const showCreateModal = ref(false)
@@ -102,6 +116,14 @@ onMounted(() => { fetchProducts(); fetchCategories() })
       </div>
       <EnumSelect v-model="categoryFilter" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="全部分类" />
       <EnumSelect v-model="statusFilter" dict="productStatus" placeholder="全部状态" />
+      <select v-model="sortValue" class="input-base focus-ring min-w-[130px]">
+        <option value="">默认排序</option>
+        <option value="standardPrice_desc">价格从高到低</option>
+        <option value="standardPrice_asc">价格从低到高</option>
+        <option value="stockQuantity_desc">库存从多到少</option>
+        <option value="stockQuantity_asc">库存从少到多</option>
+        <option value="name_asc">名称 A-Z</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 个产品</span>
       <div class="ml-auto flex items-center rounded-lg border border-line overflow-hidden">
         <button :class="['px-2.5 py-1.5 text-xs transition-colors', viewMode === 'grid' ? 'bg-brand-50 text-brand-700' : 'text-content-muted hover:bg-surface-hover']" @click="viewMode = 'grid'"><UIcon name="i-lucide-layout-grid" class="w-3.5 h-3.5" /></button>
@@ -130,7 +152,7 @@ onMounted(() => { fetchProducts(); fetchCategories() })
       <div
         v-for="product in products"
         :key="product.id"
-        class="em-card group cursor-pointer hover:shadow-card-hover transition-shadow relative"
+        class="em-card !p-3 group cursor-pointer hover:shadow-card-hover transition-shadow relative"
         @click="$router.push(`/dashboard/products/${product.id}`)"
       >
         <!-- 状态色条 + 缩略图区域 -->
@@ -150,7 +172,7 @@ onMounted(() => { fetchProducts(); fetchCategories() })
         <!-- 价格 / 库存 行 -->
         <div class="flex items-baseline justify-between mb-2.5">
           <div>
-            <span class="text-base font-medium text-content-primary">{{ formatMoney(product.standardPrice) }}</span>
+            <span class="text-base font-medium text-brand-500">{{ formatMoney(product.standardPrice) }}</span>
             <span v-if="product.costPrice" class="text-xs text-content-muted ml-1.5">/ 成本 {{ formatMoney(product.costPrice) }}</span>
           </div>
           <div class="text-xs font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-danger-500'">
@@ -182,8 +204,8 @@ onMounted(() => { fetchProducts(); fetchCategories() })
     </div>
 
     <!-- 列表视图（精简） -->
-    <div v-else class="space-y-2">
-      <div v-for="product in products" :key="product.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group cursor-pointer" @click="$router.push(`/dashboard/products/${product.id}`)">
+    <div v-else class="space-y-1">
+      <div v-for="product in products" :key="product.id" class="em-card !p-2.5 flex items-center gap-3 hover:shadow-sm transition-shadow group cursor-pointer" @click="$router.push(`/dashboard/products/${product.id}`)">
         <div :class="['w-1 h-10 rounded-full shrink-0', product.status === 'on_sale' ? 'bg-teal-400' : 'bg-line']" />
         <div class="w-10 h-10 rounded-lg bg-surface-hover flex items-center justify-center shrink-0 overflow-hidden">
           <img v-if="product.images?.[0]?.url" :src="product.images[0].url" class="w-full h-full object-cover rounded-lg" />
@@ -197,11 +219,11 @@ onMounted(() => { fetchProducts(); fetchCategories() })
           </div>
           <div class="flex items-center gap-3 text-xs text-content-muted">
             <span v-if="product.category?.name"><UIcon name="i-lucide-tag" class="w-3 h-3 inline-block mr-0.5" />{{ product.category.name }}</span>
-            <span><UIcon name="i-lucide-coins" class="w-3 h-3 inline-block mr-0.5" />{{ formatMoney(product.standardPrice) }}</span>
             <span v-if="product.costPrice">成本 {{ formatMoney(product.costPrice) }}</span>
             <span class="font-medium" :class="(product.stockQuantity ?? 0) > 0 ? 'text-teal-600' : 'text-danger-500'">库存 {{ product.stockQuantity ?? 0 }}</span>
           </div>
         </div>
+        <span class="text-brand-500 text-sm font-medium whitespace-nowrap">{{ formatMoney(product.standardPrice) }}</span>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
           <UButton :icon="product.status === 'on_sale' ? 'i-lucide-eye-off' : 'i-lucide-eye'" variant="ghost" :color="product.status === 'on_sale' ? 'neutral' : 'success'" size="xs" @click="toggleStatus(product)" />
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditModal(product)" />

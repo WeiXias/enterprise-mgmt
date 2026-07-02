@@ -16,6 +16,23 @@ const categoryFilter = ref('')
 
 const categories = ref<any[]>([])
 
+// 排序
+const sortBy = ref('updatedAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+
+const sortOptions = [
+  { label: '金额从高到低', value: 'amount:desc' },
+  { label: '金额从低到高', value: 'amount:asc' },
+  { label: '日期近→远', value: 'createdAt:desc' },
+  { label: '日期远→近', value: 'createdAt:asc' },
+]
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+function onSortChange(val: string) {
+  const [by = 'updatedAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+}
+
 // 创建/编辑
 const showModal = ref(false)
 const saving = ref(false)
@@ -32,7 +49,7 @@ function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '
 async function fetchItems() {
   loading.value = true
   try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value, year: year.value }
+    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value, year: year.value, sortBy: sortBy.value, sortOrder: sortOrder.value }
     if (typeFilter.value) params.type = typeFilter.value
     if (categoryFilter.value) params.category = categoryFilter.value
     const res = await $api('/api/budgets', { params }) as any
@@ -104,6 +121,9 @@ const totalStats = computed(() => {
   return { budgetTotal, actualTotal, percent: budgetTotal > 0 ? Math.round(actualTotal / budgetTotal * 100) : 0 }
 })
 
+// 排序变更时重新获取
+watch([sortBy, sortOrder], () => { page.value = 1; fetchItems() })
+
 onMounted(() => { fetchItems(); fetchCategories() })
 </script>
 
@@ -119,15 +139,15 @@ onMounted(() => { fetchItems(); fetchCategories() })
 
     <!-- 预算概览 -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="em-card flex items-center gap-3 !py-3">
+      <div class="em-card !p-2.5 flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-target" class="w-5 h-5 text-brand-400" /></div>
         <div><p class="text-lg font-medium text-content-secondary">{{ formatMoney(totalStats.budgetTotal) }}</p><p class="text-xs text-content-muted">预算总额</p></div>
       </div>
-      <div class="em-card flex items-center gap-3 !py-3">
+      <div class="em-card !p-2.5 flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-trending-up" class="w-5 h-5 text-teal-500" /></div>
         <div><p class="text-lg font-medium text-teal-600">{{ formatMoney(totalStats.actualTotal) }}</p><p class="text-xs text-content-muted">实际支出</p></div>
       </div>
-      <div class="em-card flex items-center gap-3 !py-3" :class="totalStats.percent > 100 ? 'border-red-300' : totalStats.percent > 80 ? 'border-brand-300' : ''">
+      <div class="em-card !p-2.5 flex items-center gap-3" :class="totalStats.percent > 100 ? 'border-red-300' : totalStats.percent > 80 ? 'border-brand-300' : ''">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-percent" class="w-5 h-5 text-brand-500" /></div>
         <div><p class="text-lg font-medium" :class="totalStats.percent > 100 ? 'text-danger-500' : 'text-content-secondary'">{{ totalStats.percent }}%</p><p class="text-xs text-content-muted">使用率</p></div>
       </div>
@@ -137,14 +157,17 @@ onMounted(() => { fetchItems(); fetchCategories() })
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <input v-model.number="year" type="number" class="input-base w-24" @change="page=1; fetchItems()" />
       <EnumSelect v-model="typeFilter" :options="[{ value: '', label: '全部类型' }, { value: 'income', label: '收入预算' }, { value: 'expense', label: '支出预算' }]" placeholder="全部类型" @update:model-value="page=1; fetchItems()" />
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
     <!-- 列表 -->
     <div v-if="loading" class="py-4"><ListSkeleton /></div>
     <EmptyState v-else-if="items.length === 0" icon="i-lucide-target" :message="`${year} 年还没有预算`" action-label="添加预算" @action="openCreate" />
-    <div v-else class="space-y-2">
-      <div v-for="item in items" :key="item.id" class="em-card flex items-center gap-4">
+    <div v-else class="space-y-1">
+      <div v-for="item in items" :key="item.id" class="em-card !p-2.5 flex items-center gap-3 group">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
             <span class="text-sm font-medium text-content-secondary">{{ item.name }}</span>
@@ -171,7 +194,8 @@ onMounted(() => { fetchItems(); fetchCategories() })
             <span v-else-if="item.usagePercent > 80" class="text-[10px] text-brand-600">接近上限</span>
           </div>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="text-sm font-medium text-content-primary text-right min-w-[80px] flex-shrink-0">{{ formatMoney(item.amount) }}</div>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(item)" />
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = item; showDeleteModal = true" />
         </div>

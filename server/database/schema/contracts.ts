@@ -81,6 +81,7 @@ export const contractAttachments = sqliteTable('contract_attachments', {
   fileSize: integer('file_size').notNull().default(0),
   uploadedBy: text('uploaded_by').notNull().references(() => users.id),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
+  deletedAt: text('deleted_at'),
   contentHash: text('content_hash'),
 })
 

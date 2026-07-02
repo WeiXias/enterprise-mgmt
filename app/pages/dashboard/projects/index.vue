@@ -11,6 +11,24 @@ const { loading, list: projectsList, total, page, pageSize, totalPages, keyword,
 const statusFilter = ref('')
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 
+// 排序
+const sortBy = ref('updatedAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+watch([sortBy, sortOrder], () => { setFilter('sortBy', sortBy.value); setFilter('sortOrder', sortOrder.value); onFilterChange() })
+
+const sortOptions = [
+  { label: '预算从高到低', value: 'budget:desc' },
+  { label: '预算从低到高', value: 'budget:asc' },
+  { label: '结束日期近→远', value: 'endDate:asc' },
+  { label: '结束日期远→近', value: 'endDate:desc' },
+]
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+function onSortChange(val: string) {
+  const [by = 'updatedAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+}
+
 // 统计
 const stats = ref({ totalProjects: 0, inProgress: 0, delayed: 0, completed: 0, totalBudget: 0 })
 
@@ -170,13 +188,16 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
         <input v-model="keyword" type="text" placeholder="搜项目名称..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
       </div>
       <EnumSelect v-model="statusFilter" dict="projectStatus" placeholder="全部状态" />
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-secondary">共 {{ total }} 个项目</span>
     </div>
 
     <div v-if="loading" class="py-4"><ListSkeleton /></div>
     <div v-else-if="projectsList.length === 0" class="text-center py-12 text-content-secondary">还没有项目，创建第一个？</div>
-    <div v-else class="space-y-2">
-      <div v-for="p in projectsList" :key="p.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/projects/${p.id}`)">
+    <div v-else class="space-y-1">
+      <div v-for="p in projectsList" :key="p.id" class="em-card !p-2.5 flex items-center gap-3 hover:shadow-sm transition-shadow cursor-pointer group" @click="$router.push(`/dashboard/projects/${p.id}`)">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', statusDotColor[p.status] || 'bg-line']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
@@ -185,11 +206,11 @@ onMounted(() => { fetchProjects(); fetchContracts(); fetchStats() })
           </div>
           <div class="flex items-center gap-3 text-xs text-content-secondary">
             <span v-if="p.owner?.name"><UIcon name="i-lucide-user-check" class="w-3 h-3 inline mr-0.5" />{{ p.owner.name }}</span>
-            <span v-if="p.budget">{{ formatMoney(p.budget) }}</span>
             <span v-if="p.startDate || p.endDate"><UIcon name="i-lucide-calendar" class="w-3 h-3 inline mr-0.5" />{{ p.startDate || '-' }} ~ {{ p.endDate || '-' }}</span>
             <span v-if="p.contract?.name" class="text-brand-600">← {{ p.contract.name }}</span>
           </div>
         </div>
+        <div v-if="p.budget" class="text-sm font-medium text-content-primary text-right min-w-[80px] flex-shrink-0">{{ formatMoney(p.budget) }}</div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditModal(p)" />
           <UButton icon="i-lucide-copy" variant="ghost" color="neutral" size="xs" @click="handleDuplicate(p)" />

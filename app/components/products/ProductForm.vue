@@ -9,6 +9,7 @@ interface Props {
     unit?: string
     standardPrice?: number
     costPrice?: number
+    taxRate?: number
     description?: string
     status?: string
   }
@@ -71,6 +72,12 @@ const emit = defineEmits<{ 'update:modelValue': [value: any]; submit: [] }>()
         <div>
           <label class="block text-sm text-content-secondary mb-1">成本价格</label>
           <input :value="modelValue.costPrice ?? 0" type="number" min="0" step="0.01" class="w-full input-base focus-ring" @input="$emit('update:modelValue', { ...modelValue, costPrice: Number(($event.target as HTMLInputElement).value) })" />
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3 mt-3">
+        <div>
+          <label class="block text-sm text-content-secondary mb-1">开票税率 (%)</label>
+          <input :value="modelValue.taxRate ?? 0" type="number" min="0" max="100" step="0.01" class="w-full input-base focus-ring" @input="$emit('update:modelValue', { ...modelValue, taxRate: Number(($event.target as HTMLInputElement).value) })" />
         </div>
       </div>
       <div v-if="mode === 'edit'" class="mt-3">

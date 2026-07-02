@@ -10,8 +10,59 @@ const { loading, list: customers, total, page, totalPages, keyword, onSearchInpu
 
 const statusFilter = ref('')
 const industryFilter = ref('')
+const sortBy = ref('updatedAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 watch(industryFilter, (v) => { setFilter('industry', v); onFilterChange() })
+watch([sortBy, sortOrder], () => { setFilter('sortBy', sortBy.value); setFilter('sortOrder', sortOrder.value); onFilterChange() })
+
+const hasActiveFilters = computed(() => !!(keyword.value || statusFilter.value || industryFilter.value || sortBy.value !== 'updatedAt' || sortOrder.value !== 'desc'))
+
+function clearFilters() {
+  keyword.value = ''
+  statusFilter.value = ''
+  industryFilter.value = ''
+  sortBy.value = 'updatedAt'
+  sortOrder.value = 'desc'
+  setFilter('keyword', undefined)
+  setFilter('status', undefined)
+  setFilter('industry', undefined)
+  setFilter('sortBy', 'updatedAt')
+  setFilter('sortOrder', 'desc')
+  onFilterChange()
+}
+
+const stats = ref({ total: 0, newThisMonth: 0, oppTotal: 0, oppTotalAmount: 0 })
+
+async function fetchStats() {
+  try {
+    const res = await $api('/api/customers/stats') as any
+    if (res?.code === 0) {
+      const d = res.data
+      stats.value = { total: d.total, newThisMonth: d.newThisMonth, oppTotal: d.oppTotal, oppTotalAmount: d.oppTotalAmount }
+    }
+  } catch { /* 统计加载失败不影响列表 */ }
+}
+
+function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '¥' + n.toLocaleString('zh-CN') }
+
+const sortOptions = [
+  { label: '名称 A-Z', value: 'name:asc' },
+  { label: '名称 Z-A', value: 'name:desc' },
+  { label: '最近更新', value: 'updatedAt:desc' },
+  { label: '最早更新', value: 'updatedAt:asc' },
+  { label: '最近创建', value: 'createdAt:desc' },
+  { label: '最早创建', value: 'createdAt:asc' },
+]
+
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+
+function onSortChange(val: string) {
+  const [by = 'updatedAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+}
 
 const { exportCsv } = useExportCsv()
 
@@ -63,6 +114,7 @@ async function handleCreate() {
       showCreateModal.value = false
       createForm.value = { name: '', industry: '', registeredAddress: '', officeAddress: '', remark: '', contactName: '', contactPhone: '', contactEmail: '', contactPosition: '' }
       fetchCustomers()
+      fetchStats()
     }
   } catch (err: any) { toast.add({ title: err?.data?.message || '添加出了点问题', color: 'error' }) }
   finally { createLoading.value = false }
@@ -79,7 +131,7 @@ async function handleEdit() {
   try {
     const { id, ...data } = editForm.value
     const res = await $api(`/api/customers/${id}`, { method: 'PUT', body: data }) as any
-    if (res?.code === 0) { toast.add({ title: '已保存', color: 'success' }); showEditModal.value = false; fetchCustomers() }
+    if (res?.code === 0) { toast.add({ title: '已保存', color: 'success' }); showEditModal.value = false; fetchCustomers(); fetchStats() }
   } catch (err: any) { toast.add({ title: err?.data?.message || '保存出了点问题', color: 'error' }) }
   finally { editLoading.value = false }
 }
@@ -89,12 +141,12 @@ async function handleDelete() {
   deleteLoading.value = true
   try {
     const res = await $api(`/api/customers/${deleteTarget.value.id}`, { method: 'DELETE' }) as any
-    if (res?.code === 0) { toast.add({ title: '已删除', color: 'success' }); showDeleteModal.value = false; deleteTarget.value = null; fetchCustomers() }
+    if (res?.code === 0) { toast.add({ title: '已删除', color: 'success' }); showDeleteModal.value = false; deleteTarget.value = null; fetchCustomers(); fetchStats() }
   } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
   finally { deleteLoading.value = false }
 }
 
-onMounted(() => { fetchCustomers() })
+onMounted(() => { fetchCustomers(); fetchStats() })
 </script>
 
 <template>
@@ -109,6 +161,47 @@ onMounted(() => { fetchCustomers() })
       </template>
     </PageHeader>
 
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="em-card flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-building-2" class="w-5 h-5 text-brand-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ stats.total }}</div>
+          <div class="text-xs text-content-muted">客户总数</div>
+        </div>
+      </div>
+      <div class="em-card flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-user-plus" class="w-5 h-5 text-teal-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ stats.newThisMonth }}</div>
+          <div class="text-xs text-content-muted">本月新增</div>
+        </div>
+      </div>
+      <div class="em-card flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-target" class="w-5 h-5 text-emerald-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ stats.oppTotal }}</div>
+          <div class="text-xs text-content-muted">关联商机</div>
+        </div>
+      </div>
+      <div class="em-card flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-amber-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ formatMoney(stats.oppTotalAmount) }}</div>
+          <div class="text-xs text-content-muted">商机总金额</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选 + 排序 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
         <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
@@ -116,7 +209,11 @@ onMounted(() => { fetchCustomers() })
       </div>
       <EnumSelect v-model="statusFilter" dict="customerStatus" placeholder="全部状态" />
       <EnumSelect v-model="industryFilter" :options="industryOptions" placeholder="全部行业" />
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 个客户</span>
+      <UButton v-if="hasActiveFilters" icon="i-lucide-x" variant="ghost" color="neutral" size="xs" @click="clearFilters">清除筛选</UButton>
       <label v-if="isAdminOrManager()" class="flex items-center gap-1 text-xs text-content-muted cursor-pointer select-none ml-auto">
         <input type="checkbox" class="w-3.5 h-3.5 rounded border-line text-brand-500 focus:ring-brand-400" :checked="selectedIds.size === customers.length && customers.length > 0" @change="toggleSelectAll" />
         全选
@@ -125,7 +222,7 @@ onMounted(() => { fetchCustomers() })
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <EmptyState v-else-if="customers.length === 0" message="还没有客户，加一个？" icon="i-lucide-user-plus" action-label="添加客户" @action="showCreateModal = true" />
-    <div v-else class="space-y-2">
+    <div v-else class="space-y-1">
       <CustomerListItem
         v-for="customer in customers"
         :key="customer.id"

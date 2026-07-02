@@ -14,6 +14,10 @@ const pageSize = ref(20)
 const statusFilter = ref('')
 const invoiceNoFilter = ref('')
 
+// 排序
+const sortBy = ref('')
+const sortOrder = ref('')
+
 const showModal = ref(false)
 const saving = ref(false)
 const editTarget = ref<any>(null)
@@ -34,6 +38,8 @@ async function fetchItems() {
     const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
     if (statusFilter.value) params.status = statusFilter.value
     if (invoiceNoFilter.value) params.invoiceNo = invoiceNoFilter.value
+    if (sortBy.value) params.sortBy = sortBy.value
+    if (sortOrder.value) params.sortOrder = sortOrder.value
     const res = await $api('/api/invoices', { params }) as any
     if (res?.code === 0) { items.value = res.data.items; total.value = res.data.total }
   } catch {}
@@ -157,22 +163,33 @@ onMounted(async () => {
         <h1 class="text-lg font-medium text-content-primary">发票管理</h1>
         <p class="text-sm text-content-muted mt-0.5">管理开票记录</p>
       </div>
-      <UButton icon="i-lucide-plus" color="primary" @click="openCreate">新增发票</UButton>
-      <UButton v-if="selectedForVoid.size > 0" icon="i-lucide-x-circle" color="error" variant="ghost" size="sm" :loading="batchVoidLoading" @click="handleBatchVoid">
-        批量作废 ({{ selectedForVoid.size }})
-      </UButton>
+      <div class="flex items-center gap-2">
+        <UButton v-if="selectedForVoid.size > 0" icon="i-lucide-x-circle" color="error" variant="ghost" size="sm" :loading="batchVoidLoading" @click="handleBatchVoid">
+          批量作废 ({{ selectedForVoid.size }})
+        </UButton>
+        <UButton icon="i-lucide-plus" color="primary" @click="openCreate">新增发票</UButton>
+      </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <input v-model="invoiceNoFilter" type="text" placeholder="搜发票号..." class="input-base focus-ring max-w-[200px]" @input="page = 1; fetchItems()" />
       <EnumSelect v-model="statusFilter" dict="invoiceStatus" placeholder="全部状态" @update:model-value="page = 1; fetchItems()" />
+      <select v-model="sortBy" class="input-base focus-ring min-w-[140px]" @change="sortOrder = sortOrder || 'desc'; page = 1; fetchItems()">
+        <option value="">默认排序</option>
+        <option value="amount">按金额排序</option>
+        <option value="invoiceNo">按发票号排序</option>
+      </select>
+      <select v-if="sortBy" v-model="sortOrder" class="input-base focus-ring min-w-[100px]" @change="page = 1; fetchItems()">
+        <option value="desc">降序</option>
+        <option value="asc">升序</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
     <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
     <div v-else-if="!items.length" class="text-center py-12 text-content-muted">还没有发票</div>
-    <div v-else class="space-y-2">
-      <div v-for="inv in items" :key="inv.id" class="em-card flex items-center gap-4">
+    <div v-else class="space-y-1">
+      <div v-for="inv in items" :key="inv.id" class="em-card !p-2.5 flex items-center gap-3 group">
         <input v-if="inv.status !== 'voided'" type="checkbox" :checked="selectedForVoid.has(inv.id)" class="w-3.5 h-3.5 rounded border-line text-brand-500" @change="toggleVoidSelect(inv.id)" />
         <NuxtLink :to="`/dashboard/finance/invoices/${inv.id}`" class="flex-1 hover:bg-surface-hover/50 rounded-md transition-colors -m-1 p-1">
           <div class="flex items-center gap-2 mb-0.5">
@@ -185,12 +202,12 @@ onMounted(async () => {
             <span>{{ getLabel('InvoiceType', inv.type) || inv.type }}</span>
             <span v-if="inv.contractName">{{ inv.contractName }}</span>
             <span v-if="inv.customerName">{{ inv.customerName }}</span>
-            <span>金额 {{ formatMoney(inv.amount) }}</span>
             <span v-if="inv.taxAmount" class="text-brand-600">税额 {{ formatMoney(inv.taxAmount) }}</span>
             <span v-if="inv.issuedAt">{{ inv.issuedAt }}</span>
           </div>
         </NuxtLink>
-        <div class="flex gap-1">
+        <span class="text-brand-500 text-sm font-medium whitespace-nowrap">{{ formatMoney(inv.amount) }}</span>
+        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton v-if="inv.status === 'pending'" icon="i-lucide-check-circle" variant="ghost" color="primary" size="xs" @click="handleIssue(inv)" title="推进到已开票" />
           <UButton v-if="inv.status === 'pending'" icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(inv)" />
           <UButton v-if="inv.status !== 'voided'" icon="i-lucide-x-circle" variant="ghost" color="error" size="xs" @click="promptVoid(inv)" />

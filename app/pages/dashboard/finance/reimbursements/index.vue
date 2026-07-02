@@ -12,6 +12,16 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const statusFilter = ref('')
+const keyword = ref('')
+const sortBy = ref('createdAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+function onKeywordInput() {
+  clearTimeout(searchTimer!)
+  searchTimer = setTimeout(() => { page.value = 1; fetchItems() }, 300)
+}
 
 const showModal = ref(false)
 const saving = ref(false)
@@ -32,13 +42,24 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   paid: { label: '已付款', color: 'bg-teal-50 text-teal-700' },
 }
 
+const pendingCount = computed(() => items.value.filter((r: any) => r.status === 'pending').length)
+const approvedCount = computed(() => items.value.filter((r: any) => r.status === 'approved').length)
+const paidCount = computed(() => items.value.filter((r: any) => r.status === 'paid').length)
+
+function filterByStatus(status: string) {
+  statusFilter.value = status
+  page.value = 1
+  fetchItems()
+}
+
 function formatMoney(v: any) { const n = Number(v); if (!n) return '-'; return '¥' + n.toLocaleString('zh-CN') }
 
 async function fetchItems() {
   loading.value = true
   try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
+    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value, sortBy: sortBy.value, sortOrder: sortOrder.value }
     if (statusFilter.value) params.status = statusFilter.value
+    if (keyword.value) params.keyword = keyword.value
     const [res, catRes] = await Promise.all([
       $api('/api/finance/reimbursements', { params }) as any,
       $api('/api/finance/categories') as any,
@@ -97,6 +118,23 @@ async function handlePay(id: string) {
   } catch (err: any) { toast.add({ title: err?.data?.message || '打款失败', color: 'error' }) }
 }
 
+const sortOptions = [
+  { label: '金额高-低', value: 'amount:desc' },
+  { label: '金额低-高', value: 'amount:asc' },
+  { label: '最近提交', value: 'createdAt:desc' },
+  { label: '最早提交', value: 'createdAt:asc' },
+]
+
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+
+function onSortChange(val: string) {
+  const [by = 'createdAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+  page.value = 1
+  fetchItems()
+}
+
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
 onMounted(() => fetchItems())
@@ -112,39 +150,88 @@ onMounted(() => fetchItems())
       <UButton icon="i-lucide-plus" color="primary" @click="openCreate">提交报销</UButton>
     </div>
 
-    <!-- 筛选 -->
+    <!-- 统计卡片（本地计算） -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      <div class="em-card flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-receipt" class="w-5 h-5 text-brand-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ total }}</div>
+          <div class="text-xs text-content-muted">全部报销</div>
+        </div>
+      </div>
+      <div class="em-card flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow" :class="{ 'ring-2 ring-brand-400': statusFilter === 'pending' }" @click="filterByStatus('pending')">
+        <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-clock" class="w-5 h-5 text-amber-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ pendingCount }}</div>
+          <div class="text-xs text-content-muted">待审批</div>
+        </div>
+      </div>
+      <div class="em-card flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow" :class="{ 'ring-2 ring-brand-400': statusFilter === 'approved' }" @click="filterByStatus('approved')">
+        <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-teal-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ approvedCount }}</div>
+          <div class="text-xs text-content-muted">已通过</div>
+        </div>
+      </div>
+      <div class="em-card flex items-center gap-3 cursor-pointer hover:shadow-sm transition-shadow" :class="{ 'ring-2 ring-brand-400': statusFilter === 'paid' }" @click="filterByStatus('paid')">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+          <UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-emerald-600" />
+        </div>
+        <div>
+          <div class="text-lg text-content-inverse font-medium">{{ paidCount }}</div>
+          <div class="text-xs text-content-muted">已付款</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选 + 搜索 + 排序 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="relative flex-1 min-w-[180px] max-w-xs">
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
+        <input v-model="keyword" type="text" placeholder="搜事由..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onKeywordInput" />
+      </div>
       <EnumSelect v-model="statusFilter" dict="reimbursementStatus" placeholder="全部状态" @update:model-value="page=1; fetchItems()" />
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
     <!-- 列表 -->
     <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">还没有报销单，提交一单？</div>
-    <div v-else class="space-y-2">
-      <div v-for="r in items" :key="r.id" class="em-card flex items-center gap-3">
-        <div :class="['w-1 h-10 rounded-full flex-shrink-0', {
-          'bg-brand-400': r.status === 'pending' || r.status === 'approved',
-          'bg-danger-400': r.status === 'rejected', 'bg-teal-400': r.status === 'paid'
-        }]" />
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm text-content-secondary">{{ r.reason }}</span>
-            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[r.status]?.color || '']">{{ statusConfig[r.status]?.label || r.status }}</span>
+    <div v-else class="space-y-1">
+      <div v-for="r in items" :key="r.id" class="em-card !p-2.5 group">
+        <div class="flex items-center gap-3">
+          <div :class="['w-1 h-10 rounded-full flex-shrink-0', {
+            'bg-brand-400': r.status === 'pending' || r.status === 'approved',
+            'bg-danger-400': r.status === 'rejected', 'bg-teal-400': r.status === 'paid'
+          }]" />
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="text-sm text-content-secondary truncate">{{ r.reason }}</span>
+              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0', statusConfig[r.status]?.color || '']">{{ statusConfig[r.status]?.label || r.status }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-content-muted">
+              <span>{{ r.type }}</span>
+              <span v-if="r.user?.name"><UIcon name="i-lucide-user" class="w-3 h-3 inline mr-0.5" />{{ r.user.name }}</span>
+              <span>{{ r.createdAt?.slice(0, 10) }}</span>
+              <span v-if="r.rejectedReason" class="text-danger-500">驳回原因：{{ r.rejectedReason }}</span>
+            </div>
           </div>
-          <div class="flex items-center gap-3 text-xs text-content-muted">
-            <span>{{ formatMoney(r.amount) }}</span>
-            <span>{{ r.type }}</span>
-            <span v-if="r.user?.name"><UIcon name="i-lucide-user" class="w-3 h-3 inline mr-0.5" />{{ r.user.name }}</span>
-            <span>{{ r.createdAt?.slice(0, 10) }}</span>
-            <span v-if="r.rejectedReason" class="text-danger-500">驳回原因：{{ r.rejectedReason }}</span>
+          <span class="text-sm font-medium text-brand-600 whitespace-nowrap text-right">{{ formatMoney(r.amount) }}</span>
+          <!-- hover 显示操作 -->
+          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <UButton v-if="r.status === 'pending' && isFinance" icon="i-lucide-check" color="primary" variant="ghost" size="xs" @click.stop="handleApprove(r.id)">通过</UButton>
+            <UButton v-if="r.status === 'pending' && isFinance" icon="i-lucide-x" color="warning" variant="ghost" size="xs" @click.stop="rejectTarget = r; rejectReason = ''; showRejectModal = true">驳回</UButton>
+            <UButton v-if="r.status === 'approved' && isFinance" icon="i-lucide-dollar-sign" color="primary" variant="ghost" size="xs" @click.stop="handlePay(r.id)">打款</UButton>
           </div>
-        </div>
-        <!-- 操作 -->
-        <div class="flex items-center gap-1">
-          <UButton v-if="r.status === 'pending' && isFinance" icon="i-lucide-check" color="primary" variant="ghost" size="xs" @click="handleApprove(r.id)">通过</UButton>
-          <UButton v-if="r.status === 'pending' && isFinance" icon="i-lucide-x" color="warning" variant="ghost" size="xs" @click="rejectTarget = r; rejectReason = ''; showRejectModal = true">驳回</UButton>
-          <UButton v-if="r.status === 'approved' && isFinance" icon="i-lucide-dollar-sign" color="primary" variant="ghost" size="xs" @click="handlePay(r.id)">打款</UButton>
         </div>
       </div>
     </div>

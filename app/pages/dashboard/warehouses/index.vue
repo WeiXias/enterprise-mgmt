@@ -7,6 +7,25 @@ const { $api } = useNuxtApp()
 const warehouseList = ref<any[]>([])
 const loading = ref(true)
 
+// 搜索
+const keyword = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+function onSearchInput() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {}, 300)
+}
+
+const filteredWarehouseList = computed(() => {
+  if (!keyword.value.trim()) return warehouseList.value
+  const q = keyword.value.toLowerCase()
+  return warehouseList.value.filter((wh: any) =>
+    (wh.name || '').toLowerCase().includes(q) ||
+    (wh.code || '').toLowerCase().includes(q) ||
+    (wh.manager || '').toLowerCase().includes(q) ||
+    (wh.address || '').toLowerCase().includes(q)
+  )
+})
+
 const showCreateModal = ref(false)
 const createLoading = ref(false)
 const createForm = ref({ name: '', code: '', address: '', manager: '', remark: '' })
@@ -175,16 +194,25 @@ onMounted(() => { fetchWarehouses() })
       </template>
     </PageHeader>
 
-    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
-    <div v-else-if="warehouseList.length === 0" class="text-center py-12 text-content-muted">
-      <UIcon name="i-lucide-warehouse" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
-      <p class="text-sm">还没有仓库，先建一个？</p>
-      <UButton class="mt-3" size="sm" color="primary" @click="resetCreateForm(); showCreateModal = true">添加仓库</UButton>
+    <!-- 搜索 -->
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="relative flex-1 min-w-[200px] max-w-xs">
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
+        <input v-model="keyword" type="text" placeholder="搜索仓库名称、编码..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
+      </div>
+      <span class="text-xs text-content-muted">共 {{ filteredWarehouseList.length }} 个仓库</span>
     </div>
-    <div v-else class="space-y-3">
-      <div v-for="wh in warehouseList" :key="wh.id" class="em-card">
+
+    <div v-if="loading" class="text-center py-12 text-content-muted">加载中...</div>
+    <div v-else-if="filteredWarehouseList.length === 0" class="text-center py-12 text-content-muted">
+      <UIcon name="i-lucide-warehouse" class="w-10 h-10 mx-auto mb-2 text-content-muted" />
+      <p class="text-sm">{{ keyword ? '没找到匹配的仓库' : '还没有仓库，先建一个？' }}</p>
+      <UButton v-if="!keyword" class="mt-3" size="sm" color="primary" @click="resetCreateForm(); showCreateModal = true">添加仓库</UButton>
+    </div>
+    <div v-else class="space-y-1">
+      <div v-for="wh in filteredWarehouseList" :key="wh.id" class="em-card !p-2.5 group">
         <!-- 仓库基本信息 -->
-        <div class="flex items-center gap-4 cursor-pointer" @click="toggleExpand(wh)">
+        <div class="flex items-center gap-3 cursor-pointer" @click="toggleExpand(wh)">
           <div class="w-1 h-10 rounded-full flex-shrink-0 bg-teal-400" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-0.5">
@@ -197,7 +225,7 @@ onMounted(() => { fetchWarehouses() })
               <span v-if="wh.address">{{ wh.address }}</span>
             </div>
           </div>
-          <div class="flex items-center gap-1" @click.stop>
+          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
             <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditModal(wh)" />
             <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = wh; showDeleteModal = true" />
           </div>

@@ -20,6 +20,7 @@ export const products = sqliteTable('products', {
   standardPrice: integer('standard_price').notNull().default(0),
   costPrice: integer('cost_price').notNull().default(0),
   stockQuantity: integer('stock_quantity').notNull().default(0),
+  taxRate: real('tax_rate').default(0),
   description: text('description'),
   status: text('status', { enum: ['on_sale', 'off_shelf'] }).notNull().default('on_sale'),
   createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),

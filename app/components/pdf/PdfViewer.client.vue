@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PDF 查看器 — Canvas 渲染 + 翻页 + 缩放 + 搜索 + 打印下载
+ * PDF 查看器 — 多页滚动渲染 + 缩放 + 搜索 + 打印下载
  * .client.vue: Nuxt 自动跳过 SSR，仅在客户端渲染
  */
 import type { PdfSignaturePlacement } from '~/types/pdf'
@@ -11,6 +11,7 @@ const props = defineProps<{
   showToolbar?: boolean
   signMode?: boolean
   placements?: PdfSignaturePlacement[]
+  httpHeaders?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -46,10 +47,17 @@ const {
 } = usePdfSearch()
 
 const containerRef = ref<HTMLElement | null>(null)
-const canvasContainerRef = ref<HTMLElement | null>(null)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
 
-const signOverlayVisible = computed(() => props.signMode ?? false)
+// 多页渲染：每个页面一个 canvas
+const pages = ref<{ pageNum: number; rendered: boolean }[]>([])
+const pageCanvasRefs = ref<Map<number, HTMLCanvasElement>>(new Map())
+
+function setPageCanvas(el: HTMLCanvasElement | null, pageNum: number) {
+  if (el) pageCanvasRefs.value.set(pageNum, el)
+}
+
+// 当前可见的缩放值（所有页面共享）
+const currentScale = ref(1.0)
 
 // 核心修复：watch source 变化，异步赋值时自动重新加载 PDF
 watch(
@@ -58,31 +66,87 @@ watch(
     if (!newSource) return
     if (typeof newSource === 'string' && !newSource.trim()) return
     resetViewer()
-    await loadPdf(newSource)
+    await loadPdf(newSource, props.httpHeaders)
     const doc = getPdfDoc()
     if (doc) {
       await initSearch(doc)
+      // 初始化多页数组
+      pages.value = Array.from({ length: totalPages.value }, (_, i) => ({ pageNum: i + 1, rendered: false }))
+      pageCanvasRefs.value = new Map()
       await nextTick()
-      renderCurrentPage()
+      // 滚动到顶部
+      if (containerRef.value) containerRef.value.scrollTop = 0
+      // 渲染前几页
+      renderVisiblePages()
     }
   },
   { immediate: true },
 )
 
-// 页码 / 缩放变化时重新渲染
-watch(currentPage, () => renderCurrentPage())
-watch(scale, () => renderCurrentPage())
+// 渲染所有页面
+async function renderAllPages() {
+  const doc = getPdfDoc()
+  if (!doc) return
+  const s = currentScale.value
 
-async function renderCurrentPage() {
-  const c = canvasRef.value
-  if (!c) return
-  await renderPage(currentPage.value, c)
+  for (const p of pages.value) {
+    if (p.rendered) continue
+    const canvas = pageCanvasRefs.value.get(p.pageNum)
+    if (!canvas) continue
+    p.rendered = true
+    try {
+      await renderPage(p.pageNum, canvas, s)
+    } catch { p.rendered = false }
+  }
 }
 
-function handleFitWidth() {
+// 按需渲染可见页
+let renderTimer: ReturnType<typeof setTimeout> | null = null
+function renderVisiblePages() {
+  if (renderTimer) clearTimeout(renderTimer)
+  renderTimer = setTimeout(async () => {
+    const doc = getPdfDoc()
+    if (!doc) return
+    const s = currentScale.value
+
+    for (const p of pages.value) {
+      if (p.rendered) continue
+      const canvas = pageCanvasRefs.value.get(p.pageNum)
+      if (!canvas) continue
+      p.rendered = true
+      try {
+        await renderPage(p.pageNum, canvas, s)
+      } catch { p.rendered = false }
+    }
+  }, 50)
+}
+
+// 缩放改变时重新渲染所有页面
+watch(currentScale, async () => {
+  for (const p of pages.value) p.rendered = false
+  await nextTick()
+  renderVisiblePages()
+})
+
+function handleZoomIn() {
+  zoomIn()
+  currentScale.value = scale.value
+}
+function handleZoomOut() {
+  zoomOut()
+  currentScale.value = scale.value
+}
+async function handleFitWidth() {
   const width = containerRef.value?.clientWidth ?? 800
   fitToWidth(width - 40)
-  nextTick(() => renderCurrentPage())
+  await nextTick()
+  currentScale.value = scale.value
+}
+
+function handleGoToPage(p: number) {
+  goToPage(p)
+  const el = pageCanvasRefs.value.get(p)
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 const searchQuerySynced = ref('')
@@ -90,34 +154,34 @@ const searchQuerySynced = ref('')
 function handleSearch() { search(searchQuerySynced.value) }
 function handleSearchClear() { searchQuerySynced.value = ''; clearSearch() }
 
-watch(currentPage, () => {
-  if (searchQuerySynced.value) search(searchQuerySynced.value)
-})
+// 初始 scale
+watch(scale, (s) => { if (s) currentScale.value = s })
 
-onUnmounted(() => {
-  destroySearch()
-})
+onUnmounted(() => { destroySearch() })
+
+// 滚动时渲染可见页
+function onScroll() { renderVisiblePages() }
 </script>
 
 <template>
-  <div ref="containerRef" class="pdf-viewer flex flex-col h-full bg-surface-hover">
+  <div ref="containerRef" class="pdf-viewer flex flex-col h-full bg-surface-hover" @scroll="onScroll">
     <PdfToolbar
       v-if="showToolbar !== false"
       :current-page="currentPage"
       :total-pages="totalPages"
-      :scale="scale"
+      :scale="currentScale"
       :show-search="showSearch !== false"
       :search-query="searchQuerySynced"
       :search-current-match="searchCurrentMatch"
       :search-total-matches="searchTotalMatches"
       :search-status="searchStatus"
       @update:search-query="searchQuerySynced = $event"
-      @zoom-in="zoomIn(); renderCurrentPage()"
-      @zoom-out="zoomOut(); renderCurrentPage()"
+      @zoom-in="handleZoomIn"
+      @zoom-out="handleZoomOut"
       @fit-width="handleFitWidth"
-      @go-to-page="(p: number) => { goToPage(p); renderCurrentPage() }"
-      @prev-page="prevPage(); renderCurrentPage()"
-      @next-page="nextPage(); renderCurrentPage()"
+      @go-to-page="handleGoToPage"
+      @prev-page="prevPage()"
+      @next-page="nextPage()"
       @search="handleSearch"
       @search-next="findNext"
       @search-prev="findPrev"
@@ -146,9 +210,19 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-else ref="canvasContainerRef" class="flex-1 overflow-auto px-4 py-6 flex flex-col items-center relative">
-      <div class="relative inline-block">
-        <canvas ref="canvasRef" class="shadow-md rounded-sm bg-surface-card" />
+    <!-- 多页滚动视图 -->
+    <div v-else class="flex-1 overflow-auto px-4 py-6 flex flex-col items-center gap-4">
+      <div
+        v-for="p in pages"
+        :key="p.pageNum"
+        :id="`pdf-page-${p.pageNum}`"
+        class="relative inline-block"
+      >
+        <canvas
+          :ref="(el: any) => setPageCanvas(el as HTMLCanvasElement, p.pageNum)"
+          class="shadow-md rounded-sm bg-surface-card"
+        />
+        <div class="text-center text-[10px] text-content-muted mt-1">{{ p.pageNum }} / {{ totalPages }}</div>
         <div v-if="signOverlayVisible" class="absolute inset-0 pointer-events-none">
           <slot name="sign-overlay" />
         </div>

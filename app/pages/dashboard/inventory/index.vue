@@ -17,6 +17,22 @@ const selectedProductInfo = ref<any>(null)
 const selectedProductName = computed(() => selectedProductInfo.value?.name || '')
 const productOptions = ref<any[]>([])
 
+// 排序
+const sortBy = ref('createdAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+const sortOptions = [
+  { label: '最新记录', value: 'createdAt:desc' },
+  { label: '最早记录', value: 'createdAt:asc' },
+]
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+function onSortChange(val: string) {
+  const [by = 'createdAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+  page.value = 1
+  fetchItems()
+}
+
 // 库存概览
 const overview = ref({ totalProducts: 0, totalStock: 0, lowStockCount: 0, lowStockProducts: [] as any[] })
 const LOW_STOCK_THRESHOLD = 10
@@ -27,10 +43,17 @@ const form = ref({ productId: '', type: 'inbound', quantity: 1, unitPrice: 0, ba
 
 import { jsonToCsv, downloadCsv } from '~/utils/export-csv'
 
+const typeLabels: Record<string, string> = { inbound: '入库', outbound: '出库', adjustment: '盘点' }
+const typeColors: Record<string, string> = {
+  inbound: 'bg-teal-50 text-teal-700',
+  outbound: 'bg-danger-50 text-danger-600',
+  adjustment: 'bg-surface-hover text-content-secondary',
+}
+
 async function fetchItems() {
   loading.value = true
   try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
+    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value, sortBy: sortBy.value, sortOrder: sortOrder.value }
     if (typeFilter.value) params.type = typeFilter.value
     if (productIdFilter.value) params.productId = productIdFilter.value
     const res = await $api('/api/inventory/transactions', { params }) as any
@@ -107,6 +130,8 @@ async function handleDeleteConfirmed() {
   finally { showDeleteDialog.value = false }
 }
 
+const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+
 onMounted(() => { fetchItems(); fetchProducts() })
 </script>
 
@@ -147,6 +172,7 @@ onMounted(() => { fetchItems(); fetchProducts() })
       </div>
     </div>
 
+    <!-- 筛选 + 排序 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <EnumSelect
         v-model="typeFilter"
@@ -175,44 +201,47 @@ onMounted(() => { fetchItems(); fetchProducts() })
             @click="productIdFilter = ''; selectedProductInfo = null; page = 1; fetchItems()"
           ><UIcon name="i-lucide-x" class="w-3 h-3" /></button>
         </div>
-        <span class="text-xs text-content-secondary">共 {{ total }} 条</span>
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
+      <span class="text-xs text-content-secondary">共 {{ total }} 条</span>
     </div>
 
+    <!-- 紧凑卡片列表 -->
     <div v-if="loading" class="text-center py-12 text-content-secondary">加载中...</div>
     <div v-else-if="!items.length" class="text-center py-12 text-content-secondary">暂无库存流水</div>
-    <div v-else class="em-card overflow-hidden">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-line-light text-left text-xs text-content-secondary">
-            <th class="py-2 px-3">产品</th>
-            <th class="py-2 px-3">类型</th>
-            <th class="py-2 px-3 text-right">数量</th>
-            <th class="py-2 px-3 text-right">单价</th>
-            <th class="py-2 px-3">批次</th>
-            <th class="py-2 px-3">备注</th>
-            <th class="py-2 px-3">时间</th>
-            <th class="py-2 px-3" />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="t in items" :key="t.id" class="border-b border-line-light">
-            <td class="py-2 px-3 font-medium text-content-primary">{{ t.productName || t.productId }}</td>
-            <td class="py-2 px-3">
-              <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', t.type === 'inbound' ? 'bg-teal-50 text-teal-700' : t.type === 'outbound' ? 'bg-danger-50 text-danger-600' : 'bg-surface-hover text-content-secondary']">
-                {{ ({ inbound: '入库', outbound: '出库', adjustment: '盘点' } as Record<string, string>)[t.type] || t.type }}
-              </span>
-            </td>
-            <td class="py-2 px-3 text-right" :class="t.quantity > 0 ? 'text-teal-600' : 'text-danger-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</td>
-            <td class="py-2 px-3 text-right text-content-secondary">{{ t.unitPrice ? '¥' + t.unitPrice : '-' }}</td>
-            <td class="py-2 px-3 text-xs text-content-secondary">{{ t.batchNo || '-' }}</td>
-            <td class="py-2 px-3 text-xs text-content-secondary max-w-[150px] truncate">{{ t.remark || '-' }}</td>
-            <td class="py-2 px-3 text-xs text-content-secondary">{{ (t.createdAt || '').slice(0, 10) }}</td>
-            <td class="py-2 px-3">
-              <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-else class="space-y-1">
+      <div v-for="t in items" :key="t.id" class="em-card !p-2.5 flex items-center gap-3 group">
+        <div class="w-1 h-10 rounded-full flex-shrink-0" :class="t.type === 'inbound' ? 'bg-teal-400' : t.type === 'outbound' ? 'bg-danger-400' : 'bg-line'" />
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-sm font-medium text-content-primary">{{ t.productName || t.productId }}</span>
+            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', typeColors[t.type] || '']">
+              {{ typeLabels[t.type] || t.type }}
+            </span>
+            <span v-if="t.batchNo" class="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-hover text-content-secondary">{{ t.batchNo }}</span>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-content-secondary">
+            <span>{{ (t.createdAt || '').slice(0, 10) }}</span>
+            <span v-if="t.remark" class="truncate max-w-[200px]">{{ t.remark }}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <span class="text-sm font-medium" :class="t.quantity > 0 ? 'text-teal-600' : 'text-danger-500'">{{ t.quantity > 0 ? '+' + t.quantity : t.quantity }}</span>
+            <span v-if="t.unitPrice" class="text-xs text-content-secondary ml-2">{{ '¥' + t.unitPrice }}</span>
+          </div>
+          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="promptDelete(t)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分页 -->
+    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4">
+      <span class="text-xs text-content-secondary">第 {{ page }} / {{ totalPages }} 页</span>
+      <div class="flex gap-1"><UButton :disabled="page <= 1" variant="ghost" color="neutral" size="xs" @click="page--; fetchItems()">上页</UButton><UButton :disabled="page >= totalPages" variant="ghost" color="neutral" size="xs" @click="page++; fetchItems()">下页</UButton></div>
     </div>
 
     <FormModal v-if="showModal" v-model:open="showModal" title="登记库存流水" size="standard" :loading="saving" @confirm="handleSave">

@@ -136,8 +136,12 @@ const previewFile = ref<any>(null)
 const showPreview = ref(false)
 const previewUrl = computed(() => {
   if (!previewFile.value) return ''
-  return `/api/attachments/${previewFile.value.id}/preview?source=${props.source}&token=${authStore.accessToken}`
+  return `/api/attachments/${previewFile.value.id}/preview?source=${props.source}`
 })
+
+const previewHeaders = computed(() => ({
+  Authorization: `Bearer ${authStore.accessToken}`
+}))
 
 function openPreview(file: UploadedFile) {
   previewFile.value = file
@@ -236,17 +240,10 @@ function openPreviewUrl() {
         </div>
         <!-- PDF -->
         <template v-else-if="previewFile && getFileTypeGroup(previewFile.fileName) === 'pdf'">
-          <PdfViewer :source="previewUrl" class="w-full" style="height: calc(100vh - 180px)" />
+          <PdfViewer :source="previewUrl" :http-headers="previewHeaders" class="w-full" style="height: calc(100vh - 180px)" />
         </template>
-        <!-- Office 文档 -->
-        <iframe v-else-if="previewFile && getFileTypeGroup(previewFile.fileName) === 'office'" :src="previewUrl" class="w-full border-0" style="height: calc(100vh - 180px)" />
-        <!-- 不支持的类型 -->
-        <div v-else-if="previewUrl" class="flex flex-col items-center justify-center" style="height: calc(100vh - 180px)">
-          <UIcon name="i-lucide-file" class="w-16 h-16 mx-auto mb-4 text-content-muted" />
-          <p class="text-sm text-content-muted">暂不支持预览此文件类型</p>
-          <UButton color="primary" size="sm" class="mt-4" @click="openPreviewUrl">下载文件</UButton>
-        </div>
-      </template>
+        <!-- Office 文档 / 电子表格 / 其他 — 用 iframe 加载服务端 HTML 预览 -->
+        <iframe v-else-if="previewUrl" :src="previewUrl" class="w-full border-0" style="height: calc(100vh - 180px)" />\n      </template>
     </UModal>
   </div>
 </template>

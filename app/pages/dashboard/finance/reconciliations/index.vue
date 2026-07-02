@@ -9,15 +9,25 @@ const {
   totalPages, onSearchInput, onFilterChange, setFilter, fetchList,
 } = useTable<any>({ apiUrl: '/api/reconciliations' })
 
+const sortValue = ref('')
+watch(sortValue, (v) => {
+  if (!v) { setFilter('sortBy', ''); setFilter('sortOrder', '') }
+  else { const idx = v.lastIndexOf('_'); setFilter('sortBy', v.slice(0, idx)); setFilter('sortOrder', v.slice(idx + 1)) }
+  onFilterChange()
+})
+
 const statusFilter = ref('')
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 
 const showCreate = ref(false)
 const showConfirm = ref(false)
 const showDispute = ref(false)
+const showDelete = ref(false)
 const confirmTarget = ref<any>(null)
 const disputeTarget = ref<any>(null)
+const deleteTarget = ref<any>(null)
 const actionLoading = ref(false)
+const deleteLoading = ref(false)
 
 const newForm = ref({ customerId: '', contractId: '', periodStart: '', periodEnd: '', remark: '' })
 
@@ -69,6 +79,16 @@ async function handleDispute() {
   finally { actionLoading.value = false }
 }
 
+async function handleDelete() {
+  if (!deleteTarget.value) return
+  deleteLoading.value = true
+  try {
+    const res = await $api(`/api/reconciliations/${deleteTarget.value.id}/delete`, { method: 'DELETE' }) as any
+    if (res?.code === 0) { toast.add({ title: '已删除', color: 'success' }); showDelete.value = false; deleteTarget.value = null; fetchList() }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { deleteLoading.value = false }
+}
+
 onMounted(() => { fetchList() })
 </script>
 
@@ -91,6 +111,12 @@ onMounted(() => { fetchList() })
         <option value="confirmed">已确认</option>
         <option value="disputed">有争议</option>
       </select>
+      <select v-model="sortValue" class="input-base focus-ring">
+        <option value="">默认排序</option>
+        <option value="closingAmount_desc">金额: 高→低</option>
+        <option value="closingAmount_asc">金额: 低→高</option>
+        <option value="periodStart_desc">期间: 近→远</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 条</span>
     </div>
 
@@ -99,8 +125,8 @@ onMounted(() => { fetchList() })
       <UIcon name="i-lucide-file-check-2" class="w-10 h-10 mx-auto mb-2 opacity-30" />
       <p class="text-sm">还没有对账单，建一个？</p>
     </div>
-    <div v-else class="space-y-2">
-      <div v-for="item in items" :key="item.id" class="em-card flex items-center gap-4 group">
+    <div v-else class="space-y-1">
+      <div v-for="item in items" :key="item.id" class="em-card !p-2.5 flex items-center gap-3 group">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
             <NuxtLink :to="`/dashboard/finance/reconciliations/${item.id}`" class="text-sm font-medium text-content-primary hover:text-brand-600 truncate">{{ item.code }}</NuxtLink>
@@ -115,6 +141,7 @@ onMounted(() => { fetchList() })
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <UButton v-if="item.status === 'pending'" icon="i-lucide-check-circle" variant="ghost" color="neutral" size="xs" title="确认对账" @click="confirmTarget = item; showConfirm = true" />
           <UButton v-if="item.status === 'pending'" icon="i-lucide-alert-triangle" variant="ghost" color="neutral" size="xs" title="标记争议" @click="disputeTarget = item; showDispute = true" />
+          <UButton v-if="item.status === 'pending'" icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" title="删除" @click="deleteTarget = item; showDelete = true" />
         </div>
       </div>
     </div>
@@ -140,5 +167,8 @@ onMounted(() => { fetchList() })
     <ConfirmDialog v-if="showDispute" v-model:open="showDispute" title="标记争议"
       :message="`确定将「${disputeTarget?.code}」标记为有争议吗？`"
       confirm-text="标记争议" cancel-text="再想想" :loading="actionLoading" @confirm="handleDispute" @cancel="showDispute = false; disputeTarget = null" />
+    <ConfirmDialog v-if="showDelete" v-model:open="showDelete" title="确认删除"
+      :message="`确定要删除对账单「${deleteTarget?.code}」吗？删了就找不回来了。`"
+      confirm-text="确认删除" cancel-text="再想想" :loading="deleteLoading" danger @confirm="handleDelete" @cancel="showDelete = false; deleteTarget = null" />
   </div>
 </template>

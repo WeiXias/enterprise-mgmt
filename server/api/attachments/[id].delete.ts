@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
 import { contractAttachments } from '#schema'
-import { eq, isNull, and } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { getUploadDir } from '#server-utils/upload'
 import { logOperation } from '#server-utils/log'
 import path from 'path'
@@ -11,13 +11,13 @@ import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
   const { id } = getRouterParams(event)
-  await requirePermission(event, 'attachment:delete')
+  await requirePermission(event, 'contract:edit')
 
   const existing = await db.select({
     id: contractAttachments.id,
     filePath: contractAttachments.filePath,
   }).from(contractAttachments)
-    .where(and(eq(contractAttachments.id, id), isNull(contractAttachments.deletedAt)))
+    .where(eq(contractAttachments.id, id))
     .limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '附件不存在' })
 
@@ -25,10 +25,7 @@ export default defineEventHandler(async (event) => {
 
   // 检查是否还有其他记录引用同一文件，没有才删物理文件（去重保护）
   const refs = await db.select({ id: contractAttachments.id }).from(contractAttachments)
-    .where(and(
-      eq(contractAttachments.filePath, row.filePath),
-      isNull(contractAttachments.deletedAt),
-    ))
+    .where(eq(contractAttachments.filePath, row.filePath))
 
   if (refs.length <= 1) {
     try {

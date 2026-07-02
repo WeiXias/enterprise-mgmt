@@ -22,6 +22,25 @@ const pageSize = ref(20)
 const keyword = ref('')
 const roleFilter = ref('')
 
+// 排序
+const sortBy = ref('createdAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+const sortOptions = [
+  { label: '姓名 A-Z', value: 'name:asc' },
+  { label: '姓名 Z-A', value: 'name:desc' },
+  { label: '角色', value: 'role:asc' },
+  { label: '最近加入', value: 'createdAt:desc' },
+  { label: '最早加入', value: 'createdAt:asc' },
+]
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+function onSortChange(val: string) {
+  const [by = 'createdAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+  page.value = 1
+  fetchItems()
+}
+
 // 新增/编辑
 const showModal = ref(false)
 const saving = ref(false)
@@ -54,7 +73,7 @@ const deleteLoading = ref(false)
 async function fetchItems() {
   loading.value = true
   try {
-    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value }
+    const params: Record<string, any> = { page: page.value, pageSize: pageSize.value, sortBy: sortBy.value, sortOrder: sortOrder.value }
     if (keyword.value) params.keyword = keyword.value
     if (roleFilter.value) params.role = roleFilter.value
     const res = await $api('/api/users', { params }) as any
@@ -200,14 +219,17 @@ onMounted(() => { fetchItems(); loadOptions() })
         <input v-model="keyword" type="text" placeholder="搜索姓名..." class="w-full pl-9 input-base focus-ring" @input="onSearchInput" />
       </div>
       <EnumSelect v-model="roleFilter" dict="userRoles" placeholder="全部角色" @update:modelValue="page=1; fetchItems()" />
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-secondary">共 {{ total }} 人</span>
     </div>
 
     <!-- 列表 -->
     <div v-if="loading" class="text-center py-12 text-content-secondary">马上就好...</div>
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-secondary">还没有成员，加一个？</div>
-    <div v-else class="space-y-2">
-      <div v-for="u in items" :key="u.id" class="em-card flex items-center gap-4 group">
+    <div v-else class="space-y-1">
+      <div v-for="u in items" :key="u.id" class="em-card !p-2.5 flex items-center gap-3 group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', u.status === 'active' ? 'bg-teal-400' : 'bg-line']" />
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
@@ -222,18 +244,20 @@ onMounted(() => { fetchItems(); loadOptions() })
             <span v-if="u.departmentName" class="text-brand-600">{{ u.departmentName }}</span>
           </div>
         </div>
-        <div class="flex items-center gap-1">
-          <template v-if="u.status === 'pending'">
+        <!-- 待审批：一直显示操作按钮 -->
+        <template v-if="u.status === 'pending'">
+          <div class="flex items-center gap-1">
             <UButton icon="i-lucide-check-circle" variant="ghost" color="primary" size="xs" @click="handleApproveUser(u)">审批</UButton>
             <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = u; showDeleteModal = true" />
-          </template>
-          <template v-else>
-            <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(u)" />
-            <UButton icon="i-lucide-key" variant="ghost" color="warning" size="xs" @click="resetPwdTarget = u; newPassword = ''; showPasswordModal = true" />
-            <template v-if="can('user:manage')">
-              <UButton :icon="u.status === 'active' ? 'i-lucide-ban' : 'i-lucide-check-circle'" variant="ghost" :color="u.status === 'active' ? 'warning' : 'primary'" size="xs" @click="handleToggleStatus(u)" />
-              <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = u; showDeleteModal = true" />
-            </template>
+          </div>
+        </template>
+        <!-- 已激活/禁用：hover 显示操作按钮 -->
+        <div v-else class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEdit(u)" />
+          <UButton icon="i-lucide-key" variant="ghost" color="warning" size="xs" @click="resetPwdTarget = u; newPassword = ''; showPasswordModal = true" />
+          <template v-if="can('user:manage')">
+            <UButton :icon="u.status === 'active' ? 'i-lucide-ban' : 'i-lucide-check-circle'" variant="ghost" :color="u.status === 'active' ? 'warning' : 'primary'" size="xs" @click="handleToggleStatus(u)" />
+            <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = u; showDeleteModal = true" />
           </template>
         </div>
       </div>

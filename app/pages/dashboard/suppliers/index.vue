@@ -12,6 +12,20 @@ const {
 const statusFilter = ref('')
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
 
+// 排序
+const sortValue = ref('')
+watch(sortValue, (v) => {
+  if (!v) {
+    setFilter('sortBy', '')
+    setFilter('sortOrder', '')
+  } else {
+    const idx = v.lastIndexOf('_')
+    setFilter('sortBy', v.slice(0, idx))
+    setFilter('sortOrder', v.slice(idx + 1))
+  }
+  onFilterChange()
+})
+
 const showCreateModal = ref(false)
 const createLoading = ref(false)
 const createForm = ref({
@@ -135,6 +149,13 @@ onMounted(() => { fetchSuppliers() })
         <option value="active">合作中</option>
         <option value="inactive">已停用</option>
       </select>
+      <select v-model="sortValue" class="input-base focus-ring min-w-[140px]">
+        <option value="">默认排序</option>
+        <option value="name_asc">名称 A-Z</option>
+        <option value="name_desc">名称 Z-A</option>
+        <option value="createdAt_desc">最近添加</option>
+        <option value="createdAt_asc">最早添加</option>
+      </select>
       <span class="text-xs text-content-secondary">共 {{ total }} 个供应商</span>
     </div>
 
@@ -144,8 +165,8 @@ onMounted(() => { fetchSuppliers() })
       <p class="text-sm">还没有供应商，先加一个？</p>
       <UButton class="mt-3" size="sm" color="primary" @click="showCreateModal = true; resetCreateForm()">添加供应商</UButton>
     </div>
-    <div v-else class="space-y-2">
-      <div v-for="supplier in supplierList" :key="supplier.id" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
+    <div v-else class="space-y-1">
+      <div v-for="supplier in supplierList" :key="supplier.id" class="em-card !p-2.5 flex items-center gap-3 hover:shadow-sm transition-shadow group">
         <div :class="['w-1 h-10 rounded-full flex-shrink-0', supplier.status === 'active' ? 'bg-teal-400' : 'bg-line']" />
         <div class="flex-1 min-w-0 cursor-pointer" @click="$router.push(`/dashboard/suppliers/${supplier.id}`)">
           <div class="flex items-center gap-2 mb-0.5">
@@ -163,7 +184,7 @@ onMounted(() => { fetchSuppliers() })
             <span v-if="supplier.email">{{ supplier.email }}</span>
           </div>
         </div>
-        <div class="flex items-center gap-1" @click.stop>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
           <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="xs" @click="openEditModal(supplier)" />
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = supplier; showDeleteModal = true" />
         </div>

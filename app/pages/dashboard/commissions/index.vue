@@ -4,7 +4,7 @@ definePageMeta({ layout: 'dashboard', title: '提成', middleware: ['auth'], wat
 const toast = useToast()
 const { $api } = useNuxtApp()
 
-const { loading, list: items, total, page, pageSize, totalPages, onSearchInput, onFilterChange, setFilter, fetchList: fetchItems } = useTable<any>({ apiUrl: '/api/commissions' })
+const { loading, list: items, total, page, pageSize, totalPages, keyword, onSearchInput, onFilterChange, setFilter, fetchList: fetchItems } = useTable<any>({ apiUrl: '/api/commissions' })
 const { exportCsv } = useExportCsv()
 
 // 统计
@@ -36,6 +36,24 @@ const deleteLoading = ref(false)
 // 状态筛选
 const statusFilter = ref('')
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
+
+// 排序
+const sortBy = ref('updatedAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
+watch([sortBy, sortOrder], () => { setFilter('sortBy', sortBy.value); setFilter('sortOrder', sortOrder.value); onFilterChange() })
+
+const sortOptions = [
+  { label: '金额从高到低', value: 'amount:desc' },
+  { label: '金额从低到高', value: 'amount:asc' },
+  { label: '日期近→远', value: 'createdAt:desc' },
+  { label: '日期远→近', value: 'createdAt:asc' },
+]
+const currentSortKey = computed(() => `${sortBy.value}:${sortOrder.value}`)
+function onSortChange(val: string) {
+  const [by = 'updatedAt', order = 'desc'] = val.split(':')
+  sortBy.value = by
+  sortOrder.value = order as 'asc' | 'desc'
+}
 
 function handleExport() {
   exportCsv('/api/commissions', [
@@ -168,19 +186,19 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <div class="em-card flex items-center gap-3 !py-3">
+      <div class="em-card !p-2.5 flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-brand-500" /></div>
         <div><p class="text-lg font-medium text-content-secondary">{{ formatMoney(stats.totalAmount) }}</p><p class="text-xs text-content-muted">总提成金额</p></div>
       </div>
-      <div class="em-card flex items-center gap-3 !py-3">
+      <div class="em-card !p-2.5 flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-teal-50 flex items-center justify-center"><UIcon name="i-lucide-check-circle" class="w-5 h-5 text-teal-500" /></div>
         <div><p class="text-lg font-medium text-teal-600">{{ formatMoney(stats.paidAmount) }}</p><p class="text-xs text-content-muted">已发放</p></div>
       </div>
-      <div class="em-card flex items-center gap-3 !py-3">
+      <div class="em-card !p-2.5 flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-brand-50 flex items-center justify-center"><UIcon name="i-lucide-clock" class="w-5 h-5 text-brand-400" /></div>
         <div><p class="text-lg font-medium text-brand-600">{{ formatMoney(stats.pendingAmount) }}</p><p class="text-xs text-content-muted">待审批</p></div>
       </div>
-      <div class="em-card flex items-center gap-3 !py-3">
+      <div class="em-card !p-2.5 flex items-center gap-3">
         <div class="w-10 h-10 rounded-md bg-surface-hover flex items-center justify-center"><UIcon name="i-lucide-users" class="w-5 h-5 text-content-muted" /></div>
         <div><p class="text-lg font-medium text-content-secondary">{{ stats.byUser.length }}</p><p class="text-xs text-content-muted">涉及人员</p></div>
       </div>
@@ -188,6 +206,10 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
 
     <!-- 筛选 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="relative flex-1 min-w-[200px] max-w-xs">
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-muted" />
+        <input v-model="keyword" type="text" placeholder="搜索人员或合同..." class="w-full pl-9 input-base focus-ring transition-colors" @input="onSearchInput" />
+      </div>
       <select v-model="statusFilter" class="input-base focus-ring">
         <option value="">全部状态</option>
         <option value="pending">待审批</option>
@@ -195,14 +217,17 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
         <option value="rejected">已驳回</option>
         <option value="paid">已发放</option>
       </select>
+      <select :value="currentSortKey" class="input-base text-xs" @change="onSortChange(($event.target as HTMLSelectElement).value)">
+        <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      </select>
       <span class="text-xs text-content-muted">共 {{ total }} 条提成记录</span>
     </div>
 
     <!-- 列表 -->
     <div v-if="loading" class="text-center py-12 text-content-muted">马上就好...</div>
     <div v-else-if="items.length === 0" class="text-center py-12 text-content-muted">还没有提成记录，先计算一单？</div>
-    <div v-else class="space-y-2">
-      <NuxtLink v-for="c in items" :key="c.id" :to="`/dashboard/commissions/${c.id}`" class="em-card flex items-center gap-4 hover:shadow-sm transition-shadow group">
+    <div v-else class="space-y-1">
+      <NuxtLink v-for="c in items" :key="c.id" :to="`/dashboard/commissions/${c.id}`" class="em-card !p-2.5 flex items-center gap-3 hover:shadow-sm transition-shadow group">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-secondary">{{ c.user?.name }} - {{ c.contract?.name }}</span>
@@ -211,16 +236,16 @@ onMounted(() => { fetchItems(); fetchOptions(); fetchStats() })
           <div class="flex items-center gap-4 text-xs text-content-muted">
             <span>基数 {{ formatMoney(c.baseAmount) }}</span>
             <span>比例 {{ (Number(c.rate) * 100).toFixed(1) }}%</span>
-            <span class="font-medium text-content-secondary">{{ formatMoney(Number(c.adjustAmount) || Number(c.amount)) }}</span>
             <span v-if="c.adjustReason" class="text-brand-600">（已调整：{{ c.adjustReason }}）</span>
             <span>{{ c.periodMonth }}</span>
           </div>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="text-sm font-medium text-brand-500 text-right min-w-[80px] flex-shrink-0">{{ formatMoney(Number(c.adjustAmount) || Number(c.amount)) }}</div>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
           <template v-if="c.status === 'pending'">
-            <UButton icon="i-lucide-check" color="primary" variant="ghost" size="xs" :loading="approveLoading === c.id" @click="handleApprove(c.id)">通过</UButton>
-            <UButton icon="i-lucide-x" color="warning" variant="ghost" size="xs" @click="handleReject(c.id)">驳回</UButton>
-            <UButton icon="i-lucide-pencil" variant="ghost" color="neutral" size="xs" @click="openAdjust(c)">调整</UButton>
+            <UButton icon="i-lucide-check" color="primary" variant="ghost" size="xs" :loading="approveLoading === c.id" @click="handleApprove(c.id)" />
+            <UButton icon="i-lucide-x" color="warning" variant="ghost" size="xs" @click="handleReject(c.id)" />
+            <UButton icon="i-lucide-pencil" variant="ghost" color="neutral" size="xs" @click="openAdjust(c)" />
           </template>
           <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" @click="deleteTarget = c; showDeleteModal = true" />
         </div>
