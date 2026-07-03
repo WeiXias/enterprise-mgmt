@@ -77,7 +77,9 @@ export default defineNuxtConfig({
           'X-Frame-Options': 'DENY',
           'X-XSS-Protection': '0',
           'Referrer-Policy': 'strict-origin-when-cross-origin',
-          'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'",
+          'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+          'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+          'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'",
         },
       },
       // 静态资源缓存
@@ -88,8 +90,7 @@ export default defineNuxtConfig({
       },
     },
 
-    // CORS（允许同源请求）
-    // 如需前后端分离部署，改为具体域名
+    // CORS：同源部署，不需要跨域
     experimental: {
       openAPI: false,
     },

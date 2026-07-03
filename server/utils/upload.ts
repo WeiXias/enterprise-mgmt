@@ -31,7 +31,41 @@ const MIME_MAP: Record<string, string> = {
   '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 }
 
-const IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml']
+/** 允许的文件扩展名（白名单） */
+const ALLOWED_EXTENSIONS = Object.keys(MIME_MAP)
+
+/** 通过文件头 magic bytes 检测真实类型，防止 MIME 伪造 */
+function detectTypeByMagic(data: Buffer): string | null {
+  // PDF: %PDF-
+  if (data.length >= 5 && data.slice(0, 5).toString() === '%PDF-') return 'application/pdf'
+  // PNG: 89 50 4E 47
+  if (data.length >= 4 && data[0] === 0x89 && data[1] === 0x50 && data[2] === 0x4E && data[3] === 0x47) return 'image/png'
+  // JPEG: FF D8 FF
+  if (data.length >= 3 && data[0] === 0xFF && data[1] === 0xD8 && data[2] === 0xFF) return 'image/jpeg'
+  // GIF: GIF89a or GIF87a
+  if (data.length >= 6 && (data.slice(0, 6).toString() === 'GIF89a' || data.slice(0, 6).toString() === 'GIF87a')) return 'image/gif'
+  // WebP: RIFF....WEBP
+  if (data.length >= 12 && data.slice(0, 4).toString() === 'RIFF' && data.slice(8, 12).toString() === 'WEBP') return 'image/webp'
+  // SVG: 文本型，检测是否以 <svg 或 <?xml 开头且包含 <svg
+  if (data.length >= 4) {
+    const head = data.slice(0, 256).toString('utf8').trimStart()
+    if (/^\s*<(svg|SVG)\b/.test(head) || (/^\s*<\?xml/.test(head) && head.includes('<svg'))) return 'image/svg+xml'
+  }
+  // ZIP-based (DOCX/XLSX/PPTX): 50 4B 03 04
+  if (data.length >= 4 && data[0] === 0x50 && data[1] === 0x4B && data[2] === 0x03 && data[3] === 0x04) {
+    // 通过 [Content_Types].xml 中的 Override 区分具体 Office 类型
+    const content = data.toString('utf8', 0, Math.min(data.length, 8192))
+    if (content.includes('word/')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    if (content.includes('xl/')) return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    if (content.includes('ppt/')) return 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    return 'application/vnd.openxmlformats-officedocument' // 兜底：Office 系列，放行
+  }
+  // OLE2-based (DOC/XLS/PPT): D0 CF 11 E0
+  if (data.length >= 4 && data[0] === 0xD0 && data[1] === 0xCF && data[2] === 0x11 && data[3] === 0xE0) {
+    return 'application/octet-stream' // 旧 Office 格式，放行
+  }
+  return null // 无法识别
+}
 
 export const DEFAULT_MAX_SIZE = 20 * 1024 * 1024
 export const DEFAULT_IMAGE_MAX_SIZE = 10 * 1024 * 1024
@@ -83,8 +117,21 @@ export async function saveUploadedFile(opts: SaveUploadedFileOptions): Promise<S
     throw createError({ statusCode: 422, statusMessage: `文件不能超过 ${maxMB}MB` })
   }
 
-  // MIME 白名单校验（application/octet-stream 跳过，浏览器有时不给具体类型）
-  if (file.type && file.type !== 'application/octet-stream' && !allowed.includes(file.type)) {
+  // 扩展名白名单校验
+  const ext = path.extname(file.filename || '').toLowerCase()
+  if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+    throw createError({ statusCode: 422, statusMessage: '不支持这个文件格式，换个文件试试？' })
+  }
+
+  // Magic bytes 真实类型检测
+  const magicType = detectTypeByMagic(file.data)
+  if (magicType === null) {
+    throw createError({ statusCode: 422, statusMessage: '文件内容无法识别，换个文件试试？' })
+  }
+
+  // MIME 白名单校验（优先 magic bytes，其次客户端声明）
+  const effectiveMime = magicType || file.type
+  if (effectiveMime !== 'application/octet-stream' && !allowed.includes(effectiveMime)) {
     throw createError({ statusCode: 422, statusMessage: '不支持这个文件格式，换个文件试试？' })
   }
 
@@ -100,7 +147,7 @@ export async function saveUploadedFile(opts: SaveUploadedFileOptions): Promise<S
     fs.mkdirSync(targetDir, { recursive: true })
   }
 
-  // 生成文件名（hash 前缀去重）
+  // 生成安全文件名（hash 前缀去重）
   const safeName = safeFileName(file.filename)
   const contentHash = computeContentHash(file.data)
   const hashPrefix = contentHash.slice(0, 16)
@@ -128,7 +175,7 @@ export async function saveUploadedFile(opts: SaveUploadedFileOptions): Promise<S
     dbPath: `/uploads/${relativePath}`,
     absolutePath,
     fileSize: file.data.length,
-    mimeType: file.type || 'application/octet-stream',
+    mimeType: effectiveMime,
     contentHash,
   }
 }
@@ -152,7 +199,20 @@ export function isOffice(fileName: string): boolean {
   return t.includes('officedocument') || t.includes('ms-word') || t.includes('ms-excel') || t.includes('ms-powerpoint')
 }
 
+/** 安全文件名：剥离路径遍历，清理特殊字符，补充缺失扩展名 */
 export function safeFileName(raw: string | undefined): string {
   const name = raw || 'unnamed'
-  return path.basename(name)
+  // 1. 剥离路径
+  const base = path.basename(name)
+  // 2. 最多保留一层扩展名
+  const dotIndex = base.lastIndexOf('.')
+  if (dotIndex <= 0) return sanitize(base)
+  const stem = base.slice(0, dotIndex)
+  const ext = base.slice(dotIndex).toLowerCase()
+  // 3. 清理主干中的特殊字符
+  return sanitize(stem) + ext
+}
+
+function sanitize(s: string): string {
+  return s.replace(/[^a-zA-Z0-9一-鿿_\-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'file'
 }

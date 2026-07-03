@@ -10,12 +10,24 @@ import { tasks } from '#schema/projects'
 import { eq, and, isNull, sql, gte, lte, isNotNull, ne, desc } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
+// 进程级简单缓存（仪表盘数据变化不频繁，5 分钟过期）
+interface CacheEntry { data: any; ts: number }
+const dashboardCache = new Map<string, CacheEntry>()
+const CACHE_TTL_MS = 5 * 60 * 1000
+
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   await requirePermission(event, 'dashboard:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
   const isSalesMember = user.role === 'sales_member'
+  const cacheKey = `dashboard:${user.userId}`
+
+  // 缓存命中直接返回
+  const cached = dashboardCache.get(cacheKey)
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    return cached.data
+  }
 
   const today = new Date().toISOString().slice(0, 10)
   const monthStart = today.slice(0, 8) + '01'
@@ -76,7 +88,7 @@ export default defineEventHandler(async (event) => {
     db.select({ id: contracts.id, name: contracts.name, code: contracts.code, totalAmount: contracts.totalAmount, status: contracts.status, customerName: customers.name }).from(contracts).leftJoin(customers, eq(contracts.customerId, customers.id)).where(isNull(contracts.deletedAt)).orderBy(desc(contracts.updatedAt)).limit(5),
     db.select({ id: contracts.id, name: contracts.name, endDate: contracts.endDate, customerName: customers.name }).from(contracts).leftJoin(customers, eq(contracts.customerId, customers.id)).where(and(isNull(contracts.deletedAt), eq(contracts.status, 'in_progress'), isNotNull(contracts.endDate), gte(contracts.endDate, today), lte(contracts.endDate, thirtyDaysLater))).orderBy(sql`${contracts.endDate} asc`).limit(5),
 
-    // 财务扩展 (28-35) - 复用 finance overview 的查询方式
+    // 财务扩展 (28-35)
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(isNull(payments.deletedAt)),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(financeTransactions).where(and(isNull(financeTransactions.deletedAt), eq(financeTransactions.type, 'income'))),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(commissionPayouts).where(eq(commissionPayouts.status, 'confirmed')),
@@ -120,13 +132,13 @@ export default defineEventHandler(async (event) => {
   const totalReceived = Number(totalReceivedResult[0]?.total || 0)
   const totalInvoiced = Number(totalInvoicedResult[0]?.total || 0)
 
-  // 最近流水：合并 payments + manual transactions，按日期排序取前 10
+  // 最近流水
   const recentTransactions = [
     ...recentPaymentsList.map((r: any) => ({ id: r.id, type: 'income', amount: r.amount, description: '合同收款', category: '合同收款', transactionDate: (r.createdAt || '').slice(0, 10) })),
     ...recentManualList.map((r: any) => ({ id: r.id, type: r.type, amount: r.amount, description: r.description, category: r.category, transactionDate: r.transactionDate })),
   ].sort((a, b) => b.transactionDate.localeCompare(a.transactionDate)).slice(0, 10)
 
-  return {
+  const response = {
     code: 0,
     data: {
       kpi: {
@@ -175,7 +187,6 @@ export default defineEventHandler(async (event) => {
       recentContracts: recentContracts.map((r: any) => ({ id: r.id, name: r.name, code: r.code, totalAmount: r.totalAmount, status: r.status, customerName: r.customerName })),
       expiringContracts: expiringContractsList.map((r: any) => ({ id: r.id, name: r.name, endDate: r.endDate, customerName: r.customerName })),
 
-      // 顶部总额概览
       summaryAmounts: {
         oppTotal: Number(oppTotalAmount[0]?.total || 0),
         contractTotal: Number(contractTotalAmount[0]?.total || 0),
@@ -203,4 +214,7 @@ export default defineEventHandler(async (event) => {
       recentPurchaseOrders: recentPurchaseOrdersList.map((r: any) => ({ id: r.id, code: r.code, status: r.status, totalAmount: r.totalAmount, supplierName: r.supplierName })),
     }
   }
+
+  dashboardCache.set(cacheKey, { data: response, ts: Date.now() })
+  return response
 })
