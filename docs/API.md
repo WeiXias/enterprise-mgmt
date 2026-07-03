@@ -116,7 +116,7 @@ interface ErrorResponse {
 | 销售成员 | 仅自己负责的数据 |
 | 财务 | 合同/提成/回款完整权限，其余只读 |
 
-> 敏感路由（`/api/users/`、`/api/roles/`、`/api/system/`、`/api/ai/` 等）仅管理员可访问。
+> 敏感路由（`/api/users/`、`/api/roles/`、`/api/system/` 等）仅管理员可访问。
 > 提成与财务路由仅管理员和财务可访问。
 
 ---
@@ -1554,16 +1554,14 @@ GET /enums
 
 | 模块 | 接口数 | 主要端点 |
 |------|--------|----------|
-| AI 功能 | 14 | employees CRUD, providers CRUD, models, test, settings |
 | 附件 | 1 | delete |
 | 认证 | 5 | login, logout, refresh, password, register |
-| 预算 | 4 | CRUD |
 | 评论 | 2 | delete, update |
 | 提成发放 | 3 | list, create, confirm |
 | 提成规则 | 4 | CRUD |
 | 提成 | 9 | list, calculate, approve, reject, adjust, export, stats |
 | 联系人 | 3 | delete, update, primary |
-| 合同 | 36 | CRUD, approve/reject, payments, plans, ledger, project, AI review, subcontracts, export, transfer |
+| 合同 | 36 | CRUD, approve/reject, payments, plans, ledger, project, export, transfer |
 | 客户 | 15 | CRUD, transfer, tags, contacts, follow-ups, stats, export |
 | 看板 | 1 | dashboard |
 | 交付物 | 2 | status, upload |
@@ -1572,7 +1570,6 @@ GET /enums
 | 文件 | 2 | preview, logo |
 | 财务 | 21 | transactions CRUD, categories CRUD, reimbursements CRUD+approve/reject/pay, reports, settings |
 | 跟进 | 2 | delete, update |
-| 即时通讯 | 15 | conversations CRUD, messages, members, attachments, search, unread |
 | 进销存 | 4 | transactions CRUD |
 | 发票 | 5 | CRUD, void |
 | 里程碑 | 2 | delete, update |
@@ -1583,16 +1580,14 @@ GET /enums
 | 权限 | 2 | list, me |
 | 产品分类 | 4 | CRUD |
 | 产品 | 8 | CRUD, toggle, transactions, stats |
-| 项目 | 29 | CRUD, members, tasks, milestones, deliverables, time-logs, risks, comments, gantt, burndown, budget, templates |
+| 项目 | 29 | CRUD, members, tasks, milestones, deliverables, time-logs, risks, comments, gantt, burndown, templates |
 | 报价 | 5 | CRUD, export-pdf, send |
 | 风险 | 2 | delete, update |
 | 角色 | 6 | CRUD, permissions |
-| 分包方 | 4 | CRUD |
-| 分包 | 3 | list, update, delete |
 | 系统 | 21 | config, code-rules, backups, security, smtp, logs, cron, sidebar |
 | 标签 | 4 | CRUD |
 | 任务 | 10 | CRUD, comments, dependencies, batch, reorder |
 | 工时 | 2 | delete, update |
 | 待办 | 21 | CRUD, subtasks, lists, tags, batch, reorder |
 | 用户 | 8 | CRUD, me, reset-password |
-| **合计** | **313** | |
+| **合计** | **273** | |

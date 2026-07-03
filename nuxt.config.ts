@@ -64,8 +64,7 @@ export default defineNuxtConfig({
       '#schema/accounting': resolve(__dirname, 'server/database/schema/accounting'),
       '#enums': resolve(__dirname, 'server/database/schema/enums'),
       '#server-utils': resolve(__dirname, 'server/utils'),
-      '#server-utils/accounting': resolve(__dirname, 'server/utils/accounting'),
-      '#ai-utils': resolve(__dirname, 'server/utils/ai')
+      '#server-utils/accounting': resolve(__dirname, 'server/utils/accounting')
     },
 
     // 压缩：Nitro 生产模式默认 gzip，此处显式开启 brotli 优先

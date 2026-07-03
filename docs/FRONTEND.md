@@ -241,7 +241,6 @@
 │   ├── stores/                  # Pinia 状态管理
 │   │   ├── auth.ts              # 用户认证状态
 │   │   ├── notification.ts      # 通知状态
-│   │   ├── im.ts + im/          # IM 状态
 │   │   ├── seal.ts              # 印章状态
 │   │   └── watermark.ts         # 水印状态
 │   │
