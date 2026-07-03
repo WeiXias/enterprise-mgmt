@@ -7,6 +7,10 @@ const { loading, list: contractsList, total, page, pageSize, totalPages, keyword
 // 导出（useExportCsv）
 const { exportCsv } = useExportCsv()
 
+// 类型筛选
+const typeFilter = ref('')
+watch(typeFilter, (v) => { setFilter('type', v); onFilterChange() })
+
 // 状态筛选（独立 ref，通过 watch 联动 useTable）
 const statusFilter = ref('')
 watch(statusFilter, (v) => { setFilter('status', v); onFilterChange() })
@@ -64,7 +68,9 @@ function handleExport() {
   const columns = [
     { key: 'code', label: '合同编号' },
     { key: 'name', label: '合同名称' },
+    { key: 'type', label: '类型', format: (v: unknown) => v === 'purchase' ? '采购' : '销售' },
     { key: 'customer?.name', label: '客户' },
+    { key: 'supplier?.name', label: '供应商' },
     { key: 'totalAmount', label: '金额', format: (v: unknown) => '¥' + v },
     { key: 'status', label: '状态' },
   ]
@@ -73,13 +79,16 @@ function handleExport() {
 
 // 客户列表（供创建选择）
 const customerOptions = ref<any[]>([])
+const supplierOptions = ref<any[]>([])
 
 // 新增合同弹窗
 const showCreateModal = ref(false)
 const createLoading = ref(false)
 const createForm = ref({
+  type: 'sales',
   name: '',
   customerId: '',
+  supplierId: '',
   totalAmount: 0,
   partyA: '',
   partyB: '',
@@ -127,15 +136,31 @@ async function fetchCustomers() {
 }
 
 async function handleCreate() {
-  if (!createForm.value.name || !createForm.value.customerId) {
-    toast.add({ title: '合同名称和客户得填一下', color: 'warning' })
+  const isPurchase = createForm.value.type === 'purchase'
+  if (!createForm.value.name) {
+    toast.add({ title: '合同名称得填一下', color: 'warning' })
+    return
+  }
+  if (isPurchase && !createForm.value.supplierId) {
+    toast.add({ title: '供应商也得选一下', color: 'warning' })
+    return
+  }
+  if (!isPurchase && !createForm.value.customerId) {
+    toast.add({ title: '客户也得选一下', color: 'warning' })
     return
   }
   createLoading.value = true
   try {
+    const body: any = {
+      ...createForm.value,
+      direction: isPurchase ? 'expense' : 'income',
+    }
+    // 根据类型，只发送对应关联字段
+    if (isPurchase) { delete body.customerId }
+    else { delete body.supplierId }
     const res = await $api('/api/contracts', {
       method: 'POST',
-      body: createForm.value,
+      body,
     }) as any
     if (res?.code === 0) {
       toast.add({ title: '搞定了！合同已创建', color: 'success' })
@@ -250,7 +275,7 @@ async function handleReject() {
 
 function resetCreateForm() {
   createForm.value = {
-    name: '', customerId: '', totalAmount: 0,
+    type: 'sales', name: '', customerId: '', supplierId: '', totalAmount: 0,
     partyA: '', partyB: '', paymentMethod: '',
     startDate: '', endDate: '', remark: '',
   }
@@ -264,7 +289,7 @@ function formatMoney(v: any) {
 
 // 统计快筛
 const quickFilter = ref('')
-const stats = ref({ inProgressCount: 0, newThisMonth: 0, expiringSoon: 0, totalAmount: 0 })
+const stats = ref({ inProgressCount: 0, newThisMonth: 0, expiringSoon: 0, totalAmount: 0, salesCount: 0, salesAmount: 0, purchaseCount: 0, purchaseAmount: 0 })
 function setQuickFilter(key: string) {
   quickFilter.value = quickFilter.value === key ? '' : key
   setFilter('inProgress', quickFilter.value === 'inProgress' ? '1' : undefined)
@@ -324,6 +349,20 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- 销售/采购统计 -->
+    <div class="grid grid-cols-4 gap-2.5 mb-4">
+      <div class="em-card !p-2.5 text-left">
+        <div class="flex items-center gap-1.5 mb-1"><div class="w-1.5 h-1.5 rounded-full bg-teal-400" /><span class="text-xs text-content-muted">销售合同</span></div>
+        <div class="text-sm font-medium text-content-primary">{{ stats.salesCount }} 个</div>
+        <div class="text-xs text-teal-600">{{ formatMoney(stats.salesAmount) }}</div>
+      </div>
+      <div class="em-card !p-2.5 text-left">
+        <div class="flex items-center gap-1.5 mb-1"><div class="w-1.5 h-1.5 rounded-full bg-orange-400" /><span class="text-xs text-content-muted">采购合同</span></div>
+        <div class="text-sm font-medium text-content-primary">{{ stats.purchaseCount }} 个</div>
+        <div class="text-xs text-orange-600">{{ formatMoney(stats.purchaseAmount) }}</div>
+      </div>
+    </div>
+
     <!-- 搜索筛选栏 -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <div class="relative flex-1 min-w-[200px] max-w-xs">
@@ -335,6 +374,17 @@ onMounted(async () => {
           class="w-full pl-9 input-base focus-ring transition-colors"
           @input="onSearchInput"
         />
+      </div>
+      <div class="flex items-center gap-0.5 bg-surface-hover rounded-md p-0.5">
+        <button
+          v-for="opt in [{value:'',label:'全部'},{value:'sales',label:'销售'},{value:'purchase',label:'采购'}]"
+          :key="opt.value"
+          :class="[
+            'px-3 py-1 text-xs rounded transition-colors',
+            typeFilter === opt.value ? 'bg-surface-card text-content-primary shadow-sm font-medium' : 'text-content-muted hover:text-content-secondary'
+          ]"
+          @click="typeFilter = opt.value"
+        >{{ opt.label }}</button>
       </div>
       <EnumSelect
         v-model="statusFilter"
@@ -385,11 +435,21 @@ onMounted(async () => {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-content-primary truncate">{{ ct.name }}</span>
+            <span
+              :class="[
+                'text-[10px] px-1.5 py-0.5 rounded font-medium',
+                ct.type === 'purchase' ? 'bg-orange-50 text-orange-600' : 'bg-teal-50 text-teal-600'
+              ]"
+            >{{ ct.type === 'purchase' ? '采购' : '销售' }}</span>
             <StatusBadge :value="ct.status" enum-type="contractStatus" />
           </div>
           <div class="flex items-center gap-3 text-xs text-content-muted">
             <span v-if="ct.code" class="text-content-muted font-mono text-[11px]">{{ ct.code }}</span>
-            <span v-if="ct.customer?.name">
+            <span v-if="ct.type === 'purchase' && ct.supplier?.name">
+              <UIcon name="i-lucide-truck" class="w-3 h-3 inline mr-0.5" />
+              {{ ct.supplier.name }}
+            </span>
+            <span v-else-if="ct.type !== 'purchase' && ct.customer?.name">
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline mr-0.5" />
               {{ ct.customer.name }}
             </span>
@@ -404,7 +464,7 @@ onMounted(async () => {
         </div>
 
         <!-- 金额（右对齐） -->
-        <span class="text-brand-500 text-sm font-medium whitespace-nowrap">{{ formatMoney(ct.totalAmount) }}</span>
+        <span :class="['text-sm font-medium whitespace-nowrap', ct.direction === 'expense' ? 'text-orange-500' : 'text-teal-500']">{{ formatMoney(ct.totalAmount) }}</span>
 
         <!-- 进度条（执行中/已完成显示） -->
         <div v-if="ct.status === 'in_progress' || ct.status === 'completed'" class="w-24">
@@ -482,11 +542,27 @@ onMounted(async () => {
     <!-- 新增合同弹窗 -->
     <FormModal v-if="showCreateModal" v-model:open="showCreateModal" title="添加合同" size="standard" :loading="createLoading" @confirm="handleCreate" @cancel="showCreateModal = false">
         <form class="space-y-4" @submit.prevent="handleCreate">
+          <!-- 合同类型 -->
+          <div>
+            <label class="block text-sm text-content-secondary mb-1">合同类型 <span class="text-red-400">*</span></label>
+            <div class="flex gap-2">
+              <button type="button"
+                :class="['flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors', createForm.type === 'sales' ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-line text-content-muted hover:border-brand-200']"
+                @click="createForm.type = 'sales'; createForm.supplierId = ''">销售合同</button>
+              <button type="button"
+                :class="['flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors', createForm.type === 'purchase' ? 'border-brand-400 bg-brand-50 text-brand-700' : 'border-line text-content-muted hover:border-brand-200']"
+                @click="createForm.type = 'purchase'; createForm.customerId = ''">采购合同</button>
+            </div>
+          </div>
           <div>
             <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-red-400">*</span></label>
             <input v-model="createForm.name" type="text" placeholder="给合同起个名字" class="w-full input-base focus-ring" />
           </div>
-          <div>
+          <div v-if="createForm.type === 'purchase'">
+            <label class="block text-sm text-content-secondary mb-1">供应商 <span class="text-red-400">*</span></label>
+            <SupplierSelect v-model="createForm.supplierId" placeholder="选择供应商" />
+          </div>
+          <div v-else>
             <label class="block text-sm text-content-secondary mb-1">客户 <span class="text-red-400">*</span></label>
             <CustomerSelect v-model="createForm.customerId" placeholder="选择客户" />
           </div>

@@ -8,7 +8,10 @@ import { requirePermission } from '#server-utils/permission'
 
 const schema = z.object({
   name: z.string().min(1).max(200),
-  customerId: z.string().min(1),
+  customerId: z.string().optional(),
+  supplierId: z.string().optional(),
+  type: z.enum(['sales', 'purchase']).optional().default('sales'),
+  direction: z.enum(['income', 'expense']).optional().default('income'),
   opportunityId: z.string().optional(),
   ownerUserId: z.string().optional(),
   totalAmount: z.number().min(0),
@@ -45,7 +48,10 @@ export default defineEventHandler(async (event) => {
       id: contractId,
       code: codeNo,
       name: parsed.data.name,
-      customerId: parsed.data.customerId,
+      customerId: parsed.data.customerId || null,
+      supplierId: parsed.data.supplierId || null,
+      type: parsed.data.type,
+      direction: parsed.data.direction,
       opportunityId: parsed.data.opportunityId || null,
       totalAmount: parsed.data.totalAmount,
       partyA: parsed.data.partyA || '',

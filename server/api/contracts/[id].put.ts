@@ -9,6 +9,9 @@ import { requirePermission } from '#server-utils/permission'
 const schema = z.object({
   name: z.string().min(1).max(200).optional(),
   ownerUserId: z.string().optional(),
+  supplierId: z.string().optional().or(z.literal('')),
+  type: z.enum(['sales', 'purchase']).optional(),
+  direction: z.enum(['income', 'expense']).optional(),
   totalAmount: z.number().min(0).optional(),
   partyA: z.string().optional(),
   partyB: z.string().optional(),
@@ -35,7 +38,7 @@ export default defineEventHandler(async (event) => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const updateData: Record<string, unknown> = { updatedAt: now }
 
-  for (const key of ['name', 'ownerUserId', 'totalAmount', 'partyA', 'partyB', 'paymentMethod', 'remark', 'content']) {
+  for (const key of ['name', 'ownerUserId', 'supplierId', 'type', 'direction', 'totalAmount', 'partyA', 'partyB', 'paymentMethod', 'remark', 'content']) {
     const val = parsed.data[key as keyof typeof parsed.data]
     if (val !== undefined) updateData[key] = val
   }

@@ -12,7 +12,8 @@ const saving = ref(false)
 const customerOptions = ref<any[]>([])
 
 const form = ref({
-  name: '', customerId: '', totalAmount: 0,
+  type: 'sales',
+  name: '', customerId: '', supplierId: '', totalAmount: 0,
   partyA: '', partyB: '', paymentMethod: '',
   startDate: '', endDate: '', remark: '', signedAt: '',
 })
@@ -29,13 +30,24 @@ async function fetchCustomers() {
 }
 
 async function handleSubmit() {
-  if (!form.value.name || !form.value.customerId) {
-    toast.add({ title: '名称和客户都得填', color: 'warning' })
+  const isPurchase = form.value.type === 'purchase'
+  if (!form.value.name) {
+    toast.add({ title: '名称得填', color: 'warning' })
+    return
+  }
+  if (isPurchase && !form.value.supplierId) {
+    toast.add({ title: '供应商也得选', color: 'warning' })
+    return
+  }
+  if (!isPurchase && !form.value.customerId) {
+    toast.add({ title: '客户也得选', color: 'warning' })
     return
   }
   saving.value = true
   try {
-    const body: any = { ...form.value }
+    const body: any = { ...form.value, direction: isPurchase ? 'expense' : 'income' }
+    if (isPurchase) delete body.customerId
+    else delete body.supplierId
     const res = await $api('/api/contracts', { method: 'POST', body }) as any
     if (res?.code === 0) {
       const contractId = res.data.id

@@ -20,6 +20,8 @@ export const contracts = sqliteTable('contracts', {
   startDate: text('start_date'),
   endDate: text('end_date'),
   signedAt: text('signed_at'),
+  type: text('type', { enum: ['sales', 'purchase'] }).notNull().default('sales'),
+  direction: text('direction', { enum: ['income', 'expense'] }).notNull().default('income'),
   status: text('status', { enum: ['draft', 'approved', 'in_progress', 'completed', 'terminated'] }).notNull().default('draft'),
   rejectReason: text('reject_reason'),
   approvedBy: text('approved_by').references(() => users.id),

@@ -32,10 +32,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: '这个合同你无权查看' })
   }
 
-  const [customerResult, productList, planList, paymentList, attachmentList, projectList, approverResult, creatorResult, ownerResult, invoiceList, relatedPurchaseOrders, relatedContracts] = await Promise.all([
+  const [customerResult, supplierResult, productList, planList, paymentList, attachmentList, projectList, approverResult, creatorResult, ownerResult, invoiceList, relatedPurchaseOrders, relatedContracts] = await Promise.all([
     safeFallback(
       db.select({ id: customers.id, name: customers.name }).from(customers).where(eq(customers.id, c!.customerId)).limit(1),
       '客户信息',
+    ),
+    safeFallback(
+      db.select({ id: suppliers.id, name: suppliers.name }).from(suppliers).where(eq(suppliers.id, c!.supplierId)).limit(1),
+      '供应商信息',
     ),
     safeFallback(
       db.select({
@@ -124,6 +128,8 @@ export default defineEventHandler(async (event) => {
     data: {
       id: c!.id, code: c.code, name: c.name,
       customer: customerResult[0] || null,
+      supplier: supplierResult[0] || null,
+      type: c!.type, direction: c!.direction,
       opportunityId: c!.opportunityId,
       totalAmount: c!.totalAmount, receivedAmount,
       partyA: c!.partyA, partyB: c.partyB,

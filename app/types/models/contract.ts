@@ -1,12 +1,18 @@
 // ---- 合同 ----
+export type ContractType = 'sales' | 'purchase'
+export type ContractDirection = 'income' | 'expense'
 export type ContractStatus = 'draft' | 'approved' | 'in_progress' | 'completed' | 'terminated'
 
 export interface Contract {
   id: string
   code: string
   name: string
-  customerId: string
+  type: ContractType
+  direction: ContractDirection
+  customerId?: string
   customer?: Pick<Customer, 'id' | 'name'>
+  supplierId?: string
+  supplier?: Pick<Supplier, 'id' | 'name'>
   opportunityId?: string
   opportunity?: Pick<Opportunity, 'id' | 'name'>
   partyA: string
@@ -54,7 +60,10 @@ export interface ContractDetail extends Contract {
 
 export interface CreateContractPayload {
   name: string
-  customerId: string
+  type?: ContractType
+  direction?: ContractDirection
+  customerId?: string
+  supplierId?: string
   opportunityId?: string
   totalAmount: number
   paymentTerms?: string

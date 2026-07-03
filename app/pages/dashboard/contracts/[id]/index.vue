@@ -261,6 +261,9 @@ onMounted(() => {
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-1">
             <h2 class="text-base font-medium text-content-inverse">{{ contract.name }}</h2>
+            <span :class="['text-[10px] px-1.5 py-0.5 rounded-full font-medium', contract.type === 'purchase' ? 'bg-orange-50 text-orange-600' : 'bg-teal-50 text-teal-600']">
+              {{ contract.type === 'purchase' ? '采购' : '销售' }}
+            </span>
             <span :class="['text-[10px] px-1.5 py-0.5 rounded-full', statusConfig[contract.status]?.color || '']">
               {{ statusConfig[contract.status]?.label || contract.status }}
             </span>
@@ -271,7 +274,11 @@ onMounted(() => {
               <UIcon name="i-lucide-building-2" class="w-3 h-3 inline mr-0.5" />
               {{ contract.customer.name }}
             </span>
-            <span class="font-medium">{{ formatMoney(contract.totalAmount) }}</span>
+            <span v-if="contract.supplier?.name">
+              <UIcon name="i-lucide-truck" class="w-3 h-3 inline mr-0.5" />
+              {{ contract.supplier.name }}
+            </span>
+            <span :class="['font-medium', contract.direction === 'expense' ? 'text-orange-500' : 'text-teal-600']">{{ formatMoney(contract.totalAmount) }}</span>
             <span>
               <UIcon name="i-lucide-calendar" class="w-3 h-3 inline mr-0.5" />
               {{ contract.startDate || '-' }} 至 {{ contract.endDate || '-' }}

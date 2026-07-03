@@ -6,7 +6,9 @@
 interface Props {
   modelValue: {
     name: string
+    type?: string
     customerId?: string
+    supplierId?: string
     totalAmount?: number
     partyA?: string
     partyB?: string
@@ -42,6 +44,33 @@ function setQuickDate(years: number) {
 
 <template>
   <form class="space-y-4" @submit.prevent="$emit('submit')">
+    <!-- 合同类型 -->
+    <div>
+      <label class="block text-sm text-content-secondary mb-1">合同类型 <span class="text-red-400">*</span></label>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          :class="[
+            'flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors',
+            (modelValue.type || 'sales') === 'sales'
+              ? 'border-brand-400 bg-brand-50 text-brand-700'
+              : 'border-line text-content-muted hover:border-brand-200'
+          ]"
+          @click="$emit('update:modelValue', { ...modelValue, type: 'sales', direction: 'income' })"
+        >销售合同</button>
+        <button
+          type="button"
+          :class="[
+            'flex-1 py-2 px-3 rounded-md text-sm font-medium border transition-colors',
+            modelValue.type === 'purchase'
+              ? 'border-brand-400 bg-brand-50 text-brand-700'
+              : 'border-line text-content-muted hover:border-brand-200'
+          ]"
+          @click="$emit('update:modelValue', { ...modelValue, type: 'purchase', direction: 'expense' })"
+        >采购合同</button>
+      </div>
+    </div>
+
     <div>
       <label class="block text-sm text-content-secondary mb-1">合同名称 <span class="text-red-400">*</span></label>
       <input
@@ -53,7 +82,15 @@ function setQuickDate(years: number) {
       />
     </div>
 
-    <div v-if="customerOptions && customerOptions.length > 0">
+    <div v-if="(modelValue.type || 'sales') === 'purchase'">
+      <label class="block text-sm text-content-secondary mb-1">供应商 <span class="text-red-400">*</span></label>
+      <SupplierSelect
+        :model-value="modelValue.supplierId || ''"
+        placeholder="选择供应商"
+        @update:model-value="$emit('update:modelValue', { ...modelValue, supplierId: $event })"
+      />
+    </div>
+    <div v-else>
       <label class="block text-sm text-content-secondary mb-1">客户 <span class="text-red-400">*</span></label>
       <CustomerSelect
         :model-value="modelValue.customerId || ''"

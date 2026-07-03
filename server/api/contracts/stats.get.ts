@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
 import { contracts, payments, paymentPlans } from '#schema'
 import { and, isNull, sql, eq } from 'drizzle-orm'
@@ -9,8 +9,12 @@ export default defineEventHandler(async (event) => {
   await requirePermission(event, 'contract:view')
   if (!user) throw createError({ statusCode: 401, statusMessage: '请先登录' })
 
+  const query = getQuery(event)
+  const type = query.type as string | undefined
+
   // role filter
   const ownerWhere = user.role === 'sales_member' ? eq(contracts.ownerUserId, user.userId) : undefined
+  const typeWhere = type ? eq(contracts.type, type) : undefined
 
   // 总览统计
   const now = new Date()
@@ -26,7 +30,11 @@ export default defineEventHandler(async (event) => {
     completedCount: sql<number>`sum(case when ${contracts.status} = 'completed' then 1 else 0 end)`,
     newThisMonth: sql<number>`sum(case when ${contracts.createdAt} >= ${monthStart} then 1 else 0 end)`,
     expiringSoon: sql<number>`sum(case when ${contracts.status} not in ('completed','terminated') and ${contracts.endDate} is not null and ${contracts.endDate} >= ${today} and ${contracts.endDate} <= ${thirtyDaysLater} then 1 else 0 end)`,
-  }).from(contracts).where(and(isNull(contracts.deletedAt), ownerWhere) as any)
+    salesCount: sql<number>`sum(case when ${contracts.type} = 'sales' then 1 else 0 end)`,
+    salesAmount: sql<number>`coalesce(sum(case when ${contracts.type} = 'sales' then ${contracts.totalAmount} else 0 end), 0)`,
+    purchaseCount: sql<number>`sum(case when ${contracts.type} = 'purchase' then 1 else 0 end)`,
+    purchaseAmount: sql<number>`coalesce(sum(case when ${contracts.type} = 'purchase' then ${contracts.totalAmount} else 0 end), 0)`,
+  }).from(contracts).where(and(isNull(contracts.deletedAt), ownerWhere, typeWhere) as any)
 
   const t = totalRow[0]
 
@@ -52,6 +60,10 @@ export default defineEventHandler(async (event) => {
       completedCount: Number(t?.completedCount || 0),
       newThisMonth: Number(t?.newThisMonth || 0),
       expiringSoon: Number(t?.expiringSoon || 0),
+      salesCount: Number(t?.salesCount || 0),
+      salesAmount: Number(t?.salesAmount || 0),
+      purchaseCount: Number(t?.purchaseCount || 0),
+      purchaseAmount: Number(t?.purchaseAmount || 0),
     }
   }
 })
