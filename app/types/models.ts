@@ -21,5 +21,5 @@ export * from './models/notification'
 export * from './models/system'
 export * from './models/dashboard'
 export * from './models/export'
-export * from './models/ai'
+
 export * from './models/todo'

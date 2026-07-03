@@ -57,7 +57,6 @@ export default defineNuxtConfig({
       '#schema/projects': resolve(__dirname, 'server/database/schema/projects'),
       '#schema/commissions': resolve(__dirname, 'server/database/schema/commissions'),
       '#schema/system': resolve(__dirname, 'server/database/schema/system'),
-      '#schema/ai': resolve(__dirname, 'server/database/schema/ai'),
       '#schema/im': resolve(__dirname, 'server/database/schema/im'),
       '#schema/todos': resolve(__dirname, 'server/database/schema/todos'),
       '#schema/reconciliations': resolve(__dirname, 'server/database/schema/reconciliations'),
