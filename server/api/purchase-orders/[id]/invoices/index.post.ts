@@ -38,28 +38,30 @@ export default defineEventHandler(async (event) => {
   const invoiceId = generateId()
   const totalAmount = parsed.data.totalAmount || Math.round(parsed.data.amount * (1 + parsed.data.taxRate))
 
-  await db.insert(purchaseInvoices).values({
-    id: invoiceId,
-    payableId: payable.id,
-    orderId,
-    supplierId: po.supplierId!,
-    invoiceNo: parsed.data.invoiceNo,
-    amount: parsed.data.amount,
-    taxRate: parsed.data.taxRate,
-    taxAmount: parsed.data.taxAmount || Math.round(parsed.data.amount * parsed.data.taxRate),
-    totalAmount,
-    status: 'submitted',
-    remark: parsed.data.remark || null,
-    filePath: parsed.data.filePath || null,
-    createdBy: user.userId,
-    createdAt: now,
-  })
+  await db.transaction(async (tx) => {
+    await tx.insert(purchaseInvoices).values({
+      id: invoiceId,
+      payableId: payable.id,
+      orderId,
+      supplierId: po.supplierId!,
+      invoiceNo: parsed.data.invoiceNo,
+      amount: parsed.data.amount,
+      taxRate: parsed.data.taxRate,
+      taxAmount: parsed.data.taxAmount || Math.round(parsed.data.amount * parsed.data.taxRate),
+      totalAmount,
+      status: 'submitted',
+      remark: parsed.data.remark || null,
+      filePath: parsed.data.filePath || null,
+      createdBy: user.userId,
+      createdAt: now,
+    })
 
-  await db.update(purchasePayables).set({
-    invoiceAmount: payable.invoiceAmount + totalAmount,
-    status: 'invoiced',
-    updatedAt: now,
-  }).where(eq(purchasePayables.id, payable.id))
+    await tx.update(purchasePayables).set({
+      invoiceAmount: payable.invoiceAmount + totalAmount,
+      status: 'invoiced',
+      updatedAt: now,
+    }).where(eq(purchasePayables.id, payable.id))
+  })
 
   await logOperation(event, { action: 'CREATE', module: 'purchase_invoice', targetId: invoiceId, detail: `登记了供应商发票「${parsed.data.invoiceNo}」` })
 

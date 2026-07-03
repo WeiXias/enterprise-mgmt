@@ -40,35 +40,37 @@ export default defineEventHandler(async (event) => {
   const validItems = (parsed.data.items || []).filter(i => i.productId)
   const totalAmount = validItems.reduce((sum, i) => sum + Math.round(i.quantity * i.unitPrice * (i.discount ?? 1) * 100) / 100, 0)
 
-  await db.insert(purchaseOrders).values({
-    id: orderId,
-    code,
-    name: code,
-    supplierId: parsed.data.supplierId,
-    contractId: parsed.data.contractId || null,
-    expectedDate: parsed.data.expectedDate || null,
-    totalAmount,
-    status: 'draft',
-    remark: parsed.data.remark || '',
-    contractFilePath: parsed.data.contractFilePath || null,
-    createdAt: now,
-    updatedAt: now,
-  })
+  await db.transaction(async (tx) => {
+    await tx.insert(purchaseOrders).values({
+      id: orderId,
+      code,
+      name: code,
+      supplierId: parsed.data.supplierId,
+      contractId: parsed.data.contractId || null,
+      expectedDate: parsed.data.expectedDate || null,
+      totalAmount,
+      status: 'draft',
+      remark: parsed.data.remark || '',
+      contractFilePath: parsed.data.contractFilePath || null,
+      createdAt: now,
+      updatedAt: now,
+    })
 
-  if (validItems.length > 0) {
-    await db.insert(purchaseOrderItems).values(
-      validItems.map(item => ({
-        id: generateId(),
-        orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        discount: item.discount ?? 1,
-        amount: Math.round(item.quantity * item.unitPrice * (item.discount ?? 1) * 100) / 100,
-        taxRate: item.taxRate ?? 0,
-      }))
-    )
-  }
+    if (validItems.length > 0) {
+      await tx.insert(purchaseOrderItems).values(
+        validItems.map(item => ({
+          id: generateId(),
+          orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discount ?? 1,
+          amount: Math.round(item.quantity * item.unitPrice * (item.discount ?? 1) * 100) / 100,
+          taxRate: item.taxRate ?? 0,
+        }))
+      )
+    }
+  })
 
   await logOperation(event, { action: 'CREATE', module: 'purchase_order', targetId: orderId, detail: `创建了采购订单「${code}」` })
 

@@ -29,18 +29,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: '只有草稿状态的合同才能修改正文' })
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
-  await db.insert(contractContentVersions).values({
-    id: generateId(),
-    contractId: id,
-    content: JSON.stringify(parsed.data.content),
-    version: (c!.version || 0) + 1,
-    createdBy: user.userId,
-    createdAt: now,
-  })
-
   const newVersion = (c!.version || 0) + 1
-  await db.update(contracts).set({ content: JSON.stringify(parsed.data.content), version: newVersion, updatedAt: now })
-    .where(eq(contracts.id, id))
+
+  await db.transaction(async (tx) => {
+    await tx.insert(contractContentVersions).values({
+      id: generateId(),
+      contractId: id,
+      content: JSON.stringify(parsed.data.content),
+      version: newVersion,
+      createdBy: user.userId,
+      createdAt: now,
+    })
+    await tx.update(contracts).set({ content: JSON.stringify(parsed.data.content), version: newVersion, updatedAt: now })
+      .where(eq(contracts.id, id))
+  })
 
   await logOperation(event, { action: 'UPDATE', module: 'contract', targetId: id, detail: '更新了合同正文' })
 

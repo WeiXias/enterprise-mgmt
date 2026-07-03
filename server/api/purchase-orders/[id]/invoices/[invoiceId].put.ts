@@ -36,28 +36,32 @@ export default defineEventHandler(async (event) => {
   const newTotalAmount = parsed.data.totalAmount ?? Math.round(newAmount * (1 + newTaxRate))
   const newTaxAmount = parsed.data.taxAmount ?? Math.round(newAmount * newTaxRate)
 
-  await db.update(purchaseInvoices).set({
-    invoiceNo: parsed.data.invoiceNo ?? invoice.invoiceNo,
-    amount: newAmount,
-    taxRate: newTaxRate,
-    taxAmount: newTaxAmount,
-    totalAmount: newTotalAmount,
-    remark: parsed.data.remark !== undefined ? (parsed.data.remark || null) : invoice.remark,
-    filePath: parsed.data.filePath !== undefined ? (parsed.data.filePath || null) : invoice.filePath,
-  }).where(eq(purchaseInvoices.id, invoiceId))
-
-  // 重新计算 payable 的 invoiceAmount
+  // 计算 diff 后再事务
   const diff = newTotalAmount - oldTotal
-  if (diff !== 0) {
-    const [payable] = await db.select({ id: purchasePayables.id, invoiceAmount: purchasePayables.invoiceAmount }).from(purchasePayables)
-      .where(and(eq(purchasePayables.orderId, orderId), isNull(purchasePayables.deletedAt))).limit(1)
-    if (payable) {
-      await db.update(purchasePayables).set({
-        invoiceAmount: payable.invoiceAmount + diff,
-        updatedAt: now,
-      }).where(eq(purchasePayables.id, payable.id))
+
+  await db.transaction(async (tx) => {
+    await tx.update(purchaseInvoices).set({
+      invoiceNo: parsed.data.invoiceNo ?? invoice.invoiceNo,
+      amount: newAmount,
+      taxRate: newTaxRate,
+      taxAmount: newTaxAmount,
+      totalAmount: newTotalAmount,
+      remark: parsed.data.remark !== undefined ? (parsed.data.remark || null) : invoice.remark,
+      filePath: parsed.data.filePath !== undefined ? (parsed.data.filePath || null) : invoice.filePath,
+    }).where(eq(purchaseInvoices.id, invoiceId))
+
+    // 重新计算 payable 的 invoiceAmount
+    if (diff !== 0) {
+      const [payable] = await tx.select({ id: purchasePayables.id, invoiceAmount: purchasePayables.invoiceAmount }).from(purchasePayables)
+        .where(and(eq(purchasePayables.orderId, orderId), isNull(purchasePayables.deletedAt))).limit(1)
+      if (payable) {
+        await tx.update(purchasePayables).set({
+          invoiceAmount: payable.invoiceAmount + diff,
+          updatedAt: now,
+        }).where(eq(purchasePayables.id, payable.id))
+      }
     }
-  }
+  })
 
   await logOperation(event, { action: 'UPDATE', module: 'purchase_invoice', targetId: invoiceId, detail: `修改了供应商发票「${parsed.data.invoiceNo ?? invoice.invoiceNo}」` })
 

@@ -27,20 +27,7 @@ export default defineEventHandler(async (event) => {
   const id = generateId()
   const code = parsed.data.code || `PD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${id.slice(0, 6)}`
 
-  await db.insert(inventoryCounts).values({
-    id,
-    code,
-    warehouseId: parsed.data.warehouseId || null,
-    status: 'draft',
-    plannedDate: parsed.data.plannedDate || null,
-    remark: parsed.data.remark || null,
-    createdBy: user.userId,
-  })
-
   // 快照产品库存到明细行
-  const productWhere = parsed.data.warehouseId
-    ? null // 有仓库筛选时先查该仓库下的库存（暂简化：快照所有产品）
-    : null
   const productList = await db.select({
     id: products.id,
     name: products.name,
@@ -48,21 +35,33 @@ export default defineEventHandler(async (event) => {
     stockQuantity: products.stockQuantity,
   }).from(products).where(isNull(products.deletedAt))
 
-  if (productList.length > 0) {
-    const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    await db.insert(inventoryCountItems).values(
-      productList.map(p => ({
-        id: generateId(),
-        countId: id,
-        productId: p.id,
-        systemQuantity: p.stockQuantity ?? 0,
-        status: 'pending',
-        createdBy: user.userId,
-        createdAt: now,
-        updatedAt: now,
-      }))
-    )
-  }
+  await db.transaction(async (tx) => {
+    await tx.insert(inventoryCounts).values({
+      id,
+      code,
+      warehouseId: parsed.data.warehouseId || null,
+      status: 'draft',
+      plannedDate: parsed.data.plannedDate || null,
+      remark: parsed.data.remark || null,
+      createdBy: user.userId,
+    })
+
+    if (productList.length > 0) {
+      const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+      await tx.insert(inventoryCountItems).values(
+        productList.map(p => ({
+          id: generateId(),
+          countId: id,
+          productId: p.id,
+          systemQuantity: p.stockQuantity ?? 0,
+          status: 'pending',
+          createdBy: user.userId,
+          createdAt: now,
+          updatedAt: now,
+        }))
+      )
+    }
+  })
 
   await logOperation(event, { action: 'CREATE', module: 'product', targetId: id, detail: `创建了盘点计划「${code}」` })
   return { code: 0, data: { id }, message: '盘点计划已创建' }

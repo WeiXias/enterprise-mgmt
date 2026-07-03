@@ -33,33 +33,6 @@ export default defineEventHandler(async (event) => {
 
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
-  // 1. 更新订单状态
-  await db.update(purchaseOrders).set({ status: 'received', updatedAt: now }).where(eq(purchaseOrders.id, id))
-
-  // 2. 为每个产品创建入库库存流水 + 更新库存量
-  for (const item of items) {
-    await db.insert(inventoryTransactions).values({
-      id: generateId(),
-      productId: item.productId,
-      type: 'inbound',
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      batchNo: `PO-${existing[0].code}`,
-      remark: `采购收货：${existing[0].code}`,
-      operatorId: user.userId,
-      createdAt: now,
-    })
-
-    // 原子增加库存
-    await db.update(products).set({
-      stockQuantity: sql`stock_quantity + ${item.quantity}`,
-      updatedAt: now,
-    }).where(eq(products.id, item.productId))
-  }
-
-  await logOperation(event, { action: 'UPDATE', module: 'purchase_order', targetId: id, detail: `确认收货了采购订单「${existing[0].code}」` })
-
-  // 3. 生成应付记录
   // 计算税额合计
   const totalTaxAmount = items.reduce((sum, item) => {
     const taxRate = (item as any).taxRate || 0
@@ -71,20 +44,48 @@ export default defineEventHandler(async (event) => {
   // 默认账期 30 天
   const dueDate = dayjs().add(30, 'day').format('YYYY-MM-DD')
 
-  await db.insert(purchasePayables).values({
-    id: generateId(),
-    orderId: id,
-    supplierId: existing[0].supplierId!,
-    totalAmount: existing[0].totalAmount || 0,
-    paidAmount: 0,
-    invoiceAmount: 0,
-    taxAmount: totalTaxAmount,
-    status: 'pending',
-    dueDate,
-    createdBy: user.userId,
-    createdAt: now,
-    updatedAt: now,
+  await db.transaction(async (tx) => {
+    // 1. 更新订单状态
+    await tx.update(purchaseOrders).set({ status: 'received', updatedAt: now }).where(eq(purchaseOrders.id, id))
+
+    // 2. 为每个产品创建入库库存流水 + 更新库存量
+    for (const item of items) {
+      await tx.insert(inventoryTransactions).values({
+        id: generateId(),
+        productId: item.productId,
+        type: 'inbound',
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        batchNo: `PO-${existing[0].code}`,
+        remark: `采购收货：${existing[0].code}`,
+        operatorId: user.userId,
+        createdAt: now,
+      })
+
+      await tx.update(products).set({
+        stockQuantity: sql`stock_quantity + ${item.quantity}`,
+        updatedAt: now,
+      }).where(eq(products.id, item.productId))
+    }
+
+    // 3. 生成应付记录
+    await tx.insert(purchasePayables).values({
+      id: generateId(),
+      orderId: id,
+      supplierId: existing[0].supplierId!,
+      totalAmount: existing[0].totalAmount || 0,
+      paidAmount: 0,
+      invoiceAmount: 0,
+      taxAmount: totalTaxAmount,
+      status: 'pending',
+      dueDate,
+      createdBy: user.userId,
+      createdAt: now,
+      updatedAt: now,
+    })
   })
+
+  await logOperation(event, { action: 'UPDATE', module: 'purchase_order', targetId: id, detail: `确认收货了采购订单「${existing[0].code}」` })
 
   return { code: 0, data: null, message: '搞定了！已确认收货，库存已更新，应付记录已生成' }
 })

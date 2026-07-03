@@ -29,42 +29,44 @@ export default defineEventHandler(async (event) => {
 
   const oldAmount = payment.amount
   const newAmount = parsed.data.amount ?? oldAmount
+  const diff = newAmount - oldAmount
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
-  await db.update(purchasePayments).set({
-    amount: newAmount,
-    paymentDate: parsed.data.paymentDate ?? payment.paymentDate,
-    paymentMethod: parsed.data.paymentMethod !== undefined ? (parsed.data.paymentMethod || null) : payment.paymentMethod,
-    remark: parsed.data.remark !== undefined ? (parsed.data.remark || null) : payment.remark,
-    attachmentPath: parsed.data.attachmentPath !== undefined ? (parsed.data.attachmentPath || null) : payment.attachmentPath,
-  }).where(eq(purchasePayments.id, paymentId))
+  await db.transaction(async (tx) => {
+    await tx.update(purchasePayments).set({
+      amount: newAmount,
+      paymentDate: parsed.data.paymentDate ?? payment.paymentDate,
+      paymentMethod: parsed.data.paymentMethod !== undefined ? (parsed.data.paymentMethod || null) : payment.paymentMethod,
+      remark: parsed.data.remark !== undefined ? (parsed.data.remark || null) : payment.remark,
+      attachmentPath: parsed.data.attachmentPath !== undefined ? (parsed.data.attachmentPath || null) : payment.attachmentPath,
+    }).where(eq(purchasePayments.id, paymentId))
 
-  // 重新计算 payable 的 paidAmount
-  const diff = newAmount - oldAmount
-  if (diff !== 0) {
-    const [payable] = await db.select({ id: purchasePayables.id, paidAmount: purchasePayables.paidAmount, totalAmount: purchasePayables.totalAmount }).from(purchasePayables)
-      .where(and(eq(purchasePayables.orderId, orderId), isNull(purchasePayables.deletedAt))).limit(1)
-    if (payable) {
-      const newPaid = payable.paidAmount + diff
-      let newStatus: string = 'partially_paid'
-      if (newPaid >= payable.totalAmount) newStatus = 'paid'
-      await db.update(purchasePayables).set({
-        paidAmount: newPaid,
-        status: newStatus,
-        updatedAt: now,
-      }).where(eq(purchasePayables.id, payable.id))
+    // 重新计算 payable 的 paidAmount
+    if (diff !== 0) {
+      const [payable] = await tx.select({ id: purchasePayables.id, paidAmount: purchasePayables.paidAmount, totalAmount: purchasePayables.totalAmount }).from(purchasePayables)
+        .where(and(eq(purchasePayables.orderId, orderId), isNull(purchasePayables.deletedAt))).limit(1)
+      if (payable) {
+        const newPaid = payable.paidAmount + diff
+        let newStatus: string = 'partially_paid'
+        if (newPaid >= payable.totalAmount) newStatus = 'paid'
+        await tx.update(purchasePayables).set({
+          paidAmount: newPaid,
+          status: newStatus,
+          updatedAt: now,
+        }).where(eq(purchasePayables.id, payable.id))
+      }
     }
-  }
 
-  // 同步更新 finance_transactions
-  await db.update(financeTransactions).set({
-    amount: newAmount,
-    transactionDate: parsed.data.paymentDate ?? payment.paymentDate,
-    paymentMethod: parsed.data.paymentMethod !== undefined ? (parsed.data.paymentMethod || null) : payment.paymentMethod,
-    description: parsed.data.remark !== undefined
-      ? `供应商付款：${payment.orderId}${parsed.data.remark ? ' - ' + parsed.data.remark : ''}`
-      : payment.remark,
-  }).where(and(eq(financeTransactions.sourceType, 'purchase_payment'), eq(financeTransactions.sourceId, paymentId)))
+    // 同步更新 finance_transactions
+    await tx.update(financeTransactions).set({
+      amount: newAmount,
+      transactionDate: parsed.data.paymentDate ?? payment.paymentDate,
+      paymentMethod: parsed.data.paymentMethod !== undefined ? (parsed.data.paymentMethod || null) : payment.paymentMethod,
+      description: parsed.data.remark !== undefined
+        ? `供应商付款：${payment.orderId}${parsed.data.remark ? ' - ' + parsed.data.remark : ''}`
+        : payment.remark,
+    }).where(and(eq(financeTransactions.sourceType, 'purchase_payment'), eq(financeTransactions.sourceId, paymentId)))
+  })
 
   await logOperation(event, { action: 'UPDATE', module: 'purchase_payment', targetId: paymentId, detail: `修改了供应商付款 ¥${newAmount}` })
 

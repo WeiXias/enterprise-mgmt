@@ -34,26 +34,28 @@ export default defineEventHandler(async (event) => {
   }
   const accountCode = expenseAccountMap[r.type] || '5601.01'
 
-  // 自动生成会计凭证：借:管理费用-XX 贷:银行存款
-  const period = await getOrCreatePeriod(db, now.slice(0, 10))
-  const { voucherId } = await createAutoVoucher(db, {
-    voucherDate: now.slice(0, 10),
-    summary: `报销打款 - ${r.reason}`,
-    sourceType: 'reimbursement',
-    sourceId: id,
-    periodId: period.id,
-    entries: [
-      { accountCode, summary: `报销-${r.type}`, debitAmount: r.amount, creditAmount: 0 },
-      { accountCode: '1002', summary: '银行存款', debitAmount: 0, creditAmount: r.amount },
-    ],
-  }, user.userId)
+  await db.transaction(async (tx) => {
+    // 自动生成会计凭证：借:管理费用-XX 贷:银行存款
+    const period = await getOrCreatePeriod(tx as any, now.slice(0, 10))
+    const { voucherId } = await createAutoVoucher(tx as any, {
+      voucherDate: now.slice(0, 10),
+      summary: `报销打款 - ${r.reason}`,
+      sourceType: 'reimbursement',
+      sourceId: id,
+      periodId: period.id,
+      entries: [
+        { accountCode, summary: `报销-${r.type}`, debitAmount: r.amount, creditAmount: 0 },
+        { accountCode: '1002', summary: '银行存款', debitAmount: 0, creditAmount: r.amount },
+      ],
+    }, user.userId)
 
-  // 标记为已打款，关联凭证ID
-  await db.update(reimbursements).set({
-    status: 'paid',
-    paidAt: now,
-    paidTransactionId: voucherId,
-  }).where(eq(reimbursements.id, id))
+    // 标记为已打款，关联凭证ID
+    await tx.update(reimbursements).set({
+      status: 'paid',
+      paidAt: now,
+      paidTransactionId: voucherId,
+    }).where(eq(reimbursements.id, id))
+  })
 
   await logOperation(event, { action: 'PAY', module: 'reimbursement', targetId: id, detail: '支付了报销款' })
   return { code: 0, data: null, message: '打款完成，已生成会计凭证' }

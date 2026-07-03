@@ -15,12 +15,16 @@ export default defineEventHandler(async (event) => {
   const c = contract[0]
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const projectId = generateId()
-  await db.insert(projects).values({
-    id: projectId, name: c!.name + ' 项目', contractId,
-    ownerUserId: user.userId, status: 'not_started',
-    startDate: c!.startDate, endDate: c.endDate,
-    createdAt: now, updatedAt: now,
+
+  await db.transaction(async (tx) => {
+    await tx.insert(projects).values({
+      id: projectId, name: c!.name + ' 项目', contractId,
+      ownerUserId: user.userId, status: 'not_started',
+      startDate: c!.startDate, endDate: c.endDate,
+      createdAt: now, updatedAt: now,
+    })
+    await tx.insert(projectMembers).values({ id: generateId(), projectId, userId: user.userId, role: 'leader', createdAt: now })
   })
-  await db.insert(projectMembers).values({ id: generateId(), projectId, userId: user.userId, role: 'leader', createdAt: now })
+
   return { code: 0, data: { id: projectId }, message: '项目已创建' }
 })
