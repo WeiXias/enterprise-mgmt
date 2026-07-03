@@ -585,3 +585,46 @@ export const PurchaseOrderStatusLabels: Record<PurchaseOrderStatus, string> = {
   [PurchaseOrderStatus.RECEIVED]: '已收货',
   [PurchaseOrderStatus.CANCELLED]: '已取消',
 }
+
+// ---- CategoryType ----
+export const CategoryType = {
+  ASSET: 'asset',
+  LIABILITY: 'liability',
+  EQUITY: 'equity',
+  COST: 'cost',
+  REVENUE_EXPENSE: 'revenue_expense',
+} as const
+export type CategoryType = (typeof CategoryType)[keyof typeof CategoryType]
+export const CategoryTypeLabels: Record<CategoryType, string> = {
+  [CategoryType.ASSET]: '资产类',
+  [CategoryType.LIABILITY]: '负债类',
+  [CategoryType.EQUITY]: '权益类',
+  [CategoryType.COST]: '成本类',
+  [CategoryType.REVENUE_EXPENSE]: '损益类',
+}
+
+// ---- BalanceDirection ----
+export const BalanceDirection = {
+  DEBIT: 'debit',
+  CREDIT: 'credit',
+} as const
+export type BalanceDirection = (typeof BalanceDirection)[keyof typeof BalanceDirection]
+export const BalanceDirectionLabels: Record<BalanceDirection, string> = {
+  [BalanceDirection.DEBIT]: '借方',
+  [BalanceDirection.CREDIT]: '贷方',
+}
+
+// ---- VoucherStatus ----
+export const VoucherStatus = {
+  DRAFT: 'draft',
+  REVIEWED: 'reviewed',
+  APPROVED: 'approved',
+  POSTED: 'posted',
+} as const
+export type VoucherStatus = (typeof VoucherStatus)[keyof typeof VoucherStatus]
+export const VoucherStatusLabels: Record<VoucherStatus, string> = {
+  [VoucherStatus.DRAFT]: '草稿',
+  [VoucherStatus.REVIEWED]: '已复核',
+  [VoucherStatus.APPROVED]: '已审核',
+  [VoucherStatus.POSTED]: '已过账',
+}

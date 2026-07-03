@@ -7,7 +7,7 @@ import { logOperation } from '#server-utils/log'
 import { requirePermission } from '#server-utils/permission'
 import { z } from 'zod'
 
-const bodySchema = z.record(z.string(), z.unknown())
+const bodySchema = z.record(z.string(), z.any())
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'system:config')
@@ -27,6 +27,5 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  await logOperation(event, { action: 'UPDATE', module: 'finance', targetId: 'settings', detail: '保存了财务设置' })
-  return { code: 0, data: null, message: '设置已保存' }
+  return { code: 0, message: '设置已保存' }
 })

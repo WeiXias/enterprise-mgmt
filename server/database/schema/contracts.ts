@@ -72,6 +72,7 @@ export const payments = sqliteTable('payments', {
   remainingAmount: integer('remaining_amount'),
   refundedAt: text('refunded_at'),
   refundTransactionId: text('refund_transaction_id'),
+  taxRate: integer('tax_rate').notNull().default(0),
 })
 
 export const contractAttachments = sqliteTable('contract_attachments', {

@@ -2,9 +2,9 @@ import { db } from '#database'
 import { dictEntries } from '#schema'
 import { productCategories } from '#schema/products'
 import { tags } from '#schema/customers'
-import { financeCategories } from '#schema/finance'
 import { generateId } from '#server-utils/id'
 import { eq } from 'drizzle-orm'
+import { accountsSeedData } from '../database/seed/accounts'
 
 const seedDictData: { dict_type: string; value: string; label: string; sort: string }[] = [
   ...['信息技术','软件开发','人工智能','网络安全','电子商务','制造业','金融','教育','医疗','房地产','物流','其他'].map((v, i) => ({
@@ -70,24 +70,71 @@ export default defineNitroPlugin(async () => {
     console.log(`[dict-seed] 客户标签同步 (${tagRows.length} 条)`)
   }
 
-  // 4. 财务分类
-  const financeCatRows = await db.select().from(financeCategories)
-  const existingFinance = await db.select().from(dictEntries).where(eq(dictEntries.dict_type, 'finance_income_category')).limit(1)
-  if (existingFinance.length === 0 && financeCatRows.length > 0) {
-    for (let i = 0; i < financeCatRows.length; i++) {
-      const fc = financeCatRows[i]
-      await db.insert(dictEntries).values({
-        id: generateId(),
-        dict_type: fc.type === 'income' ? 'finance_income_category' : 'finance_expense_category',
-        value: fc.name,
-        label: fc.name,
-        sort: fc.sort || String(i),
-        is_active: '1',
+  // 4. 会计科目（系统预置）
+  const { accounts: accountsTable } = await import('../database/schema/accounting')
+  const existingAccounts = await db.select().from(accountsTable).limit(1)
+  if (existingAccounts.length === 0) {
+    // 先插入一级科目，再插入二级科目（利用 parentCode 映射 parentId）
+    const codeToId = new Map<string, string>()
+    const level1Items = accountsSeedData.filter(a => a.level === 1)
+    const level2Items = accountsSeedData.filter(a => a.level === 2)
+
+    for (const item of level1Items) {
+      const id = generateId()
+      codeToId.set(item.code, id)
+      await db.insert(accountsTable).values({
+        id,
+        code: item.code,
+        name: item.name,
+        parentId: null,
+        categoryType: item.categoryType,
+        balanceDirection: item.balanceDirection,
+        level: 1,
+        sort: item.sort,
+        isSystem: 1,
         createdAt: now,
         updatedAt: now,
-      }).catch(() => {})
+      } as any).catch(() => {})
     }
-    console.log(`[dict-seed] 财务分类同步 (${financeCatRows.length} 条)`)
+
+    for (const item of level2Items) {
+      const parentId = item.parentCode ? codeToId.get(item.parentCode) : null
+      await db.insert(accountsTable).values({
+        id: generateId(),
+        code: item.code,
+        name: item.name,
+        parentId,
+        categoryType: item.categoryType,
+        balanceDirection: item.balanceDirection,
+        level: 2,
+        sort: item.sort,
+        isSystem: 1,
+        createdAt: now,
+        updatedAt: now,
+      } as any).catch(() => {})
+    }
+    console.log(`[dict-seed] 会计科目初始化 (${accountsSeedData.length} 个)`)
+  }
+
+  // 5. 会计期间（当前年度 1-12 月）
+  const { accountingPeriods: accountingPeriodsTable } = await import('../database/schema/accounting')
+  const existingPeriods = await db.select().from(accountingPeriodsTable).limit(1)
+  if (existingPeriods.length === 0) {
+    const currentYear = new Date().getFullYear()
+    for (let m = 1; m <= 12; m++) {
+      const startDate = `${currentYear}-${String(m).padStart(2, '0')}-01`
+      const lastDay = new Date(currentYear, m, 0).getDate()
+      const endDate = `${currentYear}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+      await db.insert(accountingPeriodsTable).values({
+        id: generateId(),
+        year: currentYear,
+        month: m,
+        startDate,
+        endDate,
+        createdAt: now,
+      } as any).catch(() => {})
+    }
+    console.log(`[dict-seed] 会计期间初始化 (${currentYear} 年 1-12 月)`)
   }
 
   // 5. 报销类型

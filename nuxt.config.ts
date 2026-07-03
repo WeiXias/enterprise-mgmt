@@ -61,8 +61,10 @@ export default defineNuxtConfig({
       '#schema/im': resolve(__dirname, 'server/database/schema/im'),
       '#schema/todos': resolve(__dirname, 'server/database/schema/todos'),
       '#schema/reconciliations': resolve(__dirname, 'server/database/schema/reconciliations'),
+      '#schema/accounting': resolve(__dirname, 'server/database/schema/accounting'),
       '#enums': resolve(__dirname, 'server/database/schema/enums'),
       '#server-utils': resolve(__dirname, 'server/utils'),
+      '#server-utils/accounting': resolve(__dirname, 'server/utils/accounting'),
       '#ai-utils': resolve(__dirname, 'server/utils/ai')
     },
 

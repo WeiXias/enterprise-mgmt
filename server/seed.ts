@@ -545,6 +545,41 @@ async function seed() {
     })
   }
   console.log(`1 purchase order (${poCode}) + 3 items + payable created (taxAmount=${poTaxAmount}).`)
+
+  // ====== 会计科目初始化 ======
+  const { accountsSeedData } = await import('./database/seed/accounts.js')
+  const existingAccounts = sqlite.prepare('SELECT COUNT(*) as cnt FROM accounts').get() as any
+  if (existingAccounts?.cnt === 0) {
+    const codeToId = new Map<string, string>()
+    const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    const insertStmt = sqlite.prepare('INSERT INTO accounts (id, code, name, parent_id, category_type, balance_direction, level, sort, is_system, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)')
+
+    const level1Items = accountsSeedData.filter((a: any) => a.level === 1)
+    const level2Items = accountsSeedData.filter((a: any) => a.level === 2)
+
+    for (const item of level1Items) {
+      const id = generateId()
+      codeToId.set(item.code, id)
+      insertStmt.run(id, item.code, item.name, null, item.categoryType, item.balanceDirection, 1, item.sort, now, now)
+    }
+    for (const item of level2Items) {
+      const parentId = item.parentCode ? codeToId.get(item.parentCode) : null
+      insertStmt.run(generateId(), item.code, item.name, parentId, item.categoryType, item.balanceDirection, 2, item.sort, now, now)
+    }
+    console.log(`会计科目初始化 (${accountsSeedData.length} 个)`)
+
+    // 会计期间初始化（当前年度 1-12 月）
+    const currentYear = new Date().getFullYear()
+    const periodStmt = sqlite.prepare('INSERT INTO accounting_periods (id, year, month, start_date, end_date, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+    for (let m = 1; m <= 12; m++) {
+      const startDate = `${currentYear}-${String(m).padStart(2, '0')}-01`
+      const lastDay = new Date(currentYear, m, 0).getDate()
+      const endDate = `${currentYear}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+      periodStmt.run(generateId(), currentYear, m, startDate, endDate, now)
+    }
+    console.log(`会计期间初始化 (${currentYear} 年 1-12 月)`)
+  }
+
   console.log('Login credentials:')
   console.log('  admin   / admin123   (管理员)')
   console.log('  manager / manager123 (销售负责人)')

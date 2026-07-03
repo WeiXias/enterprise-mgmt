@@ -1,11 +1,11 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
-import { reimbursements, financeTransactions } from '#schema'
+import { reimbursements } from '#schema'
 import { eq } from 'drizzle-orm'
-import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { requirePermission } from '#server-utils/permission'
 import { requireTransition } from '#server-utils/workflow'
+import { createAutoVoucher, getOrCreatePeriod } from '#server-utils/accounting/posting'
 import { z } from 'zod'
 
 const schema = z.object({ paymentMethod: z.string().optional() })
@@ -25,30 +25,36 @@ export default defineEventHandler(async (event) => {
   const r = existing[0]
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
 
-  // 创建支出记录
-  const txId = generateId()
-  await db.insert(financeTransactions).values({
-    id: txId,
-    type: 'expense',
-    amount: r!.amount,
-    category: 'reimbursement',
+  // 报销类型 → 科目映射
+  const expenseAccountMap: Record<string, string> = {
+    '办公用品': '5601.01',
+    '差旅费': '5601.05',
+    '招待费': '5601.06',
+    '其他': '5601.01',
+  }
+  const accountCode = expenseAccountMap[r.type] || '5601.01'
+
+  // 自动生成会计凭证：借:管理费用-XX 贷:银行存款
+  const period = await getOrCreatePeriod(db, now.slice(0, 10))
+  const { voucherId } = await createAutoVoucher(db, {
+    voucherDate: now.slice(0, 10),
+    summary: `报销打款 - ${r.reason}`,
     sourceType: 'reimbursement',
     sourceId: id,
-    projectId: r!.projectId,
-    transactionDate: now.slice(0, 10),
-    description: `报销打款 - ${r!.reason}`,
-    paymentMethod: parsed.data.paymentMethod || 'bank_transfer',
-    createdBy: user.userId,
-    createdAt: now,
-  })
+    periodId: period.id,
+    entries: [
+      { accountCode, summary: `报销-${r.type}`, debitAmount: r.amount, creditAmount: 0 },
+      { accountCode: '1002', summary: '银行存款', debitAmount: 0, creditAmount: r.amount },
+    ],
+  }, user.userId)
 
-  // 标记为已打款
+  // 标记为已打款，关联凭证ID
   await db.update(reimbursements).set({
     status: 'paid',
     paidAt: now,
-    paidTransactionId: txId,
+    paidTransactionId: voucherId,
   }).where(eq(reimbursements.id, id))
 
   await logOperation(event, { action: 'PAY', module: 'reimbursement', targetId: id, detail: '支付了报销款' })
-  return { code: 0, data: null, message: '打款完成，已生成支出记录' }
+  return { code: 0, data: null, message: '打款完成，已生成会计凭证' }
 })

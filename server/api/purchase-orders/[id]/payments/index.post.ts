@@ -1,11 +1,12 @@
 import { defineEventHandler, getRouterParams, readBody, createError } from 'h3'
 import { db } from '#database'
-import { purchaseOrders, purchasePayables, purchasePayments, financeTransactions } from '#schema'
+import { purchaseOrders, purchasePayables, purchasePayments } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { generateId } from '#server-utils/id'
 import { logOperation } from '#server-utils/log'
 import { requirePermission } from '#server-utils/permission'
+import { createAutoVoucher, getOrCreatePeriod, calcTax, isTaxEnabled, getCashAccountCode, getPayableCode } from '#server-utils/accounting/posting'
 
 const schema = z.object({
   amount: z.number().min(1),
@@ -28,7 +29,7 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(purchaseOrders.id, orderId), isNull(purchaseOrders.deletedAt))).limit(1)
   if (!po) throw createError({ statusCode: 404, statusMessage: '采购订单不存在' })
 
-  const [payable] = await db.select({ id: purchasePayables.id, totalAmount: purchasePayables.totalAmount, paidAmount: purchasePayables.paidAmount, status: purchasePayables.status }).from(purchasePayables)
+  const [payable] = await db.select({ id: purchasePayables.id, totalAmount: purchasePayables.totalAmount, paidAmount: purchasePayables.paidAmount, taxAmount: purchasePayables.taxAmount, status: purchasePayables.status }).from(purchasePayables)
     .where(and(eq(purchasePayables.orderId, orderId), isNull(purchasePayables.deletedAt))).limit(1)
   if (!payable) throw createError({ statusCode: 404, statusMessage: '没有对应的应付记录' })
 
@@ -61,21 +62,36 @@ export default defineEventHandler(async (event) => {
     updatedAt: now,
   }).where(eq(purchasePayables.id, payable.id))
 
-  // 自动生成财务支出流水
-  await db.insert(financeTransactions).values({
-    id: generateId(),
-    type: 'expense',
-    amount: parsed.data.amount,
-    category: 'purchase_payment',
+  // 自动生成会计凭证
+  const period = await getOrCreatePeriod(db, parsed.data.paymentDate)
+  const taxEnabled = await isTaxEnabled(db)
+  const cashCode = await getCashAccountCode(db)
+  const payableCode = await getPayableCode(db)
+
+  // 计算本次付款对应的税额（按付款比例）
+  const payRatio = parsed.data.amount / payable.totalAmount
+  const thisTaxAmount = taxEnabled ? Math.round((payable.taxAmount || 0) * payRatio) : 0
+  const netAmount = parsed.data.amount
+
+  const voucherEntries: Array<{ accountCode: string; summary: string; debitAmount: number; creditAmount: number; supplierId?: string | null }> = [
+    { accountCode: payableCode, summary: '应付账款', debitAmount: netAmount, creditAmount: 0, supplierId: po.supplierId },
+    { accountCode: cashCode, summary: '银行存款', debitAmount: 0, creditAmount: netAmount },
+  ]
+
+  // 启用增值税核算且有税额时，加入进项税额分录（冲减应付）
+  if (taxEnabled && thisTaxAmount > 0) {
+    voucherEntries.push({ accountCode: '2221.01', summary: '应交税费-增值税(进项税额)', debitAmount: thisTaxAmount, creditAmount: 0 })
+    voucherEntries.push({ accountCode: '1401', summary: '原材料', debitAmount: 0, creditAmount: thisTaxAmount })
+  }
+
+  await createAutoVoucher(db, {
+    voucherDate: parsed.data.paymentDate,
+    summary: `供应商付款：${po.code}${parsed.data.remark ? ' - ' + parsed.data.remark : ''}${taxEnabled && thisTaxAmount > 0 ? ' (含税)' : ''}`,
     sourceType: 'purchase_payment',
     sourceId: paymentId,
-    contractId: null,
-    transactionDate: parsed.data.paymentDate,
-    description: `供应商付款：${po.code}${parsed.data.remark ? ' - ' + parsed.data.remark : ''}`,
-    paymentMethod: parsed.data.paymentMethod || null,
-    createdBy: user.userId,
-    createdAt: now,
-  })
+    periodId: period.id,
+    entries: voucherEntries,
+  }, user.userId)
 
   await logOperation(event, { action: 'CREATE', module: 'purchase_payment', targetId: paymentId, detail: `登记了供应商付款 ¥${parsed.data.amount}` })
 
