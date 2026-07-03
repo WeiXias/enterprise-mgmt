@@ -244,6 +244,7 @@ onMounted(() => {
       </div>
       <div class="flex gap-2">
         <UButton v-if="contract.status === 'draft'" icon="i-lucide-check-circle" color="primary" size="sm" @click="showApproveModal = true">审批通过</UButton>
+        <UButton v-if="contract.status === 'approved'" icon="i-lucide-play-circle" color="primary" size="sm" @click="showApproveModal = true">确认执行</UButton>
         <UButton v-if="contract.status === 'approved'" icon="i-lucide-x-circle" color="warning" size="sm" @click="rejectReason = ''; showRejectModal = true">驳回</UButton>
         <!-- 编辑按钮：所有状态都显示 -->
         <UButton icon="i-lucide-pen-line" variant="ghost" color="neutral" size="sm" @click="openEditModal">编辑</UButton>

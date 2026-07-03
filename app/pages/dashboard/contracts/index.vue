@@ -482,16 +482,16 @@ onMounted(async () => {
 
         <!-- 操作按钮（hover 显示） -->
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
-          <!-- 草稿：审批（管理员可审批任意状态） -->
+          <!-- 草稿/已审批：审批 -->
           <UButton
-            v-if="ct.status === 'draft' || (ct.status !== 'terminated' && ct.status !== 'completed' && can('contract:manage'))"
+            v-if="ct.status === 'draft' || ct.status === 'approved'"
             icon="i-lucide-check-circle"
             color="primary"
             variant="ghost"
             size="xs"
             @click="approveTarget = ct; showApproveModal = true"
           >
-            审批
+            {{ ct.status === 'approved' ? '确认执行' : '审批' }}
           </UButton>
           <!-- 已审批：驳回 -->
           <UButton
