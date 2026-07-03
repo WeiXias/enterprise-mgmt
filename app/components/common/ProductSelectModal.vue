@@ -207,8 +207,10 @@ watch(() => props.open, (v) => {
     </template>
 
     <!-- 底部 -->
-    <div class="flex justify-end gap-2 w-full px-6 py-4 border-t border-line-light">
-      <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
-    </div>
+    <template #footer>
+      <div class="flex justify-end gap-2 w-full">
+        <UButton variant="ghost" color="neutral" @click="close">算了</UButton>
+      </div>
+    </template>
   </UModal>
 </template>
