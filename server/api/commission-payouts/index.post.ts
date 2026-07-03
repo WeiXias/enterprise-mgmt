@@ -18,42 +18,42 @@ export default defineEventHandler(async (event) => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const payoutId = generateId()
 
-  // Calculate total from commissions
-  let totalAmount = 0
+  // 提前读取提成数据（事务外可读）
+  const commissionRows: Array<{ id: string; amount: number; adjustAmount: number | null; userId: string }> = []
   for (const cid of parsed.data.commissionIds) {
-    const result = await db.select({ amount: commissions.amount, adjustAmount: commissions.adjustAmount, userId: commissions.userId })
+    const result = await db.select({ id: commissions.id, amount: commissions.amount, adjustAmount: commissions.adjustAmount, userId: commissions.userId })
       .from(commissions).where(eq(commissions.id, cid)).limit(1)
-    if (result.length > 0) {
-      const amt = Number(result[0].adjustAmount) || Number(result[0].amount)
-      totalAmount += amt
-    }
+    if (result.length > 0) commissionRows.push(result[0] as any)
   }
 
-  await db.insert(commissionPayouts).values({
-    id: payoutId,
-    periodMonth: parsed.data.periodMonth,
-    totalAmount,
-    status: 'draft',
-    createdBy: user.userId,
-    createdAt: now,
-  })
+  let totalAmount = 0
+  for (const r of commissionRows) {
+    totalAmount += Number(r.adjustAmount) || Number(r.amount)
+  }
 
-  for (const cid of parsed.data.commissionIds) {
-    const result = await db.select({ amount: commissions.amount, adjustAmount: commissions.adjustAmount, userId: commissions.userId })
-      .from(commissions).where(eq(commissions.id, cid)).limit(1)
-    if (result.length > 0) {
-      const amt = Number(result[0].adjustAmount) || Number(result[0].amount)
-      await db.insert(commissionPayoutItems).values({
+  await db.transaction(async (tx) => {
+    await tx.insert(commissionPayouts).values({
+      id: payoutId,
+      periodMonth: parsed.data.periodMonth,
+      totalAmount,
+      status: 'draft',
+      createdBy: user.userId,
+      createdAt: now,
+    })
+
+    for (const r of commissionRows) {
+      const amt = Number(r.adjustAmount) || Number(r.amount)
+      await tx.insert(commissionPayoutItems).values({
         id: generateId(),
         payoutId,
-        commissionId: cid,
-        userId: result[0].userId,
+        commissionId: r.id,
+        userId: r.userId,
         amount: amt,
       })
       // Mark commission as paid
-      await db.update(commissions).set({ status: 'paid' }).where(eq(commissions.id, cid))
+      await tx.update(commissions).set({ status: 'paid' }).where(eq(commissions.id, r.id))
     }
-  }
+  })
 
   await logOperation(event, { action: 'CREATE', module: 'payout', targetId: payoutId, detail: '创建了提成发放' })
   return { code: 0, data: { id: payoutId }, message: '发放单已创建' }

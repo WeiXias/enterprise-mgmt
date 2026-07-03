@@ -23,21 +23,24 @@ export default defineEventHandler(async (event) => {
   const adminId = user.userId
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
-  // 客户、商机、项目、合同负责人转给当前管理员
-  await db.update(customers).set({ ownerUserId: adminId } as { ownerUserId: string }).where(eq(customers.ownerUserId, id))
-  await db.update(opportunities).set({ ownerUserId: adminId } as { ownerUserId: string }).where(eq(opportunities.ownerUserId, id))
-  await db.update(projects).set({ ownerUserId: adminId } as { ownerUserId: string }).where(eq(projects.ownerUserId, id))
-  await db.update(contracts).set({ createdBy: adminId } as { createdBy: string }).where(eq(contracts.createdBy, id))
+  await db.transaction(async (tx) => {
+    // 客户、商机、项目、合同负责人转给当前管理员
+    await tx.update(customers).set({ ownerUserId: adminId } as { ownerUserId: string }).where(eq(customers.ownerUserId, id))
+    await tx.update(opportunities).set({ ownerUserId: adminId } as { ownerUserId: string }).where(eq(opportunities.ownerUserId, id))
+    await tx.update(projects).set({ ownerUserId: adminId } as { ownerUserId: string }).where(eq(projects.ownerUserId, id))
+    await tx.update(contracts).set({ createdBy: adminId } as { createdBy: string }).where(eq(contracts.createdBy, id))
 
-  // 清理操作记录和通知
-  await db.update(notifications).set({ deletedAt: now } as any).where(eq(notifications.userId, id))
-  await db.update(operationLogs).set({ deletedAt: now } as any).where(eq(operationLogs.userId, id))
+    // 清理操作记录和通知
+    await tx.update(notifications).set({ deletedAt: now } as any).where(eq(notifications.userId, id))
+    await tx.update(operationLogs).set({ deletedAt: now } as any).where(eq(operationLogs.userId, id))
 
-  // 解绑项目成员
-  await db.update(projectMembers).set({ deletedAt: now } as any).where(eq(projectMembers.userId, id))
+    // 解绑项目成员
+    await tx.update(projectMembers).set({ deletedAt: now } as any).where(eq(projectMembers.userId, id))
 
-  // 软删除用户
-  await db.update(users).set({ deletedAt: now }).where(eq(users.id, id))
+    // 软删除用户
+    await tx.update(users).set({ deletedAt: now }).where(eq(users.id, id))
+  })
+
   await logOperation(event, { action: 'DELETE', module: 'user', targetId: id, detail: '删除了用户，关联数据已转交' })
   return { code: 0, data: null, message: '账号已删除，关联数据已转交管理员' }
 })

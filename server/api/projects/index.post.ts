@@ -27,39 +27,41 @@ export default defineEventHandler(async (event) => {
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const projectId = generateId()
 
-  await db.insert(projects).values({
-    id: projectId,
-    name: parsed.data.name,
-    contractId: parsed.data.contractId || null,
-    ownerUserId: user.userId,
-    budget: parsed.data.budget ?? 0,
-    remark: parsed.data.remark || null,
-    startDate: parsed.data.startDate || null,
-    endDate: parsed.data.endDate || null,
-    status: 'not_started',
-    createdAt: now,
-    updatedAt: now,
-  })
+  await db.transaction(async (tx) => {
+    await tx.insert(projects).values({
+      id: projectId,
+      name: parsed.data.name,
+      contractId: parsed.data.contractId || null,
+      ownerUserId: user.userId,
+      budget: parsed.data.budget ?? 0,
+      remark: parsed.data.remark || null,
+      startDate: parsed.data.startDate || null,
+      endDate: parsed.data.endDate || null,
+      status: 'not_started',
+      createdAt: now,
+      updatedAt: now,
+    })
 
-  // 添加负责人为成员
-  await db.insert(projectMembers).values({
-    id: generateId(),
-    projectId,
-    userId: user.userId,
-    role: 'leader',
-  })
+    // 添加负责人为成员
+    await tx.insert(projectMembers).values({
+      id: generateId(),
+      projectId,
+      userId: user.userId,
+      role: 'leader',
+    })
 
-  // 添加其他成员
-  if (parsed.data.members?.length) {
-    await db.insert(projectMembers).values(
-      parsed.data.members.map(m => ({
-        id: generateId(),
-        projectId,
-        userId: m.userId,
-        role: m.role,
-      }))
-    )
-  }
+    // 添加其他成员
+    if (parsed.data.members?.length) {
+      await tx.insert(projectMembers).values(
+        parsed.data.members.map(m => ({
+          id: generateId(),
+          projectId,
+          userId: m.userId,
+          role: m.role,
+        }))
+      )
+    }
+  })
 
   await logOperation(event, { action: 'CREATE', module: 'project', targetId: projectId, detail: `创建了项目「${parsed.data.name}」` })
 

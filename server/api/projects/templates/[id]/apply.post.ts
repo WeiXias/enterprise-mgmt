@@ -47,12 +47,10 @@ export default defineEventHandler(async (event) => {
 
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
   const projectId = generateId()
-  const createdTaskIds: string[] = []
-  const createdMemberIds: string[] = []
 
-  try {
+  await db.transaction(async (tx) => {
     // 1. 创建项目
-    await db.insert(projects).values({
+    await tx.insert(projects).values({
       id: projectId,
       name: parsed.data.name,
       contractId: parsed.data.contractId || null,
@@ -69,7 +67,7 @@ export default defineEventHandler(async (event) => {
     for (const phase of phases) {
       for (const t of phase.tasks || []) {
         const taskId = generateId()
-        await db.insert(tasks).values({
+        await tx.insert(tasks).values({
           id: taskId,
           projectId,
           name: `${phase.name} - ${t.name}`,
@@ -80,40 +78,25 @@ export default defineEventHandler(async (event) => {
           createdAt: now,
           updatedAt: now,
         })
-        createdTaskIds.push(taskId)
         sortOrder++
       }
     }
 
     // 3. 当前用户添加为项目负责人
-    const memberId = generateId()
-    await db.insert(projectMembers).values({
-      id: memberId,
+    await tx.insert(projectMembers).values({
+      id: generateId(),
       projectId,
       userId: user.userId,
       role: 'leader',
     })
-    createdMemberIds.push(memberId)
+  })
 
-    // 4. 记录操作日志
-    await logOperation(event, {
-      action: 'CREATE',
-      module: 'project',
-      targetId: projectId,
-      detail: `通过模板「${template!.name}」创建了项目「${parsed.data.name}」`,
-    })
+  await logOperation(event, {
+    action: 'CREATE',
+    module: 'project',
+    targetId: projectId,
+    detail: `通过模板「${template!.name}」创建了项目「${parsed.data.name}」`,
+  })
 
-    return { code: 0, data: { id: projectId }, message: '搞定了！项目已从模板创建' }
-  } catch (error) {
-    // 清理已创建的数据（SQLite 禁用 transaction 的回退方案）
-    const nowClean = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    for (const tid of createdTaskIds) {
-      try { await db.update(tasks).set({ deletedAt: nowClean, updatedAt: nowClean }).where(eq(tasks.id, tid)) } catch { /* ignore */ }
-    }
-    for (const mid of createdMemberIds) {
-      try { await db.delete(projectMembers).where(eq(projectMembers.id, mid)) } catch { /* ignore */ }
-    }
-    try { await db.update(projects).set({ deletedAt: nowClean, updatedAt: nowClean }).where(eq(projects.id, projectId)) } catch { /* ignore */ }
-    throw error
-  }
+  return { code: 0, data: { id: projectId }, message: '搞定了！项目已从模板创建' }
 })
