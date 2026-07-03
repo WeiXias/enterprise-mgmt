@@ -19,13 +19,6 @@ function toggleGroup(key: string) {
   collapsedGroups[key] = !collapsedGroups[key]
 }
 
-function isItemActive(item: SidebarItem): boolean {
-  if (!item.to) return false
-  if (item.exact) return route.path === item.to
-  const matched = route.path === item.to || route.path.startsWith(item.to)
-  return matched
-}
-
 async function loadPanelNotifications() {
   panelLoading.value = true
   try {
@@ -176,12 +169,6 @@ const sidebarGroups = computed<SidebarGroup[]>(() => {
   })).filter(g => g.items.length > 0)
 })
 
-const userMenuItems = computed(() => [
-  [{ label: authStore.user?.name || '未登录', slot: 'account', disabled: true }],
-  [{ label: '个人中心', icon: 'i-lucide-user', to: '/dashboard/profile' }],
-  [{ label: '退出登录', icon: 'i-lucide-log-out', onSelect: () => authStore.logout() }],
-])
-
 function getNotificationIcon(type: string): string {
   const icons: Record<string, string> = { remind: 'i-lucide-alarm-clock', approval: 'i-lucide-check-circle', commission: 'i-lucide-coins', system: 'i-lucide-info' }
   return icons[type] || 'i-lucide-bell'
@@ -203,165 +190,16 @@ function formatTime(dateStr: string): string {
 <template>
   <UApp :toaster="{ position: 'top-center' }">
     <div class="flex h-screen overflow-hidden bg-surface-page">
-      <!-- 侧边栏 -->
-      <aside :class="[sidebarCollapsed ? 'w-16' : 'w-60', 'shrink-0 border-r border-line bg-surface-card flex flex-col transition-all duration-300']">
-        <div class="h-14 flex items-center gap-2 px-3 border-b border-line-light" :class="sidebarCollapsed ? 'justify-center' : 'px-5'">
-          <NuxtLink to="/dashboard" class="flex items-center gap-2 hover:opacity-80 transition-opacity" :class="sidebarCollapsed ? 'justify-center' : ''">
-            <div v-if="logoUrl" class="w-8 h-8 rounded-md overflow-hidden flex items-center justify-center shrink-0">
-              <img :src="logoUrl" alt="Logo" class="w-full h-full object-contain" />
-            </div>
-            <div v-else class="w-8 h-8 rounded-md bg-brand-600 flex items-center justify-center shrink-0">
-              <span class="text-white text-sm font-medium">E</span>
-            </div>
-            <span v-show="!sidebarCollapsed" class="text-sm font-medium text-content-primary truncate">{{ systemName }}</span>
-          </NuxtLink>
-        </div>
-
-        <nav class="flex-1 overflow-y-auto py-3 px-3">
-          <!-- 首页 / 待办 / 畅聊 / 消息 / 审批 — 无分组标题，始终显示 -->
-          <ul class="space-y-0.5 mb-2">
-            <li>
-              <NuxtLink
-                to="/dashboard"
-                :title="sidebarCollapsed ? '首页' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path === '/dashboard' ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-home" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">首页</span>
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/dashboard/todos"
-                :title="sidebarCollapsed ? '待办' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path === '/dashboard/todos' || route.path.startsWith('/dashboard/todos') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-list-checks" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">待办</span>
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/dashboard/notifications"
-                :title="sidebarCollapsed ? '消息' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/notifications') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-bell" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">消息</span>
-              </NuxtLink>
-            </li>
-          </ul>
-
-          <div class="border-t border-line-light my-2" />
-
-          <!-- 分组菜单 -->
-          <div v-for="group in sidebarGroups" :key="group.key">
-            <!-- 分组标题 -->
-            <button
-              v-show="!sidebarCollapsed"
-              class="w-full flex items-center gap-1 text-[11px] text-content-muted font-medium tracking-wide uppercase py-2 px-3 hover:text-content-secondary transition-colors"
-              @click="toggleGroup(group.key)"
-            >
-              <UIcon
-                :name="collapsedGroups[group.key] ? 'i-lucide-chevron-right' : 'i-lucide-chevron-down'"
-                class="w-3 h-3 shrink-0"
-              />
-              {{ group.label }}
-            </button>
-            <!-- 分组标识：收起时只显示一条分割线 -->
-            <div v-show="sidebarCollapsed" class="border-t border-line-light my-2 mx-2" />
-
-            <!-- 菜单项 -->
-            <ul v-show="sidebarCollapsed || !collapsedGroups[group.key]" class="space-y-0.5">
-              <template v-for="(item, idx) in group.items" :key="idx">
-                <li>
-                  <NuxtLink
-                    :to="item.to!"
-                    :title="sidebarCollapsed ? item.label : undefined"
-                    :class="[
-                      'flex items-center rounded-md text-sm transition-all',
-                      sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2',
-                      'text-content-secondary hover:bg-brand-50 hover:text-brand-600',
-                      isItemActive(item)
-                        ? 'bg-brand-50 text-brand-600 font-medium' : ''
-                    ]"
-                  >
-                    <UIcon v-if="item.icon" :name="item.icon" class="w-[18px] h-[18px] shrink-0" />
-                    <span v-show="!sidebarCollapsed" class="truncate">{{ item.label }}</span>
-                  </NuxtLink>
-                </li>
-                <!-- 二级子项 -->
-                <template v-if="item.children && !sidebarCollapsed && (!collapsedGroups[group.key])">
-                  <li v-for="(child, cIdx) in item.children" :key="'c-' + cIdx">
-                    <NuxtLink
-                      :to="child.to!"
-                      :class="[
-                        'flex items-center rounded-md text-sm transition-all gap-3 pl-10 py-1.5',
-                        'text-content-muted hover:bg-brand-50 hover:text-brand-600',
-                        $route.path === child.to || $route.path.startsWith(child.to!) ? 'text-brand-600' : ''
-                      ]"
-                    >
-                      <span class="text-xs truncate">{{ child.label }}</span>
-                    </NuxtLink>
-                  </li>
-                </template>
-              </template>
-            </ul>
-          </div>
-
-          <div class="border-t border-line-light my-2" />
-
-          <!-- 管理：同事 / 设置 / 报表 / 操作记录 -->
-          <ul class="space-y-0.5">
-            <li v-if="can('user:read')">
-              <NuxtLink
-                to="/dashboard/users"
-                :title="sidebarCollapsed ? '同事' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/users') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-user-round-plus" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">同事</span>
-              </NuxtLink>
-            </li>
-            <li v-if="can('user:read')">
-              <NuxtLink
-                to="/dashboard/settings"
-                :title="sidebarCollapsed ? '设置' : undefined"
-                :class="['flex items-center rounded-md text-sm transition-all', sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2', 'text-content-secondary hover:bg-brand-50 hover:text-brand-600', route.path.startsWith('/dashboard/settings') ? 'bg-brand-50 text-brand-600 font-medium' : '']"
-              >
-                <UIcon name="i-lucide-settings" class="w-[18px] h-[18px] shrink-0" />
-                <span v-show="!sidebarCollapsed" class="truncate">设置</span>
-              </NuxtLink>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="border-t border-line-light p-3">
-          <UDropdownMenu :items="userMenuItems" :popper="{ placement: 'top' }">
-            <button :class="[sidebarCollapsed ? 'justify-center' : '', 'w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-surface-hover transition-colors text-left']">
-              <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-                <span class="text-brand-700 text-xs font-medium">{{ authStore.user?.name?.charAt(0) || '?' }}</span>
-              </div>
-              <div v-show="!sidebarCollapsed" class="flex-1 min-w-0">
-                <p class="text-sm text-content-primary truncate">{{ authStore.user?.name || '未登录' }}</p>
-                <p class="text-xs text-content-muted truncate">{{ authStore.roleLabel }}</p>
-              </div>
-            </button>
-          </UDropdownMenu>
-          <button
-            @click="sidebarCollapsed = !sidebarCollapsed"
-            :class="[
-              'w-full flex items-center rounded-md text-sm transition-colors mt-1',
-              sidebarCollapsed ? 'justify-center px-0 py-2' : 'gap-3 px-3 py-2',
-              'text-content-muted hover:bg-brand-50 hover:text-brand-600'
-            ]"
-            :title="sidebarCollapsed ? '展开菜单' : '收起菜单'"
-          >
-            <UIcon :name="sidebarCollapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'" class="w-[18px] h-[18px] shrink-0" />
-            <span v-show="!sidebarCollapsed" class="truncate">收起菜单</span>
-          </button>
-        </div>
-      </aside>
+      <!-- 侧边栏组件 -->
+      <SidebarNav
+        :collapsed="sidebarCollapsed"
+        :logo-url="logoUrl"
+        :system-name="systemName"
+        :groups="sidebarGroups"
+        :collapsed-groups="collapsedGroups"
+        @toggle-group="toggleGroup"
+        @update:collapsed="sidebarCollapsed = $event"
+      />
 
       <!-- 主内容区 -->
       <div class="flex-1 flex flex-col overflow-hidden">
@@ -393,7 +231,6 @@ function formatTime(dateStr: string): string {
             </div>
             <!-- 下拉面板 -->
             <div v-if="open && query.trim()" class="absolute top-full mt-1.5 w-full bg-surface-card border border-line rounded-xl shadow-lg z-50 overflow-hidden">
-              <!-- 加载中 -->
               <div v-if="businessLoading && results.length === 0" class="px-4 py-6 space-y-3">
                 <div v-for="i in 3" :key="i" class="flex items-center gap-3">
                   <div class="w-4 h-4 rounded bg-surface-hover" />
@@ -403,18 +240,15 @@ function formatTime(dateStr: string): string {
                   </div>
                 </div>
               </div>
-              <!-- 空结果 -->
               <div v-else-if="results.length === 0" class="px-4 py-6 text-xs text-content-muted text-center">
                 <UIcon name="i-lucide-search-x" class="w-5 h-5 text-content-muted mx-auto mb-2" />
                 换个关键词试试？
               </div>
               <template v-else>
-                <!-- 导航结果分区 -->
                 <template v-for="(item, idx) in results" :key="(item as any).to">
                   <div v-if="(idx === 0 || (results[idx - 1] as any)?.group !== item.group) && (item as any).source !== 'business'" class="px-4 py-2 text-[10px] font-medium text-content-muted uppercase tracking-wide bg-surface-hover/50">
                     {{ item.group }}
                   </div>
-                  <!-- 业务数据分隔线 -->
                   <div v-if="idx > 0 && (results[idx - 1] as any)?.source !== 'business' && (item as any).source === 'business'" class="px-4 py-2 text-[10px] font-medium text-content-muted uppercase tracking-wide bg-surface-hover/50 border-t border-line-light">
                     搜索结果
                   </div>
