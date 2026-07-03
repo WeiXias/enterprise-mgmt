@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
     content: followUps.content,
     nextFollowUpAt: followUps.nextFollowUpAt,
     createdAt: followUps.createdAt,
-  }).from(followUps).where(eq(followUps.customerId, id)).limit(20).orderBy(desc(followUps.createdAt))
+  }).from(followUps).where(and(eq(followUps.customerId, id), isNull(followUps.deletedAt))).limit(20).orderBy(desc(followUps.createdAt))
 
   const oppList = await db.select({ id: opportunities.id, name: opportunities.name, status: opportunities.status, amount: opportunities.estimatedAmount })
     .from(opportunities).where(and(eq(opportunities.customerId, id), isNull(opportunities.deletedAt))).limit(10)

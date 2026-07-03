@@ -1,16 +1,22 @@
 import { defineEventHandler, readBody, createError, setCookie } from 'h3'
+import { z } from 'zod'
 import { db } from '#database'
 import { users } from '#schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { verifyPassword, generateAccessToken, generateRefreshToken } from '#server-utils/auth'
+
+const loginSchema = z.object({
+  username: z.string().min(2, '用户名至少2个字符'),
+  password: z.string().min(8, '密码至少8个字符'),
+})
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { username, password } = body || {}
-
-  if (!username || !password) {
-    throw createError({ statusCode: 400, statusMessage: '用户名和密码还没填呢' })
+  const parsed = loginSchema.safeParse(body)
+  if (!parsed.success) {
+    throw createError({ statusCode: 400, statusMessage: parsed.error.issues.map(i => i.message).join('；') })
   }
+  const { username, password } = parsed.data
 
   const result = await db.select({
     id: users.id,

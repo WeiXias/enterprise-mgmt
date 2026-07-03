@@ -580,11 +580,7 @@ async function seed() {
     console.log(`会计期间初始化 (${currentYear} 年 1-12 月)`)
   }
 
-  console.log('Login credentials:')
-  console.log('  admin   / admin123   (管理员)')
-  console.log('  manager / manager123 (销售负责人)')
-  console.log('  sales   / sales123   (销售成员)')
-  console.log('  finance / finance123 (财务)')
+  console.log('默认账户已创建，初始密码见部署文档。')
 }
 
 async function main() {

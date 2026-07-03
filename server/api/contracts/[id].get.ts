@@ -7,6 +7,14 @@ import { purchaseOrders, suppliers } from '#schema'
 import { eq, and, isNull, ne } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
+// 辅助：安全降级 promise，失败时记日志并返回空数组
+function safeFallback<T>(promise: Promise<T[]>, label: string): Promise<T[]> {
+  return promise.catch((err) => {
+    console.error(`[contracts:detail] ${label} 查询失败:`, err instanceof Error ? err.message : err)
+    return [] as T[]
+  })
+}
+
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   await requirePermission(event, 'contract:view')
@@ -25,52 +33,87 @@ export default defineEventHandler(async (event) => {
   }
 
   const [customerResult, productList, planList, paymentList, attachmentList, projectList, approverResult, creatorResult, ownerResult, invoiceList, relatedPurchaseOrders, relatedContracts] = await Promise.all([
-    db.select({ id: customers.id, name: customers.name }).from(customers).where(eq(customers.id, c!.customerId)).limit(1).catch(() => []),
-    db.select({
-      id: contractProducts.id, productId: contractProducts.productId,
-      quantity: contractProducts.quantity, unitPrice: contractProducts.unitPrice,
-      discount: contractProducts.discount,
-      productName: products.name, productCode: products.code,
-      categoryId: products.categoryId, categoryName: productCategories.name,
-      taxRate: products.taxRate,
-    }).from(contractProducts)
-      .leftJoin(products, eq(contractProducts.productId, products.id))
-      .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
-      .where(eq(contractProducts.contractId, id)).catch(() => []),
-    db.select().from(paymentPlans).where(eq(paymentPlans.contractId, id)).catch(() => []),
-    db.select().from(payments).where(eq(payments.contractId, id)).catch(() => []),
-    db.select().from(contractAttachments).where(eq(contractAttachments.contractId, id)).catch(() => []),
-    db.select({ id: projects.id, name: projects.name, status: projects.status }).from(projects)
-      .where(and(eq(projects.contractId, id), isNull(projects.deletedAt))).catch(() => []),
-    c!.approvedBy ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.approvedBy)).limit(1).catch(() => []) : Promise.resolve([]),
-    c!.createdBy ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.createdBy)).limit(1).catch(() => []) : Promise.resolve([]),
-    c!.ownerUserId ? db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.ownerUserId)).limit(1).catch(() => []) : Promise.resolve([]),
+    safeFallback(
+      db.select({ id: customers.id, name: customers.name }).from(customers).where(eq(customers.id, c!.customerId)).limit(1),
+      '客户信息',
+    ),
+    safeFallback(
+      db.select({
+        id: contractProducts.id, productId: contractProducts.productId,
+        quantity: contractProducts.quantity, unitPrice: contractProducts.unitPrice,
+        discount: contractProducts.discount,
+        productName: products.name, productCode: products.code,
+        categoryId: products.categoryId, categoryName: productCategories.name,
+        taxRate: products.taxRate,
+      }).from(contractProducts)
+        .leftJoin(products, eq(contractProducts.productId, products.id))
+        .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+        .where(eq(contractProducts.contractId, id)),
+      '产品列表',
+    ),
+    safeFallback(
+      db.select().from(paymentPlans).where(eq(paymentPlans.contractId, id)),
+      '付款计划',
+    ),
+    safeFallback(
+      db.select().from(payments).where(eq(payments.contractId, id)),
+      '收款记录',
+    ),
+    safeFallback(
+      db.select().from(contractAttachments).where(eq(contractAttachments.contractId, id)),
+      '附件列表',
+    ),
+    safeFallback(
+      db.select({ id: projects.id, name: projects.name, status: projects.status }).from(projects)
+        .where(and(eq(projects.contractId, id), isNull(projects.deletedAt))),
+      '关联项目',
+    ),
+    c!.approvedBy
+      ? safeFallback(db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.approvedBy)).limit(1), '审批人')
+      : Promise.resolve([]),
+    c!.createdBy
+      ? safeFallback(db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.createdBy)).limit(1), '创建人')
+      : Promise.resolve([]),
+    c!.ownerUserId
+      ? safeFallback(db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, c.ownerUserId)).limit(1), '负责人')
+      : Promise.resolve([]),
     // 关联发票
-    db.select({
-      id: invoices.id, invoiceNo: invoices.invoiceNo, type: invoices.type,
-      amount: invoices.amount, taxRate: invoices.taxRate, taxAmount: invoices.taxAmount,
-      status: invoices.status, issuedAt: invoices.issuedAt,
-    }).from(invoices).where(eq(invoices.contractId, id)).catch(() => []),
+    safeFallback(
+      db.select({
+        id: invoices.id, invoiceNo: invoices.invoiceNo, type: invoices.type,
+        amount: invoices.amount, taxRate: invoices.taxRate, taxAmount: invoices.taxAmount,
+        status: invoices.status, issuedAt: invoices.issuedAt,
+      }).from(invoices).where(eq(invoices.contractId, id)),
+      '关联发票',
+    ),
     // 关联采购订单（通过 contractId 匹配）
-    db.select({
-      id: purchaseOrders.id, code: purchaseOrders.code,
-      supplierName: suppliers.name,
-      totalAmount: purchaseOrders.totalAmount,
-      status: purchaseOrders.status,
-      expectedDate: purchaseOrders.expectedDate,
-    }).from(purchaseOrders)
-      .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
-      .where(and(eq(purchaseOrders.contractId, id), isNull(purchaseOrders.deletedAt)))
-      .limit(10).catch(() => []),
+    safeFallback(
+      db.select({
+        id: purchaseOrders.id, code: purchaseOrders.code,
+        supplierName: suppliers.name,
+        totalAmount: purchaseOrders.totalAmount,
+        status: purchaseOrders.status,
+        expectedDate: purchaseOrders.expectedDate,
+      }).from(purchaseOrders)
+        .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
+        .where(and(eq(purchaseOrders.contractId, id), isNull(purchaseOrders.deletedAt)))
+        .limit(10),
+      '关联采购订单',
+    ),
     // 关联销售合同（同客户，排除自身）
-    c!.customerId ? db.select({
-      id: contracts.id, name: contracts.name, code: contracts.code,
-      totalAmount: contracts.totalAmount, status: contracts.status,
-      customerName: customers.name,
-    }).from(contracts)
-      .leftJoin(customers, eq(contracts.customerId, customers.id))
-      .where(and(eq(contracts.customerId, c!.customerId), ne(contracts.id, id), isNull(contracts.deletedAt)))
-      .limit(10).catch(() => []) : Promise.resolve([]),
+    c!.customerId
+      ? safeFallback(
+        db.select({
+          id: contracts.id, name: contracts.name, code: contracts.code,
+          totalAmount: contracts.totalAmount, status: contracts.status,
+          customerName: customers.name,
+        }).from(contracts)
+          .leftJoin(customers, eq(contracts.customerId, customers.id))
+          .where(and(eq(contracts.customerId, c!.customerId), ne(contracts.id, id), isNull(contracts.deletedAt)))
+          .limit(10),
+        '关联销售合同',
+      )
+      : Promise.resolve([]),
   ])
 
   // Calculate received amount from payments

@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   }
   const orderColumn = sortColumns[sortBy] || followUps.createdAt
 
-  const where = eq(followUps.customerId, customerId)
+  const where = and(eq(followUps.customerId, customerId), isNull(followUps.deletedAt))
 
   const [list, totalResult] = await Promise.all([
     db.select({

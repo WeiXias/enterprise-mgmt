@@ -14,7 +14,7 @@ export function fail(message: string, code = -1): ApiResponse<null> {
 
 export function paginate<T>(list: T[], total: number, page: number, pageSize: number) {
   return success({
-    list,
+    items,
     total,
     page,
     pageSize,

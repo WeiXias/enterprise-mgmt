@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
     status: quotes.status,
     validUntil: quotes.validUntil,
     createdAt: quotes.createdAt,
-  }).from(quotes).where(eq(quotes.opportunityId, id)).orderBy(desc(quotes.createdAt))
+  }).from(quotes).where(and(eq(quotes.opportunityId, id), isNull(quotes.deletedAt))).orderBy(desc(quotes.createdAt))
 
   const followUpList = await db.select({
     id: followUps.id,
@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
     nextFollowUpAt: followUps.nextFollowUpAt,
     userId: followUps.userId,
     createdAt: followUps.createdAt,
-  }).from(followUps).where(eq(followUps.opportunityId, id)).limit(10).orderBy(desc(followUps.createdAt))
+  }).from(followUps).where(and(eq(followUps.opportunityId, id), isNull(followUps.deletedAt))).limit(10).orderBy(desc(followUps.createdAt))
 
   return {
     code: 0,

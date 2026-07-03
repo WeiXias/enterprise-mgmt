@@ -31,6 +31,15 @@ const LIMITS: Record<string, number> = {
 /**
  * Rate-limit middleware. Runs before auth middleware.
  */
+
+// Periodic cleanup: remove expired buckets every 5 minutes
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000
+setInterval(() => {
+  const now = Date.now()
+  for (const key of Object.keys(buckets)) {
+    if (buckets[key].resetAt <= now) delete buckets[key]
+  }
+}, CLEANUP_INTERVAL_MS)
 export default defineEventHandler((event) => {
   const url = event.path || ''
   if (!url.startsWith('/api/')) return

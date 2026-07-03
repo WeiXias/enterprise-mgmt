@@ -48,15 +48,15 @@ export default defineEventHandler(async (event) => {
     db.select({ count: sql<number>`count(*)` }).from(customers).where(isNull(customers.deletedAt)),
     db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), ne(opportunities.status, 'closed_won'), ne(opportunities.status, 'closed_lost'), oppOwnerWhere)),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(and(isNull(contracts.deletedAt), gte(contracts.createdAt, monthStart))),
-    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(gte(payments.paymentDate, monthStart)),
-    db.select({ count: sql<number>`count(*)` }).from(followUps).where(lte(followUps.nextFollowUpAt, today)),
-    db.select({ count: sql<number>`count(*)` }).from(tasks).where(and(eq(tasks.status, 'todo'), isNotNull(tasks.endDate))),
+    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(and(isNull(payments.deletedAt), gte(payments.paymentDate, monthStart))),
+    db.select({ count: sql<number>`count(*)` }).from(followUps).where(and(lte(followUps.nextFollowUpAt, today), isNull(followUps.deletedAt))),
+    db.select({ count: sql<number>`count(*)` }).from(tasks).where(and(eq(tasks.status, 'todo'), isNotNull(tasks.endDate), isNull(tasks.deletedAt))),
     db.select({ count: sql<number>`count(*)` }).from(contracts).where(and(isNull(contracts.deletedAt), isNotNull(contracts.endDate), gte(contracts.endDate, today), lte(contracts.endDate, thirtyDaysLater))),
     db.select({ count: sql<number>`count(*)` }).from(customers).where(and(isNull(customers.deletedAt), gte(customers.createdAt, monthStart))),
     db.select({ count: sql<number>`count(*)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), gte(opportunities.createdAt, monthStart), oppOwnerWhere)),
     db.select({ total: sql<number>`coalesce(sum(estimated_amount), 0)` }).from(opportunities).where(and(isNull(opportunities.deletedAt), ne(opportunities.status, 'closed_lost'), oppOwnerWhere)),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(contracts).where(and(isNull(contracts.deletedAt), eq(contracts.status, 'completed'), gte(contracts.updatedAt, monthStart))),
-    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments),
+    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(isNull(payments.deletedAt)),
     db.select({ total: sql<number>`coalesce(sum(invoices.amount), 0)` }).from(invoices).where(and(eq(invoices.status, 'issued'), eq(sql`(select count(*) from payments where payments.contract_id = invoices.contract_id)`, 0))),
     db.select({ total: sql<number>`coalesce(sum(invoices.amount), 0)` }).from(invoices).where(and(eq(invoices.status, 'issued'), sql`(select count(*) from payments where payments.contract_id = invoices.contract_id) > 0`)),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(commissions).where(eq(commissions.status, 'approved')),
@@ -71,19 +71,19 @@ export default defineEventHandler(async (event) => {
 
     // 合同扩展 (23-27)
     db.select({ status: contracts.status, count: sql<number>`count(*)` }).from(contracts).where(isNull(contracts.deletedAt)).groupBy(contracts.status),
-    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments),
+    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(isNull(payments.deletedAt)),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(invoices).where(eq(invoices.status, 'issued')),
     db.select({ id: contracts.id, name: contracts.name, code: contracts.code, totalAmount: contracts.totalAmount, status: contracts.status, customerName: customers.name }).from(contracts).leftJoin(customers, eq(contracts.customerId, customers.id)).where(isNull(contracts.deletedAt)).orderBy(desc(contracts.updatedAt)).limit(5),
     db.select({ id: contracts.id, name: contracts.name, endDate: contracts.endDate, customerName: customers.name }).from(contracts).leftJoin(customers, eq(contracts.customerId, customers.id)).where(and(isNull(contracts.deletedAt), eq(contracts.status, 'in_progress'), isNotNull(contracts.endDate), gte(contracts.endDate, today), lte(contracts.endDate, thirtyDaysLater))).orderBy(sql`${contracts.endDate} asc`).limit(5),
 
     // 财务扩展 (28-35) - 复用 finance overview 的查询方式
-    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments),
+    db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(payments).where(isNull(payments.deletedAt)),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(financeTransactions).where(and(isNull(financeTransactions.deletedAt), eq(financeTransactions.type, 'income'))),
     db.select({ total: sql<number>`coalesce(sum(total_amount), 0)` }).from(commissionPayouts).where(eq(commissionPayouts.status, 'confirmed')),
     db.select({ total: sql<number>`coalesce(sum(amount), 0)` }).from(financeTransactions).where(and(isNull(financeTransactions.deletedAt), eq(financeTransactions.type, 'expense'))),
     db.select({ count: sql<number>`count(*)` }).from(paymentPlans).where(and(eq(paymentPlans.status, 'pending'), lte(paymentPlans.planDate, today))),
     db.select({ count: sql<number>`count(*)` }).from(reimbursements).where(eq(reimbursements.status, 'pending')),
-    db.select({ id: payments.id, amount: payments.amount, createdAt: payments.createdAt }).from(payments).orderBy(desc(payments.createdAt)).limit(5),
+    db.select({ id: payments.id, amount: payments.amount, createdAt: payments.createdAt }).from(payments).where(isNull(payments.deletedAt)).orderBy(desc(payments.createdAt)).limit(5),
     db.select({ id: financeTransactions.id, type: financeTransactions.type, amount: financeTransactions.amount, description: financeTransactions.description, category: financeTransactions.category, transactionDate: financeTransactions.transactionDate, createdAt: financeTransactions.createdAt }).from(financeTransactions).where(isNull(financeTransactions.deletedAt)).orderBy(desc(financeTransactions.createdAt)).limit(10),
 
     // 进销存扩展 (36-39)
