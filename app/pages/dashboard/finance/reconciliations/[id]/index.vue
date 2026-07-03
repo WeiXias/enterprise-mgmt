@@ -10,6 +10,8 @@ const loading = ref(true)
 const actionLoading = ref(false)
 const showConfirm = ref(false)
 const showDispute = ref(false)
+const showDelete = ref(false)
+const deleteLoading = ref(false)
 
 function formatMoney(v: any) {
   const n = Number(v)
@@ -46,6 +48,18 @@ async function handleDispute() {
   finally { actionLoading.value = false }
 }
 
+async function handleDelete() {
+  deleteLoading.value = true
+  try {
+    const res = await $api(`/api/reconciliations/${item.value.id}`, { method: 'DELETE' }) as any
+    if (res?.code === 0) {
+      toast.add({ title: '已删除', color: 'success' })
+      navigateTo('/dashboard/finance/reconciliations')
+    }
+  } catch (err: any) { toast.add({ title: err?.data?.message || '删除失败', color: 'error' }) }
+  finally { deleteLoading.value = false }
+}
+
 onMounted(() => { fetchDetail() })
 </script>
 
@@ -59,6 +73,7 @@ onMounted(() => { fetchDetail() })
       <div v-if="item && item.status === 'pending'" class="flex items-center gap-2">
         <UButton icon="i-lucide-check-circle" color="primary" size="sm" @click="showConfirm = true">确认对账</UButton>
         <UButton icon="i-lucide-alert-triangle" variant="ghost" color="neutral" size="sm" @click="showDispute = true">标记争议</UButton>
+        <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="sm" @click="showDelete = true">删除</UButton>
       </div>
     </div>
 
@@ -115,5 +130,8 @@ onMounted(() => { fetchDetail() })
     <ConfirmDialog v-if="showDispute" v-model:open="showDispute" title="标记争议"
       message="确定标记为有争议吗？"
       confirm-text="标记争议" cancel-text="再想想" :loading="actionLoading" @confirm="handleDispute" @cancel="showDispute = false" />
+    <ConfirmDialog v-if="showDelete" v-model:open="showDelete" title="确认删除"
+      :message="`确定要删除对账单「${item?.code}」吗？删了就找不回来了。`"
+      confirm-text="确认删除" cancel-text="再想想" :loading="deleteLoading" danger @confirm="handleDelete" @cancel="showDelete = false" />
   </div>
 </template>

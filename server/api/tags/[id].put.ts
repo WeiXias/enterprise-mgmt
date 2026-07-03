@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw createError({ statusCode: 422, statusMessage: parsed.error.issues.map(i => i.message).join('; ') })
 
-  const existing = await db.select({ id: tags.id }).from(tags).where(and(eq(tags.id, id), isNull(tags.deletedAt))).limit(1)
+  const existing = await db.select({ id: tags.id, name: tags.name }).from(tags).where(and(eq(tags.id, id), isNull(tags.deletedAt))).limit(1)
   if (existing.length === 0) throw createError({ statusCode: 404, statusMessage: '标签不存在' })
 
   const now = dayjs().format('YYYY-MM-DD HH:mm:ss')

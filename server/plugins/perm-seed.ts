@@ -228,6 +228,8 @@ const seedPermissions = [
   { code: 'system:config', name: '修改系统配置', resource: '系统', action: '配置' },
   { code: 'system:backup', name: '管理备份', resource: '系统', action: '备份' },
   { code: 'system:logs', name: '查看日志', resource: '系统', action: '日志' },
+  // ── 仪表盘 ──
+  { code: 'dashboard:view', name: '查看仪表盘', resource: '仪表盘', action: '查看' },
   // ── AI ──
   { code: 'ai:read', name: '查看AI配置', resource: 'AI', action: '查看' },
   { code: 'ai:manage', name: '管理AI', resource: 'AI', action: '管理' },
@@ -324,8 +326,8 @@ export default defineNitroPlugin(async () => {
     'tag:read', 'tag:create', 'tag:edit', 'tag:delete', 'tag:manage',
     'notification:read', 'notification:delete',
     'dict:read', 'dict:edit', 'dict:manage',
-    // 用户查看 + 系统管理
-    'user:read',
+    // 系统只读
+    'dashboard:view',
     'system:read', 'system:manage', 'system:config', 'system:backup', 'system:logs',
     // AI
     'ai:read',
@@ -371,6 +373,7 @@ export default defineNitroPlugin(async () => {
     'tag:read',
     'notification:read', 'notification:delete',
     'dict:read',
+    'dashboard:view',
     'ai:read',
   ]
   await assignPerms('sales_member', salesMemberCodes)
@@ -421,6 +424,7 @@ export default defineNitroPlugin(async () => {
     'notification:read', 'notification:delete',
     'dict:read',
     // 系统只读
+    'dashboard:view',
     'system:read',
     'user:read',
     'role:view',
