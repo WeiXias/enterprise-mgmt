@@ -134,6 +134,7 @@ onMounted(() => { fetchOrders(); fetchStats() })
           </div>
           <div class="flex items-center gap-3 text-xs text-content-muted">
             <span v-if="order.supplierName"><UIcon name="i-lucide-building-2" class="w-3 h-3 inline-block mr-0.5" />{{ order.supplierName }}</span>
+            <span v-if="order.contractName" class="text-brand-600"><UIcon name="i-lucide-file-text" class="w-3 h-3 inline-block mr-0.5" />{{ order.contractName }}</span>
             <span v-if="order.expectedDate">预计 {{ order.expectedDate }}</span>
           </div>
         </div>

@@ -10,6 +10,7 @@ import { requirePermission } from '#server-utils/permission'
 const schema = z.object({
   name: z.string().min(1).max(200).optional(),
   supplierId: z.string().optional(),
+  contractId: z.string().optional().or(z.literal('')),
   expectedDate: z.string().optional().nullable(),
   remark: z.string().optional(),
   contractFilePath: z.string().optional(),
@@ -41,6 +42,7 @@ export default defineEventHandler(async (event) => {
     await db.update(purchaseOrders).set({
       ...(parsed.data.name !== undefined && { name: parsed.data.name }),
       ...(parsed.data.supplierId !== undefined && { supplierId: parsed.data.supplierId }),
+      ...(parsed.data.contractId !== undefined && { contractId: parsed.data.contractId || null }),
       ...(parsed.data.expectedDate !== undefined && { expectedDate: parsed.data.expectedDate || null }),
       ...(parsed.data.remark !== undefined && { remark: parsed.data.remark }),
       ...(parsed.data.contractFilePath !== undefined && { contractFilePath: parsed.data.contractFilePath || null }),

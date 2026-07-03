@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
-import { purchaseOrders, purchaseOrderItems, suppliers, products } from '#schema'
+import { purchaseOrders, purchaseOrderItems, suppliers, products, contracts } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
@@ -16,6 +16,9 @@ export default defineEventHandler(async (event) => {
     name: purchaseOrders.name,
     supplierId: purchaseOrders.supplierId,
     supplierName: suppliers.name,
+    contractId: purchaseOrders.contractId,
+    contractName: contracts.name,
+    contractCode: contracts.code,
     expectedDate: purchaseOrders.expectedDate,
     totalAmount: purchaseOrders.totalAmount,
     status: purchaseOrders.status,
@@ -25,6 +28,7 @@ export default defineEventHandler(async (event) => {
     updatedAt: purchaseOrders.updatedAt,
   }).from(purchaseOrders)
     .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
+    .leftJoin(contracts, eq(purchaseOrders.contractId, contracts.id))
     .where(and(eq(purchaseOrders.id, id), isNull(purchaseOrders.deletedAt)))
     .limit(1)
 

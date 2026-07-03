@@ -240,9 +240,16 @@ function getFileTypeGroup(fileName: string): 'image' | 'pdf' | 'office' | 'sprea
         </div>
         <div class="grid grid-cols-3 gap-4 text-sm">
           <div><span class="text-content-muted">供应商</span><p class="text-content-secondary mt-0.5">{{ order.supplierName || '-' }}</p></div>
+          <div><span class="text-content-muted">关联合同</span><p class="text-content-secondary mt-0.5">
+            <NuxtLink v-if="order.contractId" :to="`/dashboard/contracts/${order.contractId}`" class="text-brand-600 hover:underline">{{ order.contractCode }} {{ order.contractName }}</NuxtLink>
+            <span v-else>-</span>
+          </p></div>
           <div><span class="text-content-muted">预计到货</span><p class="text-content-secondary mt-0.5">{{ order.expectedDate || '-' }}</p></div>
           <div><span class="text-content-muted">订单总额</span><p class="text-content-secondary mt-0.5 font-medium">{{ formatAmount(order.totalAmount) }}</p></div>
           <div><span class="text-content-muted">创建时间</span><p class="text-content-secondary mt-0.5">{{ order.createdAt || '-' }}</p></div>
+          <div v-if="order.contractFilePath"><span class="text-content-muted">合同文件</span><p class="text-content-secondary mt-0.5">
+            <button class="text-sm text-brand-600 hover:underline text-left" @click="openFilePreview(order.contractFilePath)">{{ order.contractFilePath.split('/').pop() }}</button>
+          </p></div>
         </div>
         <div v-if="order.remark" class="mt-4 pt-4 border-t border-line-light">
           <span class="text-sm text-content-muted">备注</span>

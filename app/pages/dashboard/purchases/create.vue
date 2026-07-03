@@ -35,7 +35,7 @@ async function fetchSuppliers() {
 
 async function fetchContracts() {
   try {
-    const res = await $api('/api/contracts', { params: { status: 'approved', pageSize: 200 } }) as any
+    const res = await $api('/api/contracts', { params: { type: 'purchase', status: 'approved', pageSize: 200 } }) as any
     if (res?.code === 0) contractOptions.value = res.data?.items || []
   } catch { /* 静默 */ }
 }
