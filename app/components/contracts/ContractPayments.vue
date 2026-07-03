@@ -76,7 +76,7 @@ async function deletePayment(paymentId: string) {
         </div>
         <div>
           <label class="block text-sm text-content-secondary mb-1">收款日期 <span class="text-danger-500">*</span></label>
-          <input v-model="paymentForm.paymentDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" />
+          <input v-model="paymentForm.paymentDate" type="date" class="w-full input-base focus-ring" />
         </div>
         <div>
           <label class="block text-sm text-content-secondary mb-1">付款方式</label>

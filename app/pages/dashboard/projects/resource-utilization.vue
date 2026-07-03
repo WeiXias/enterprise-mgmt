@@ -35,9 +35,7 @@ onMounted(() => { fetchData() })
         <p class="text-sm text-content-muted mt-0.5">看看大家的工作排得满不满</p>
       </div>
       <div class="flex items-center gap-2">
-        <input v-model="startDate" type="date" class="input-base focus-ring" @change="fetchData" />
-        <span class="text-content-muted text-sm">至</span>
-        <input v-model="endDate" type="date" class="input-base focus-ring" @change="fetchData" />
+        <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" @update:start-date="fetchData" @update:end-date="fetchData" />
         <UButton icon="i-lucide-refresh-cw" variant="ghost" color="neutral" size="sm" @click="fetchData">刷新</UButton>
       </div>
     </div>

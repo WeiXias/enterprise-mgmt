@@ -48,9 +48,7 @@ onMounted(() => fetchAccounts())
         <option value="" disabled>选择科目</option>
         <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.code }} {{ acc.name }}</option>
       </select>
-      <input v-model="startDate" type="date" class="input-base text-sm h-9" @change="fetchData" />
-      <span class="text-content-muted text-xs">~</span>
-      <input v-model="endDate" type="date" class="input-base text-sm h-9" @change="fetchData" />
+      <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" compact @update:start-date="fetchData" @update:end-date="fetchData" />
     </div>
 
     <div v-if="!selectedAccountId" class="text-center py-12 text-content-muted">请先选择科目</div>

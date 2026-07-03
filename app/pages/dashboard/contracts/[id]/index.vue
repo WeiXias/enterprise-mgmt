@@ -505,8 +505,8 @@ onMounted(() => {
         <div class="rounded-xl border border-line-light bg-line-light/40 p-4">
           <div class="flex items-center gap-1.5 mb-3"><span class="w-0.5 h-3.5 rounded-full bg-brand-400" /><span class="text-sm font-medium text-brand-700">合同周期</span></div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-content-secondary mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
-            <div><label class="block text-sm text-content-secondary mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full input-base focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">开始日期</label><input v-model="editForm.startDate" type="date" class="w-full input-base focus-ring" /></div>
+            <div><label class="block text-sm text-content-secondary mb-1">结束日期</label><input v-model="editForm.endDate" type="date" class="w-full input-base focus-ring" /></div>
           </div>
         </div>
         <div class="rounded-xl border border-line-light bg-line-light/40 p-4">

@@ -61,9 +61,7 @@ onMounted(() => { fetchItems(); fetchPeriods() })
         <option value="approved">已审核</option>
         <option value="posted">已过账</option>
       </select>
-      <input v-model="startDate" type="date" class="input-base text-sm h-9" @change="page=1; fetchItems()" />
-      <span class="text-content-muted text-xs">~</span>
-      <input v-model="endDate" type="date" class="input-base text-sm h-9" @change="page=1; fetchItems()" />
+      <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" compact @update:start-date="page=1; fetchItems()" @update:end-date="page=1; fetchItems()" />
       <span class="text-xs text-content-muted ml-auto">共 {{ total }} 条</span>
     </div>
 

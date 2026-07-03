@@ -86,7 +86,7 @@ onMounted(() => { fetchItems(); fetchCategories(); fetchStats() })
         <input v-model="keyword" type="text" placeholder="搜描述 / 分类..." class="w-full pl-8 input-base focus-ring" @input="onSearchInput" />
       </div>
       <EnumSelect v-model="typeFilter" dict="transactionType" placeholder="全部类型" @update:model-value="page=1; fetchItems()" />
-      <input v-model="startDate" type="date" class="input-base text-sm h-9" @change="page=1; fetchItems()" /><span class="text-content-muted text-xs">~</span><input v-model="endDate" type="date" class="input-base text-sm h-9" @change="page=1; fetchItems()" />
+      <DateRangePicker v-model:start-date="startDate" v-model:end-date="endDate" compact @update:start-date="page=1; fetchItems()" @update:end-date="page=1; fetchItems()" />
       <div class="w-px h-5 bg-line mx-0.5" />
       <span class="text-xs text-content-muted">金额</span><input v-model="minAmount" type="number" placeholder="最低" class="input-base text-sm h-9 w-[80px] px-2 focus-ring" @change="page=1; fetchItems()" /><span class="text-xs text-content-muted">~</span><input v-model="maxAmount" type="number" placeholder="最高" class="input-base text-sm h-9 w-[80px] px-2 focus-ring" @change="page=1; fetchItems()" />
       <div class="w-px h-5 bg-line mx-0.5" />

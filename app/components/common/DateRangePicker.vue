@@ -1,19 +1,18 @@
 <script setup lang="ts">
 /**
- * 日期范围选择器 — 两个 date input
+ * 日期范围选择器 — 两个 date input，统一使用 input-base 样式
  * 用法: <DateRangePicker v-model:start-date="start" v-model:end-date="end" />
  */
 
 interface Props {
   startDate: string
   endDate: string
-  startLabel?: string
-  endLabel?: string
+  /** 紧凑模式：用于列表筛选栏 */
+  compact?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  startLabel: '从',
-  endLabel: '到',
+  compact: false,
 })
 
 const emit = defineEmits<{
@@ -24,24 +23,20 @@ const emit = defineEmits<{
 
 <template>
   <div class="flex items-center gap-2">
-    <div class="flex items-center gap-1.5">
-      <label class="text-xs text-content-muted flex-shrink-0">{{ startLabel }}</label>
-      <input
-        :value="startDate"
-        type="date"
-        class="px-2 py-1.5 text-sm rounded-md border border-line focus-ring bg-surface-card"
-        @input="$emit('update:startDate', ($event.target as HTMLInputElement).value)"
-      />
-    </div>
-    <span class="text-xs text-content-muted">—</span>
-    <div class="flex items-center gap-1.5">
-      <label class="text-xs text-content-muted flex-shrink-0">{{ endLabel }}</label>
-      <input
-        :value="endDate"
-        type="date"
-        class="px-2 py-1.5 text-sm rounded-md border border-line focus-ring bg-surface-card"
-        @input="$emit('update:endDate', ($event.target as HTMLInputElement).value)"
-      />
-    </div>
+    <input
+      type="date"
+      :value="startDate"
+      :class="['w-36 input-base focus-ring', compact ? 'text-xs' : 'text-sm']"
+      placeholder="开始日期"
+      @input="emit('update:startDate', ($event.target as HTMLInputElement).value)"
+    />
+    <span class="text-content-muted text-sm">{{ compact ? '~' : '—' }}</span>
+    <input
+      type="date"
+      :value="endDate"
+      :class="['w-36 input-base focus-ring', compact ? 'text-xs' : 'text-sm']"
+      placeholder="结束日期"
+      @input="emit('update:endDate', ($event.target as HTMLInputElement).value)"
+    />
   </div>
 </template>
