@@ -23,8 +23,9 @@ async function uploadImage(file: File) {
   uploading.value = true
   try {
     const fd = new FormData(); fd.append('file', file)
-    const res = await $fetch(`/api/products/${props.productId}/images`, { method: 'POST', body: fd }) as any
+    const res = await $api(`/api/products/${props.productId}/images`, { method: 'POST', body: fd }) as any
     if (res?.code === 0) { toast.add({ title: '图片已上传', color: 'success' }); fetchImages() }
+    else { toast.add({ title: res?.message || '上传失败', color: 'error' }) }
   } catch (err: any) { toast.add({ title: err?.data?.message || '上传失败', color: 'error' }) }
   finally { uploading.value = false }
 }
@@ -47,7 +48,7 @@ defineExpose({ fetchImages, images, getUrl })
 <template>
   <div>
     <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileSelect" />
-    <div v-if="images.length > 1" class="mb-5">
+    <div v-if="images.length > 0" class="mb-5">
       <h3 class="text-sm font-medium text-content-secondary mb-3">全部图片 ({{ images.length }})</h3>
       <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
         <div v-for="img in images" :key="img.id" class="relative group rounded-lg border border-line overflow-hidden aspect-square">
