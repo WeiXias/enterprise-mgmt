@@ -115,7 +115,7 @@ const rejectTarget = ref<any>(null)
 const rejectLoading = ref(false)
 const rejectReason = ref('')
 
-const { getLabel, getOptions } = useEnum()
+const { getLabel, getOptions, ensureLoaded } = useEnum()
 
 async function fetchCustomers() {
   try {
@@ -276,7 +276,8 @@ async function fetchStats() {
   try { const res = await $fetch('/api/contracts/stats', { headers: useAuthHeaders() }) as any; if (res?.code === 0) stats.value = res.data } catch {}
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await ensureLoaded()
   fetchContracts()
   fetchStats()
   fetchCustomers()
