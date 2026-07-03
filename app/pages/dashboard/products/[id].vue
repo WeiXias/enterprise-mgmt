@@ -139,19 +139,40 @@ onMounted(() => { fetchDetail() })
         <span>最近更新 {{ formatDate(product.updatedAt) }}</span>
       </div>
 
-      <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑产品" size="standard" :loading="editLoading" @confirm="handleEdit">
-        <form class="space-y-4" @submit.prevent="handleEdit">
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-content-secondary mb-1">产品名称 <span class="text-danger-500">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
-            <div><label class="block text-sm text-content-secondary mb-1">产品编码</label><input v-model="editForm.code" type="text" disabled class="w-full input-base bg-surface-page text-content-muted" /></div>
+      <FormModal v-if="showEditModal" v-model:open="showEditModal" title="编辑产品" size="lg" :loading="editLoading" @confirm="handleEdit">
+        <div class="space-y-5">
+          <!-- 基本信息 -->
+          <div>
+            <h4 class="text-xs font-medium text-content-muted mb-2">基本信息</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="block text-sm text-content-secondary mb-1">产品名称 <span class="text-danger-500">*</span></label><input v-model="editForm.name" type="text" class="w-full input-base focus-ring" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">产品编码</label><input v-model="editForm.code" type="text" disabled class="w-full input-base bg-surface-page text-content-muted" /></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-3">
+              <div><label class="block text-sm text-content-secondary mb-1">产品分类</label><EnumSelect v-model="editForm.categoryId" :options="categoryOptions.map(c => ({ value: c.id, label: c.name }))" placeholder="未分类" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">型号</label><EnumSelect dict="product_model" v-model="editForm.model" placeholder="选择型号" /></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-3">
+              <div><label class="block text-sm text-content-secondary mb-1">生产厂家</label><EnumSelect dict="product_manufacturer" v-model="editForm.manufacturer" placeholder="选择厂家" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">单位</label><EnumSelect dict="product_unit" v-model="editForm.unit" placeholder="选择单位" /></div>
+            </div>
           </div>
-          <div><label class="block text-sm text-content-secondary mb-1">产品分类</label><EnumSelect v-model="editForm.categoryId" :options="categoryOptions.map(c => ({ value: c.id, label: c.name }))" placeholder="未分类" /></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-sm text-content-secondary mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
-            <div><label class="block text-sm text-content-secondary mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+
+          <!-- 价格 -->
+          <div>
+            <h4 class="text-xs font-medium text-content-muted mb-2">价格</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="block text-sm text-content-secondary mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+            </div>
           </div>
-          <div><label class="block text-sm text-content-secondary mb-1">描述</label><textarea v-model="editForm.description" rows="3" class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" /></div>
-        </form>
+
+          <!-- 描述 -->
+          <div>
+            <h4 class="text-xs font-medium text-content-muted mb-2">描述</h4>
+            <textarea v-model="editForm.description" rows="3" placeholder="产品描述..." class="w-full px-3 py-2 text-sm rounded-md border border-line focus-ring resize-none" />
+          </div>
+        </div>
       </FormModal>
 
       <ConfirmDialog v-if="showDeleteModal" v-model:open="showDeleteModal" title="确认删除" :message="`确定要删除产品「${product.name}」吗？删了就找不回来了。`" confirm-text="确认删除" cancel-text="再想想" :loading="deleteLoading" danger @confirm="handleDelete" />
