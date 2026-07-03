@@ -10,7 +10,7 @@ export const contracts = sqliteTable('contracts', {
   id: text('id').primaryKey(),
   code: text('code').notNull().unique(),
   name: text('name').notNull(),
-  customerId: text('customer_id').notNull().references(() => customers.id),
+  customerId: text('customer_id').references(() => customers.id),
   opportunityId: text('opportunity_id').references(() => opportunities.id),
   supplierId: text('supplier_id').references(() => suppliers.id),
   partyA: text('party_a').notNull(),
