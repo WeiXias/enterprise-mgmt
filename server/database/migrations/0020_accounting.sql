@@ -92,3 +92,21 @@ CREATE INDEX idx_account_balances_period ON account_balances(period_id);
 
 -- 旧 finance_transactions 重命名为 legacy，保留历史数据查询
 ALTER TABLE finance_transactions RENAME TO finance_transactions_legacy;
+
+-- 重新创建 finance_transactions 表（供新代码使用）
+CREATE TABLE finance_transactions (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL CHECK(type IN ('income','expense')),
+  amount INTEGER NOT NULL DEFAULT 0,
+  category TEXT NOT NULL,
+  source_type TEXT NOT NULL DEFAULT 'manual' CHECK(source_type IN ('contract_payment','commission_payout','reimbursement','manual','purchase_payment')),
+  source_id TEXT,
+  contract_id TEXT REFERENCES contracts(id),
+  project_id TEXT REFERENCES projects(id),
+  transaction_date TEXT NOT NULL,
+  description TEXT,
+  payment_method TEXT CHECK(payment_method IN ('bank_transfer','check','cash','alipay','wechat_pay','other')),
+  created_by TEXT NOT NULL REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  deleted_at TEXT
+);
