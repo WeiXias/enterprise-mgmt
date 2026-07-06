@@ -56,7 +56,7 @@ async function fetchCategories() {
     const res = await $api('/api/dict/product_category') as any
     if (res?.code === 0) {
       categoryOptions.value = (res.data || []).map((d: any) => ({
-        id: d.value,
+        id: d.id,
         name: d.label,
       }))
     }

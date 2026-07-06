@@ -10,7 +10,7 @@ const loading = ref(true)
 const saving = ref(false)
 const categories = ref<any[]>([])
 
-const form = ref<any>({ name: '', code: '', categoryId: '', model: '', manufacturer: '', unit: '', standardPrice: 0, costPrice: 0, description: '' })
+const form = ref<any>({ name: '', code: '', categoryId: '', type: '', model: '', manufacturer: '', unit: '', standardPrice: 0, costPrice: 0, taxRate: 0, description: '' })
 
 // 图片
 const images = ref<{ id?: string; fileName: string; filePath: string; fileSize: number; _file?: File; _keep?: boolean }[]>([])
@@ -68,7 +68,7 @@ async function fetchData() {
     const [prodRes, catRes] = await Promise.all([$api(`/api/products/${productId}`) as any, $api('/api/product-categories') as any])
     if (prodRes?.code === 0) {
       const p = prodRes.data
-      form.value = { name: p.name, code: p.code, categoryId: p.categoryId || '', model: p.model || '', manufacturer: p.manufacturer || '', unit: p.unit || '', standardPrice: p.standardPrice || 0, costPrice: p.costPrice || 0, description: p.description || '' }
+      form.value = { name: p.name, code: p.code, categoryId: p.categoryId || '', type: p.type || '', model: p.model || '', manufacturer: p.manufacturer || '', unit: p.unit || '', standardPrice: p.standardPrice || 0, costPrice: p.costPrice || 0, taxRate: p.taxRate ?? 0, description: p.description || '' }
       // 已有图片
       if (p.productImages?.length) {
         images.value = p.productImages.map((img: any) => ({ ...img, _keep: true }))
@@ -135,6 +135,14 @@ onMounted(fetchData)
           <div><label class="block text-sm text-content-secondary mb-1">名称 <span class="text-danger-500">*</span></label><input v-model="form.name" type="text" placeholder="产品名称" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">编码 <span class="text-xs text-content-muted">(不可修改)</span></label><input v-model="form.code" type="text" disabled class="w-full input-base bg-surface-page text-content-muted" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">分类</label><EnumSelect v-model="form.categoryId" :options="categories.map(c => ({ value: c.id, label: c.name }))" placeholder="无分类" /></div>
+          <div><label class="block text-sm text-content-secondary mb-1">产品类型 <span class="text-xs text-content-muted">(产品形态)</span></label>
+            <select v-model="form.type" class="w-full input-base focus-ring">
+              <option value="">不指定</option>
+              <option value="hardware">硬件</option>
+              <option value="software">软件</option>
+              <option value="service">服务</option>
+            </select>
+          </div>
           <div><label class="block text-sm text-content-secondary mb-1">型号</label><EnumSelect dict="product_model" v-model="form.model" placeholder="选择型号" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">生产厂家</label><EnumSelect dict="product_manufacturer" v-model="form.manufacturer" placeholder="选择厂家" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">单位</label><EnumSelect dict="product_unit" v-model="form.unit" placeholder="选择单位" /></div>
@@ -147,6 +155,10 @@ onMounted(fetchData)
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-sm text-content-secondary mb-1">标准售价</label><input v-model.number="form.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
           <div><label class="block text-sm text-content-secondary mb-1">成本价</label><input v-model.number="form.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+        </div>
+        <div class="mt-3">
+          <label class="block text-sm text-content-secondary mb-1">开票税率 (%)</label>
+          <input v-model.number="form.taxRate" type="number" min="0" max="100" step="0.01" class="w-full input-base focus-ring" />
         </div>
       </div>
 

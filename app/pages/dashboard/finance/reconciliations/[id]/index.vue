@@ -73,7 +73,7 @@ onMounted(() => { fetchDetail() })
       <div v-if="item" class="flex items-center gap-2">
         <UButton v-if="item.status === 'pending'" icon="i-lucide-check-circle" color="primary" size="sm" @click="showConfirm = true">确认对账</UButton>
         <UButton v-if="item.status === 'pending'" icon="i-lucide-alert-triangle" variant="ghost" color="neutral" size="sm" @click="showDispute = true">标记争议</UButton>
-        <UButton v-if="item.status === 'pending' || item.status === 'disputed'" icon="i-lucide-trash-2" variant="ghost" color="error" size="sm" @click="showDelete = true">删除</UButton>
+        <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="sm" @click="showDelete = true">删除</UButton>
       </div>
     </div>
 
