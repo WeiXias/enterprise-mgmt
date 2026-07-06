@@ -124,7 +124,7 @@ start_service() {
   fi
 
   # 直接 nohup
-  nohup ./start.sh > /dev/null 2>&1 &
+  DB_PATH=/opt/enterprise-mgmt/data/db/enterprise.db nohup ./start.sh > /opt/enterprise-mgmt/nohup.out 2>&1 &
   echo "  ✓ 进程已启动 (PID $!)"
 }
 
