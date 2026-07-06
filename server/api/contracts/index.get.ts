@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery, createError } from 'h3'
 import { db } from '#database'
-import { contracts, customers, users, suppliers } from '#schema'
-import { eq, like, and, isNull, count, desc } from 'drizzle-orm'
+import { contracts, customers, users, suppliers, payments } from '#schema'
+import { eq, like, and, isNull, count, desc, sum, inArray } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
@@ -56,19 +56,40 @@ export default defineEventHandler(async (event) => {
   ])
 
   const total = Number(totalResult[0]?.count || 0)
+
+  // 按合同聚合已收金额
+  let paidMap = new Map<string, number>()
+  if (list.length > 0) {
+    const contractIds = list.map(c => c.id)
+    const paymentAgg = await db.select({
+      contractId: payments.contractId,
+      totalReceived: sum(payments.amount),
+    }).from(payments)
+      .where(inArray(payments.contractId, contractIds))
+      .groupBy(payments.contractId)
+    paidMap = new Map(paymentAgg.map(p => [p.contractId, Number(p.totalReceived)]))
+  }
+
   return {
     code: 0,
     data: {
-      items: list.map((c: any) => ({
-        ...c,
-        customer: { id: c.customerId, name: c.customerName },
-        supplier: { id: c.supplierId, name: c.supplierName },
-        owner: { id: c.ownerUserId, name: c.ownerName },
-        customerId: undefined,
-        customerName: undefined,
-        supplierId: undefined,
-        supplierName: undefined,
-      })),
+      items: list.map((c: any) => {
+        const totalAmt = Number(c.totalAmount)
+        const receivedAmount = paidMap.get(c.id) || 0
+        return {
+          ...c,
+          customer: { id: c.customerId, name: c.customerName },
+          supplier: { id: c.supplierId, name: c.supplierName },
+          owner: { id: c.ownerUserId, name: c.ownerName },
+          customerId: undefined,
+          customerName: undefined,
+          supplierId: undefined,
+          supplierName: undefined,
+          receivedAmount,
+          unreceivedAmount: totalAmt - receivedAmount,
+          paymentProgress: totalAmt > 0 ? Math.round((receivedAmount / totalAmt) * 10000) / 100 : 0,
+        }
+      }),
       total, page, pageSize,
       totalPages: Math.ceil(total / pageSize),
     }
