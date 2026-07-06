@@ -315,7 +315,7 @@ onMounted(() => {
         <span v-if="contract.approvedAt">审批时间：{{ formatDate(contract.approvedAt) }}</span>
       </div>
       <div v-if="contract.rejectReason" class="mt-2 text-xs text-danger-600">驳回原因：{{ contract.rejectReason }}</div>
-      <p v-if="contract.remark" class="text-sm text-content-muted mt-3 pt-3 border-t border-line-light">{{ contract.remark }}</p>
+      <p v-if="contract.remark" class="text-sm text-content-muted mt-3 pt-3 border-t border-line-light">备注：{{ contract.remark }}</p>
     </div>
 
     <!-- 合同生命周期时间轴 -->
@@ -395,6 +395,7 @@ onMounted(() => {
           <NuxtLink v-if="contract.paymentPlans?.length > 3" :to="`/dashboard/contracts/${contractId}/plans`" class="text-xs text-brand-600 hover:underline block mt-1">查看全部 {{ contract.paymentPlans.length }} 条</NuxtLink>
         </div>
         <div v-else-if="!contract.paymentPlans?.length" class="text-xs text-content-muted">还没有收款计划</div>
+        <NuxtLink :to="`/dashboard/contracts/${contractId}/plans`" class="text-xs text-brand-600 hover:underline mt-1 inline-block">管理收款计划</NuxtLink>
       </div>
 
       <!-- 收款记录 -->
@@ -412,7 +413,7 @@ onMounted(() => {
           <NuxtLink v-if="contract.payments?.length > 3" :to="`/dashboard/contracts/${contractId}/payments`" class="text-xs text-brand-600 hover:underline block mt-1">查看全部 {{ contract.payments.length }} 条</NuxtLink>
         </div>
         <div v-else-if="!contract.payments?.length" class="text-xs text-content-muted">还没有收款记录</div>
-        <NuxtLink v-if="contract.payments?.length" :to="`/dashboard/contracts/${contractId}/payments`" class="text-xs text-brand-600 hover:underline mt-1 inline-block">登记收款</NuxtLink>
+        <NuxtLink :to="`/dashboard/contracts/${contractId}/payments`" class="text-xs text-brand-600 hover:underline mt-1 inline-block">登记收款</NuxtLink>
       </div>
 
       <!-- 发票 -->
