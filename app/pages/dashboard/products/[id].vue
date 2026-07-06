@@ -64,7 +64,7 @@ async function fetchCategories() {
 }
 
 function openEditModal() {
-  editForm.value = { name: product.value.name, code: product.value.code, categoryId: product.value.category?.id || product.value.categoryId || '', model: product.value.model || '', manufacturer: product.value.manufacturer || '', unit: product.value.unit || '', standardPrice: product.value.standardPrice || 0, costPrice: product.value.costPrice || 0, description: product.value.description || '', status: product.value.status }
+  editForm.value = { name: product.value.name, code: product.value.code, categoryId: product.value.category?.id || product.value.categoryId || '', type: product.value.type || '', model: product.value.model || '', manufacturer: product.value.manufacturer || '', unit: product.value.unit || '', standardPrice: product.value.standardPrice || 0, costPrice: product.value.costPrice || 0, taxRate: product.value.taxRate ?? 0, description: product.value.description || '', status: product.value.status }
   fetchCategories()
   showEditModal.value = true
 }
@@ -150,11 +150,18 @@ onMounted(() => { fetchDetail() })
             </div>
             <div class="grid grid-cols-2 gap-3 mt-3">
               <div><label class="block text-sm text-content-secondary mb-1">产品分类</label><EnumSelect v-model="editForm.categoryId" :options="categoryOptions.map(c => ({ value: c.id, label: c.name }))" placeholder="未分类" /></div>
-              <div><label class="block text-sm text-content-secondary mb-1">型号</label><EnumSelect dict="product_model" v-model="editForm.model" placeholder="选择型号" /></div>
+              <div><label class="block text-sm text-content-secondary mb-1">产品类型 <span class="text-xs text-content-muted">(产品形态)</span></label>
+                <select v-model="editForm.type" class="w-full input-base focus-ring">
+                  <option value="">不指定</option>
+                  <option value="hardware">硬件</option>
+                  <option value="software">软件</option>
+                  <option value="service">服务</option>
+                </select>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3 mt-3">
+              <div><label class="block text-sm text-content-secondary mb-1">型号</label><EnumSelect dict="product_model" v-model="editForm.model" placeholder="选择型号" /></div>
               <div><label class="block text-sm text-content-secondary mb-1">生产厂家</label><EnumSelect dict="product_manufacturer" v-model="editForm.manufacturer" placeholder="选择厂家" /></div>
-              <div><label class="block text-sm text-content-secondary mb-1">单位</label><EnumSelect dict="product_unit" v-model="editForm.unit" placeholder="选择单位" /></div>
             </div>
           </div>
 
@@ -164,6 +171,10 @@ onMounted(() => { fetchDetail() })
             <div class="grid grid-cols-2 gap-3">
               <div><label class="block text-sm text-content-secondary mb-1">标准价格</label><input v-model.number="editForm.standardPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
               <div><label class="block text-sm text-content-secondary mb-1">成本价格</label><input v-model.number="editForm.costPrice" type="number" step="0.01" class="w-full input-base focus-ring" /></div>
+            </div>
+            <div class="mt-3">
+              <label class="block text-sm text-content-secondary mb-1">开票税率 (%)</label>
+              <input v-model.number="editForm.taxRate" type="number" min="0" max="100" step="0.01" class="w-full input-base focus-ring" />
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParams, createError } from 'h3'
 import { db } from '#database'
-import { products, productCategories } from '#schema'
+import { products, dictEntries } from '#schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
@@ -20,12 +20,12 @@ export default defineEventHandler(async (event) => {
     description: products.description,
     status: products.status,
     categoryId: products.categoryId,
-    categoryName: productCategories.name,
+    categoryName: dictEntries.label,
     createdAt: products.createdAt,
     updatedAt: products.updatedAt,
     stockQuantity: products.stockQuantity,
   }).from(products)
-    .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+    .leftJoin(dictEntries, eq(products.categoryId, dictEntries.id))
     .where(and(eq(products.id, id), isNull(products.deletedAt))).limit(1)
 
   if (result.length === 0) throw createError({ statusCode: 404, statusMessage: '产品不存在' })

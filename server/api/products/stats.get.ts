@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import { db } from '#database'
-import { products, productCategories, contractProducts } from '#schema'
+import { products, dictEntries, contractProducts } from '#schema'
 import { and, isNull, desc, sql, eq } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
@@ -11,12 +11,12 @@ export default defineEventHandler(async (event) => {
 
   // 按分类统计
   const byCategory = await db.select({
-    categoryId: productCategories.id,
-    categoryName: productCategories.name,
+    categoryId: dictEntries.id,
+    categoryName: dictEntries.label,
     productCount: sql<number>`count(${products.id})`,
-  }).from(productCategories)
-    .leftJoin(products, and(eq(products.categoryId, productCategories.id), isNull(products.deletedAt)))
-    .groupBy(productCategories.id, productCategories.name)
+  }).from(dictEntries)
+    .leftJoin(products, and(eq(products.categoryId, dictEntries.id), isNull(products.deletedAt)))
+    .groupBy(dictEntries.id, dictEntries.label)
     .orderBy(desc(sql`count(${products.id})`))
 
   // 热销产品 Top 20

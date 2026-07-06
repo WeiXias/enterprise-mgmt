@@ -64,7 +64,7 @@ async function handleCreate() {
 }
 
 function openEditModal(product: any) {
-  editForm.value = { id: product.id, name: product.name, code: product.code, categoryId: product.category?.id || product.categoryId || '', standardPrice: product.standardPrice || 0, costPrice: product.costPrice || 0, description: product.description || '', status: product.status }
+  editForm.value = { id: product.id, name: product.name, code: product.code, categoryId: product.category?.id || product.categoryId || '', model: product.model || '', manufacturer: product.manufacturer || '', unit: product.unit || '', type: product.type || '', standardPrice: product.standardPrice || 0, costPrice: product.costPrice || 0, taxRate: product.taxRate ?? 0, description: product.description || '', status: product.status }
   showEditModal.value = true
 }
 

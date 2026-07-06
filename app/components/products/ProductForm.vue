@@ -55,11 +55,11 @@ const emit = defineEmits<{ 'update:modelValue': [value: any]; submit: [] }>()
           <EnumSelect dict="product_unit" :model-value="modelValue.unit" placeholder="选择单位" @update:model-value="$emit('update:modelValue', { ...modelValue, unit: $event })" />
         </div>
         <div>
-          <label class="block text-sm text-content-secondary mb-1">产品分类</label>
+          <label class="block text-sm text-content-secondary mb-1">产品分类 <span class="text-xs text-content-muted">(业务分组)</span></label>
           <slot name="category-select" />
         </div>
         <div>
-          <label class="block text-sm text-content-secondary mb-1">产品类型</label>
+          <label class="block text-sm text-content-secondary mb-1">产品类型 <span class="text-xs text-content-muted">(产品形态)</span></label>
           <select
             :value="modelValue.type || ''"
             class="w-full input-base focus-ring"

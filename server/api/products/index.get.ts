@@ -1,6 +1,6 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { db } from '#database'
-import { products, productCategories } from '#schema'
+import { products, dictEntries } from '#schema'
 import { eq, and, isNull, like, or, sql, asc, desc } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
@@ -47,11 +47,11 @@ export default defineEventHandler(async (event) => {
       stockQuantity: sql<number>`COALESCE(${products.stockQuantity}, 0)`,
       status: products.status,
       categoryId: products.categoryId,
-      categoryName: productCategories.name,
+      categoryName: dictEntries.label,
       description: products.description,
       createdAt: products.createdAt,
     }).from(products)
-      .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+      .leftJoin(dictEntries, eq(products.categoryId, dictEntries.id))
       .where(and(...conditions))
       .orderBy(orderFn(orderColumn))
       .limit(pageSize).offset((page - 1) * pageSize),

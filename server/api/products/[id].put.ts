@@ -13,8 +13,10 @@ const schema = z.object({
   model: z.string().max(100).optional().nullable(),
   manufacturer: z.string().max(100).optional().nullable(),
   unit: z.string().max(20).optional().nullable(),
+  type: z.enum(['hardware', 'software', 'service']).optional().nullable(),
   standardPrice: z.number().min(0).optional(),
   costPrice: z.number().min(0).optional(),
+  taxRate: z.number().min(0).max(100).optional().nullable(),
   description: z.string().optional().nullable(),
   status: z.enum(['on_sale', 'off_shelf']).optional(),
 })
