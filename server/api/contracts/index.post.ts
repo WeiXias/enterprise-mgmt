@@ -43,8 +43,12 @@ export default defineEventHandler(async (event) => {
   const contractId = generateId()
   const codeNo = `C-${Date.now().toString().slice(-8)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
 
-  await db.transaction(async (tx) => {
-    await tx.insert(contracts).values({
+  // 预生成所有需要的 ID（better-sqlite3 transaction 不支持 async 回调）
+  const productIds = (parsed.data.products || []).map(() => generateId())
+  const planIds = (parsed.data.plans || []).map(() => generateId())
+
+  db.transaction((tx) => {
+    tx.insert(contracts).values({
       id: contractId,
       code: codeNo,
       name: parsed.data.name,
@@ -69,9 +73,9 @@ export default defineEventHandler(async (event) => {
 
     // 关联产品
     if (parsed.data.products?.length) {
-      await tx.insert(contractProducts).values(
-        parsed.data.products.map(p => ({
-          id: generateId(),
+      tx.insert(contractProducts).values(
+        parsed.data.products.map((p, i) => ({
+          id: productIds[i],
           contractId,
           productId: p.productId,
           quantity: p.quantity,
@@ -83,9 +87,9 @@ export default defineEventHandler(async (event) => {
 
     // 收款计划
     if (parsed.data.plans?.length) {
-      await tx.insert(paymentPlans).values(
-        parsed.data.plans.map(p => ({
-          id: generateId(),
+      tx.insert(paymentPlans).values(
+        parsed.data.plans.map((p, i) => ({
+          id: planIds[i],
           contractId,
           amount: p.amount,
           planDate: p.planDate,
