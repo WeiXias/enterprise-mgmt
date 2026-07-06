@@ -14,6 +14,7 @@ interface PaginatedResult<T = unknown> {
 export function useTable<T = unknown>(options: TableOptions) {
   const { apiUrl, pageSize: defaultPageSize = 20, debounceMs = 300, searchApiUrl } = options
   const { $api } = useNuxtApp()
+  const toast = useToast()
 
   const loading = ref(false)
   const list = ref<T[]>([]) as Ref<T[]>
@@ -66,8 +67,9 @@ export function useTable<T = unknown>(options: TableOptions) {
         list.value = res.data.items || res.data.list || []
         total.value = res.data.total || 0
       }
-    } catch {
-      // 静默：列表加载失败时由业务调用方处理
+    } catch (error: any) {
+      const msg = error?.response?.status === 401 ? '登录已过期，请重新登录' : (error?.response?.status === 403 ? '暂无权限查看此数据' : '加载失败，请重试')
+      toast.add({ title: msg, color: 'error' })
     } finally {
       loading.value = false
     }

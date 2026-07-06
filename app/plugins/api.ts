@@ -1,5 +1,3 @@
-import type { FetchOptions } from 'ofetch'
-
 export default defineNuxtPlugin(() => {
   const authStore = useAuthStore()
 
@@ -12,23 +10,21 @@ export default defineNuxtPlugin(() => {
         options.headers = headers
       }
     },
-    async onResponseError({ response }) {
-      // token 过期时尝试刷新
+    async onResponseError({ response, request, options }) {
       if (response.status === 401 && authStore.refreshToken) {
         const refreshed = await authStore.refreshAccessToken()
         if (refreshed) {
-          // 刷新成功，重试原始请求（由调用方处理）
+          // 更新重试请求的 token
+          const headers = new Headers(options.headers)
+          headers.set('Authorization', `Bearer ${authStore.accessToken}`)
+          options.headers = headers
+          return $fetch(request as string, options as unknown as Record<string, unknown>)
         }
       }
     }
   })
 
-  // Wrapper that loosens method type
-  const apiWrapper = (url: string, options?: { method?: string; body?: unknown; params?: Record<string, unknown> }) => {
-    return api(url, options as Record<string, unknown>)
-  }
-
   return {
-    provide: { api: apiWrapper }
+    provide: { api }
   }
 })
