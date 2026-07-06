@@ -6,7 +6,7 @@ import { eq, and, isNull, desc, sql, count as drizzleCount } from 'drizzle-orm'
 import { requirePermission } from '#server-utils/permission'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'finance:view')
+  await requirePermission(event, 'finance:read')
 
   // 当前期间
   const now = new Date()
