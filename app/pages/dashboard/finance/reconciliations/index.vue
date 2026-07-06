@@ -141,7 +141,7 @@ onMounted(() => { fetchList() })
         <div class="flex items-center gap-1">
           <UButton v-if="item.status === 'pending'" icon="i-lucide-check-circle" variant="ghost" color="neutral" size="xs" title="确认对账" @click="confirmTarget = item; showConfirm = true" />
           <UButton v-if="item.status === 'pending'" icon="i-lucide-alert-triangle" variant="ghost" color="neutral" size="xs" title="标记争议" @click="disputeTarget = item; showDispute = true" />
-          <UButton v-if="item.status === 'pending'" icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" title="删除" @click="deleteTarget = item; showDelete = true" />
+          <UButton v-if="item.status === 'pending' || item.status === 'disputed'" icon="i-lucide-trash-2" variant="ghost" color="error" size="xs" title="删除" @click="deleteTarget = item; showDelete = true" />
         </div>
       </div>
     </div>

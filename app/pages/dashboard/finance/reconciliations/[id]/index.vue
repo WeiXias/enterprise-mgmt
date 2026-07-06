@@ -70,10 +70,10 @@ onMounted(() => { fetchDetail() })
         <NuxtLink to="/dashboard/finance/reconciliations" class="text-xs text-content-muted hover:text-brand-600 mb-1 inline-block">← 返回列表</NuxtLink>
         <h1 class="text-lg font-medium text-content-primary">对账单详情</h1>
       </div>
-      <div v-if="item && item.status === 'pending'" class="flex items-center gap-2">
-        <UButton icon="i-lucide-check-circle" color="primary" size="sm" @click="showConfirm = true">确认对账</UButton>
-        <UButton icon="i-lucide-alert-triangle" variant="ghost" color="neutral" size="sm" @click="showDispute = true">标记争议</UButton>
-        <UButton icon="i-lucide-trash-2" variant="ghost" color="error" size="sm" @click="showDelete = true">删除</UButton>
+      <div v-if="item" class="flex items-center gap-2">
+        <UButton v-if="item.status === 'pending'" icon="i-lucide-check-circle" color="primary" size="sm" @click="showConfirm = true">确认对账</UButton>
+        <UButton v-if="item.status === 'pending'" icon="i-lucide-alert-triangle" variant="ghost" color="neutral" size="sm" @click="showDispute = true">标记争议</UButton>
+        <UButton v-if="item.status === 'pending' || item.status === 'disputed'" icon="i-lucide-trash-2" variant="ghost" color="error" size="sm" @click="showDelete = true">删除</UButton>
       </div>
     </div>
 
